@@ -9,6 +9,7 @@ import TaxSummaryReport from "../TaxSummaryReport";
 import CheckInSummaryReport from "../CheckInSummaryReport";
 import PlatformFeesReport from "../PlatformFeesReport";
 import {t} from "@lingui/macro";
+import {STRIPE_ENABLED} from "../../../../../utilites/paymentProviders.ts";
 
 const renderReport = (reportType: string) => {
     switch (reportType) {
@@ -21,7 +22,7 @@ const renderReport = (reportType: string) => {
         case OrganizerReportTypes.CheckInSummary:
             return <CheckInSummaryReport/>;
         case OrganizerReportTypes.PlatformFees:
-            return <PlatformFeesReport/>;
+            return STRIPE_ENABLED ? <PlatformFeesReport/> : <div>{t`Report not found`}</div>;
         default:
             return <div>{t`Report not found`}</div>;
     }

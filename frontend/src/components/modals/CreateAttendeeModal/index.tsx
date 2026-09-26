@@ -111,7 +111,7 @@ export const CreateAttendeeModal = ({onClose}: GenericModalProps) => {
                     form.setFieldValue(
                         `taxes_and_fees.${index}`,
                         {
-                            tax_or_fee_id: tax.id,
+                            tax_or_fee_id: tax.id as number,
                             amount: 0.00,
                             name: tax.name,
                         },

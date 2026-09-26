@@ -25,6 +25,7 @@ abstract class OrganizerDomainObjectAbstract extends \HiEvents\DomainObjects\Abs
     final public const CURRENCY = 'currency';
     final public const TIMEZONE = 'timezone';
     final public const STATUS = 'status';
+    final public const SLUG = 'slug';
 
     protected int $id;
     protected int $account_id;
@@ -41,6 +42,7 @@ abstract class OrganizerDomainObjectAbstract extends \HiEvents\DomainObjects\Abs
     protected string $currency = 'USD';
     protected string $timezone;
     protected string $status = 'DRAFT';
+    protected ?string $slug = null;
 
     public function toArray(): array
     {
@@ -60,6 +62,7 @@ abstract class OrganizerDomainObjectAbstract extends \HiEvents\DomainObjects\Abs
                     'currency' => $this->currency ?? null,
                     'timezone' => $this->timezone ?? null,
                     'status' => $this->status ?? null,
+                    'slug' => $this->slug ?? null,
                 ];
     }
 
@@ -226,5 +229,16 @@ abstract class OrganizerDomainObjectAbstract extends \HiEvents\DomainObjects\Abs
     public function getStatus(): string
     {
         return $this->status;
+    }
+
+    public function setSlug(?string $slug): self
+    {
+        $this->slug = $slug;
+        return $this;
+    }
+
+    public function getStoredSlug(): ?string
+    {
+        return $this->slug;
     }
 }

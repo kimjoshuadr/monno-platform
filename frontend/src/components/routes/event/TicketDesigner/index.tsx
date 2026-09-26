@@ -8,7 +8,7 @@ import {IdParam} from "../../../../types.ts";
 import {showSuccess} from "../../../../utilites/notifications.tsx";
 import {t} from "@lingui/macro";
 import {useForm} from "@mantine/form";
-import {Button, ColorInput, Textarea, Accordion, Stack, Text, Group, Select} from "@mantine/core";
+import {Button, ColorInput, Textarea, Accordion, Stack, Text, Group, Select, Switch} from "@mantine/core";
 import {IconColorSwatch, IconHelp, IconPrinter} from "@tabler/icons-react";
 import {Tooltip} from "../../../common/Tooltip";
 import {ImageUploadDropzone} from "../../../common/ImageUploadDropzone";
@@ -22,6 +22,7 @@ interface TicketDesignSettings {
     logo_image_id: IdParam;
     footer_text: string | null;
     date_display_mode: 'START_DATE_TIME' | 'DATE_RANGE' | 'HIDDEN';
+    layout_type: 'default' | 'modern';
     enabled: boolean;
 }
 
@@ -41,6 +42,7 @@ const TicketDesigner = () => {
             logo_image_id: undefined,
             footer_text: '',
             date_display_mode: 'START_DATE_TIME',
+            layout_type: 'default',
             enabled: true,
         }
     });
@@ -55,6 +57,7 @@ const TicketDesigner = () => {
                 logo_image_id: settings.logo_image_id || undefined,
                 footer_text: settings.footer_text || '',
                 date_display_mode: settings.date_display_mode || 'START_DATE_TIME',
+                layout_type: settings.layout_type === 'modern' ? 'modern' : 'default',
                 enabled: settings.enabled !== false,
             });
         }
@@ -64,7 +67,7 @@ const TicketDesigner = () => {
         if (existingLogo?.id) {
             form.setFieldValue('logo_image_id', existingLogo.id);
         } else {
-            form.setFieldValue('logo_image_id', null);
+            form.setFieldValue('logo_image_id', undefined);
         }
     }, [existingLogo?.id]);
 
@@ -77,6 +80,7 @@ const TicketDesigner = () => {
                         logo_image_id: values.logo_image_id,
                         footer_text: values.footer_text || undefined,
                         date_display_mode: values.date_display_mode,
+                        layout_type: values.layout_type,
                         enabled: values.enabled
                     }
                 },
@@ -180,6 +184,29 @@ const TicketDesigner = () => {
                                                 <Text size="xs" c="dimmed" ta="right" mt={4}>
                                                     {form.values.footer_text?.length || 0} / 500
                                                 </Text>
+                                            </div>
+
+                                            <div>
+                                                <Switch
+                                                    label={t`Issue tickets`}
+                                                    description={t`Turn off to stop tickets being issued for this event's orders`}
+                                                    size="sm"
+                                                    {...form.getInputProps('enabled', {type: 'checkbox'})}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Select
+                                                    label={t`Ticket layout`}
+                                                    description={t`How the ticket is arranged when printed or shown`}
+                                                    size="sm"
+                                                    allowDeselect={false}
+                                                    data={[
+                                                        {value: 'default', label: t`Default`},
+                                                        {value: 'modern', label: t`Modern`},
+                                                    ]}
+                                                    {...form.getInputProps('layout_type')}
+                                                />
                                             </div>
 
                                             <div>

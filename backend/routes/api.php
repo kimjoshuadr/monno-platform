@@ -69,6 +69,7 @@ use HiEvents\Http\Actions\Auth\GetUserInvitationAction;
 use HiEvents\Http\Actions\Auth\LoginAction;
 use HiEvents\Http\Actions\Auth\LogoutAction;
 use HiEvents\Http\Actions\Auth\RefreshTokenAction;
+use HiEvents\Http\Actions\Auth\RegisterBuyerAction;
 use HiEvents\Http\Actions\Auth\ResetPasswordAction;
 use HiEvents\Http\Actions\Auth\ValidateResetPasswordTokenAction;
 use HiEvents\Http\Actions\CapacityAssignments\CreateCapacityAssignmentAction;
@@ -89,6 +90,7 @@ use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListPublicAction;
 use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListStatsPublicAction;
 use HiEvents\Http\Actions\CheckInLists\UpdateCheckInListAction;
 use HiEvents\Http\Actions\Common\GetColorThemesAction;
+use HiEvents\Http\Actions\Common\GetEventCategoriesPublicAction;
 use HiEvents\Http\Actions\Common\Webhooks\StripeIncomingWebhookAction;
 use HiEvents\Http\Actions\EmailTemplates\CreateEventEmailTemplateAction;
 use HiEvents\Http\Actions\EmailTemplates\CreateOrganizerEmailTemplateAction;
@@ -126,6 +128,7 @@ use HiEvents\Http\Actions\Events\GetEventAction;
 use HiEvents\Http\Actions\Events\GetEventDeletionStatusAction;
 use HiEvents\Http\Actions\Events\GetEventPublicAction;
 use HiEvents\Http\Actions\Events\GetEventsAction;
+use HiEvents\Http\Actions\Events\GetEventsListPublicAction;
 use HiEvents\Http\Actions\Events\GetOrganizerEventsPublicAction;
 use HiEvents\Http\Actions\Events\Images\CreateEventImageAction;
 use HiEvents\Http\Actions\Events\Images\DeleteEventImageAction;
@@ -139,6 +142,7 @@ use HiEvents\Http\Actions\EventSettings\EditEventSettingsAction;
 use HiEvents\Http\Actions\EventSettings\GetEventSettingsAction;
 use HiEvents\Http\Actions\EventSettings\GetPlatformFeePreviewAction;
 use HiEvents\Http\Actions\EventSettings\PartialEditEventSettingsAction;
+use HiEvents\Http\Actions\Images\CreateBackgroundVideoAction;
 use HiEvents\Http\Actions\Images\CreateImageAction;
 use HiEvents\Http\Actions\Images\DeleteImageAction;
 use HiEvents\Http\Actions\Locations\CreateLocationAction;
@@ -208,6 +212,18 @@ use HiEvents\Http\Actions\Products\EditProductAction;
 use HiEvents\Http\Actions\Products\GetProductAction;
 use HiEvents\Http\Actions\Products\GetProductsAction;
 use HiEvents\Http\Actions\Products\SortProductsAction;
+use HiEvents\Http\Actions\Profile\CreateMyFollowAction;
+use HiEvents\Http\Actions\Profile\CreateMyReviewAction;
+use HiEvents\Http\Actions\Profile\DeleteMyFollowAction;
+use HiEvents\Http\Actions\Profile\DeleteMyReviewAction;
+use HiEvents\Http\Actions\Profile\EditMyReviewAction;
+use HiEvents\Http\Actions\Profile\GetMyFollowsAction;
+use HiEvents\Http\Actions\Profile\GetMyInterestsAction;
+use HiEvents\Http\Actions\Profile\GetMyReviewsAction;
+use HiEvents\Http\Actions\Profile\GetMyTicketsAction;
+use HiEvents\Http\Actions\Profile\GetProfileAction;
+use HiEvents\Http\Actions\Profile\UpdateMyInterestsAction;
+use HiEvents\Http\Actions\Profile\UpdateProfileAction;
 use HiEvents\Http\Actions\PromoCodes\CreatePromoCodeAction;
 use HiEvents\Http\Actions\PromoCodes\DeletePromoCodeAction;
 use HiEvents\Http\Actions\PromoCodes\GetPromoCodeAction;
@@ -275,6 +291,8 @@ $router->prefix('/auth')->group(
         $router->post('/login', LoginAction::class)->name('auth.login');
         $router->post('/logout', LogoutAction::class)->name('auth.logout');
         $router->post('/register', CreateAccountAction::class)->name('auth.register');
+        // Ticket buyers: a users row and a session, with no organizer account.
+        $router->post('/register-buyer', RegisterBuyerAction::class)->name('auth.register-buyer');
         $router->post('/forgot-password', ForgotPasswordAction::class)->name('auth.forgot-password');
 
         // Invitations
@@ -310,6 +328,24 @@ $router->middleware(['auth:api'])->group(
         $router->post('/users/{user_id}/confirm-email/{resetToken}', ConfirmEmailAddressAction::class);
         $router->post('/users/{user_id}/resend-email-confirmation', ResendEmailConfirmationAction::class);
         $router->post('/users/{user_id}/confirm-email-with-code', ConfirmEmailWithCodeAction::class);
+
+        // Buyer profile. Every route here is scoped by user_id alone — a ticket
+        // buyer has no account, so nothing may reach for account context.
+        $router->get('/profile', GetProfileAction::class);
+        $router->put('/profile', UpdateProfileAction::class);
+        $router->get('/me/tickets', GetMyTicketsAction::class);
+
+        $router->get('/me/reviews', GetMyReviewsAction::class);
+        $router->post('/me/reviews', CreateMyReviewAction::class);
+        $router->put('/me/reviews/{review_id}', EditMyReviewAction::class);
+        $router->delete('/me/reviews/{review_id}', DeleteMyReviewAction::class);
+
+        $router->get('/me/follows', GetMyFollowsAction::class);
+        $router->post('/me/follows', CreateMyFollowAction::class);
+        $router->delete('/me/follows/{organizer_id}', DeleteMyFollowAction::class);
+
+        $router->get('/me/interests', GetMyInterestsAction::class);
+        $router->put('/me/interests', UpdateMyInterestsAction::class);
 
         // Announcements
         $router->get('/announcements/active', GetActiveAnnouncementsAction::class);
@@ -536,6 +572,7 @@ $router->middleware(['auth:api'])->group(
 
         // Images
         $router->post('/images', CreateImageAction::class);
+        $router->post('/images/background-video', CreateBackgroundVideoAction::class);
         $router->delete('/images/{image_id}', DeleteImageAction::class);
     }
 );
@@ -607,6 +644,7 @@ $router->prefix('/admin')->middleware(['auth:api'])->group(
 $router->prefix('/public')->group(
     function (Router $router): void {
         // Events
+        $router->get('/events', GetEventsListPublicAction::class);
         $router->get('/events/{event_id}', GetEventPublicAction::class);
         $router->get('/events/{event_id}/occurrences', GetEventOccurrencesPublicAction::class)
             ->middleware('throttle:60,1');
@@ -662,6 +700,9 @@ $router->prefix('/public')->group(
 
         // Color themes
         $router->get('/color-themes', GetColorThemesAction::class);
+
+        // Event categories
+        $router->get('/categories', GetEventCategoriesPublicAction::class);
 
         // Ticket Lookup
         $router->post('/ticket-lookup', SendTicketLookupEmailAction::class)

@@ -8,7 +8,7 @@ class UpdateMeDTO extends BaseDTO
 {
     public function __construct(
         public readonly int $id,
-        public readonly int $account_id,
+        public readonly ?int $account_id,
         public readonly ?string $first_name,
         public readonly ?string $last_name,
         public readonly ?string $email,

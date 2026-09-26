@@ -57,7 +57,7 @@ return [
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
         'description' => <<<'MARKDOWN'
-The Hi.Events API powers event management, ticketing, and checkout.
+The monno API powers event management, ticketing, and checkout.
 
 ## Authentication
 
@@ -65,7 +65,7 @@ Management endpoints require a bearer token (JWT) obtained from `POST /auth/logi
 
 ## Stability
 
-This API is currently **unversioned and likely to change**. Endpoints, request fields, and response schemas may change between releases without notice, so pin your integration to a specific Hi.Events release and review the changelog when upgrading.
+This API is currently **unversioned and likely to change**. Endpoints, request fields, and response schemas may change between releases without notice, so pin your integration to a specific monno release and review the changelog when upgrading.
 
 ## Outgoing webhooks
 

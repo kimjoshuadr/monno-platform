@@ -261,7 +261,7 @@ const ConfigurationModal = ({configuration, onClose}: ConfigurationModalProps) =
 
                     <Switch
                         label={t`Bypass Application Fees`}
-                        description={t`When enabled, no application fees will be charged on Stripe Connect transactions. Use this for countries where application fees are not supported.`}
+                        description={t`When enabled, no application fees will be charged on ticket sales. Use this for countries where application fees are not supported.`}
                         {...form.getInputProps('bypass_application_fees', { type: 'checkbox' })}
                     />
 

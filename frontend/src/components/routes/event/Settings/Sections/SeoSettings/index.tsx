@@ -1,5 +1,5 @@
 import {t} from "@lingui/macro";
-import {Button, Switch, TextInput} from "@mantine/core";
+import {Button, Switch, Text, TextInput} from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {useParams} from "react-router";
 import {useEffect} from "react";
@@ -10,20 +10,32 @@ import {useFormErrorResponseHandler} from "../../../../../../hooks/useFormErrorR
 import {useUpdateEventSettings} from "../../../../../../mutations/useUpdateEventSettings.ts";
 import {useGetEventSettings} from "../../../../../../queries/useGetEventSettings.ts";
 import {HeadingWithDescription} from "../../../../../common/Card/CardHeading";
+import {ImageUploadDropzone} from "../../../../../common/ImageUploadDropzone";
+import {GET_EVENT_IMAGES_QUERY_KEY, useGetEventImages} from "../../../../../../queries/useGetEventImages.ts";
+import {GET_EVENT_PUBLIC_QUERY_KEY} from "../../../../../../queries/useGetEventPublic.ts";
+import {queryClient} from "../../../../../../utilites/queryClient.ts";
 
 export const SeoSettings = () => {
     const {eventId} = useParams();
     const eventSettingsQuery = useGetEventSettings(eventId);
+    const eventImagesQuery = useGetEventImages(eventId);
     const updateMutation = useUpdateEventSettings();
+    const existingCover = eventImagesQuery.data?.find((image) => image.type === 'EVENT_COVER');
     const form = useForm({
         initialValues: {
             allow_search_engine_indexing: true,
             seo_title: '',
             seo_description: '',
             seo_keywords: '',
+            website_url: '',
         }
     });
     const formErrorHandle = useFormErrorResponseHandler();
+
+    const handleImageChange = () => {
+        queryClient.invalidateQueries({queryKey: [GET_EVENT_IMAGES_QUERY_KEY, eventId]});
+        queryClient.invalidateQueries({queryKey: [GET_EVENT_PUBLIC_QUERY_KEY, eventId]});
+    };
 
     useEffect(() => {
         if (eventSettingsQuery?.isFetched && eventSettingsQuery?.data) {
@@ -32,6 +44,7 @@ export const SeoSettings = () => {
                 seo_title: eventSettingsQuery.data.seo_title,
                 seo_description: eventSettingsQuery.data.seo_description,
                 seo_keywords: eventSettingsQuery.data.seo_keywords,
+                website_url: eventSettingsQuery.data.website_url || '',
             });
         }
     }, [eventSettingsQuery.isFetched]);
@@ -56,6 +69,24 @@ export const SeoSettings = () => {
                 heading={t`SEO Settings`}
                 description={t`Customize the SEO settings for this event`}
             />
+            <div>
+                <Text fw={500} size="sm" mb="xs">{t`Cover image`}</Text>
+                <Text c="dimmed" size="sm" mb="xs">
+                    {t`Shown when your event is shared — link previews — and in listings. We recommend 1950px by 650px (3:1), up to 5MB.`}
+                </Text>
+                <ImageUploadDropzone
+                    imageType="EVENT_COVER"
+                    entityId={eventId}
+                    onUploadSuccess={handleImageChange}
+                    onDeleteSuccess={handleImageChange}
+                    existingImageData={{
+                        url: existingCover?.url,
+                        id: existingCover?.id,
+                    }}
+                    helpText={t`Shown in link previews and listings`}
+                    dataTestId="event-cover-upload"
+                />
+            </div>
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <fieldset disabled={eventSettingsQuery.isLoading || updateMutation.isPending}>
                     <TextInput
@@ -80,6 +111,13 @@ export const SeoSettings = () => {
                         {...form.getInputProps('allow_search_engine_indexing', {type: 'checkbox'})}
                         description={t`Allow search engines to index this event`}
                         label={t`Allow search engine indexing`}
+                    />
+                    <TextInput
+                        {...form.getInputProps('website_url')}
+                        type={'url'}
+                        description={t`A link shown on the event page, for example to an external schedule or venue page.`}
+                        label={t`Event website`}
+                        placeholder={t`https://awesome-events.com/schedule`}
                     />
                     <Button loading={updateMutation.isPending} type={'submit'}>
                         {t`Save`}

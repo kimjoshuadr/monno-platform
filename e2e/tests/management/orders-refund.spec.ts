@@ -4,11 +4,11 @@ import { OrderPage } from '../../pages/order.page';
 import { createLiveEventWithPaidTicket } from '../../api/factory';
 import { deliverPaymentIntentSucceededWebhook, parsePaymentReturnUrl } from '../../api/stripe';
 import { uniqueEmail } from '../../utils/unique';
-import { STRIPE_PUBLIC_KEY } from '../../utils/env';
+import { skipStripeSpecs, STRIPE_SPEC_SKIP_REASON } from '../../utils/env';
 import { nonSaasOnly } from '../../utils/mode';
 
 test.describe('order refunds', () => {
-  test.skip(!STRIPE_PUBLIC_KEY, 'Requires STRIPE_PUBLIC_KEY (Stripe test mode) to be configured.');
+  test.skip(skipStripeSpecs, STRIPE_SPEC_SKIP_REASON);
   nonSaasOnly();
 
   test('an organizer partially refunds a Stripe order', { tag: '@stripe' }, async ({ page, authedPage, api, account, publicApi }) => {

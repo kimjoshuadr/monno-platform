@@ -4,29 +4,29 @@ import {useParams} from "react-router";
 import {useGetEventSettings} from "../../../../queries/useGetEventSettings.ts";
 import {useUpdateEventSettings} from "../../../../mutations/useUpdateEventSettings.ts";
 import {useFormErrorResponseHandler} from "../../../../hooks/useFormErrorResponseHandler.tsx";
-import {EventSettings, HomepageThemeSettings, IdParam} from "../../../../types.ts";
+import {EventSettings, HomepageBlock, HomepageThemeSettings, IdParam} from "../../../../types.ts";
 import {showSuccess} from "../../../../utilites/notifications.tsx";
 import {t} from "@lingui/macro";
 import {useForm} from "@mantine/form";
 import {Button, Group, TextInput, Accordion, Stack, Text} from "@mantine/core";
-import {IconColorPicker, IconHelp, IconPhoto, IconPalette, IconTypography} from "@tabler/icons-react";
+import {IconHelp, IconLayoutList, IconPhoto, IconPalette, IconTypography} from "@tabler/icons-react";
 import {Tooltip} from "../../../common/Tooltip";
-import {CustomSelect} from "../../../common/CustomSelect";
 import {GET_EVENT_IMAGES_QUERY_KEY, useGetEventImages} from "../../../../queries/useGetEventImages.ts";
 import {eventPreviewPath} from "../../../../utilites/urlHelper.ts";
 import {LoadingMask} from "../../../common/LoadingMask";
 import {ImageUploadDropzone} from "../../../common/ImageUploadDropzone";
 import {queryClient} from "../../../../utilites/queryClient.ts";
 import {GET_EVENT_PUBLIC_QUERY_KEY} from "../../../../queries/useGetEventPublic.ts";
-import {ThemeColorControls} from "../../../common/ThemeColorControls";
+import {BackgroundControls} from "../../../common/BackgroundControls";
 import {ThemeFontControl} from "../../../common/ThemeFontControl";
 import {validateThemeSettings} from "../../../../utilites/themeUtils.ts";
 import {DEFAULT_HOMEPAGE_FONT} from "../../../../constants/homepageFonts.ts";
+import {BlockBuilder} from "../../../common/BlockBuilder";
 
 interface FormValues {
     homepage_theme_settings: Partial<HomepageThemeSettings>;
     continue_button_text: string;
-    get_tickets_button_text: string;
+    homepage_blocks: HomepageBlock[];
 }
 
 const HomepageDesigner = () => {
@@ -40,22 +40,22 @@ const HomepageDesigner = () => {
 
     const [iframeSrc, setIframeSrc] = useState<string | null>(null);
     const [iframeLoaded, setIframeLoaded] = useState(false);
-    const [lastCoverId, setLastCoverId] = useState<IdParam | null>(null);
-    const [accordionValue, setAccordionValue] = useState<string[]>(['images', 'colors', 'typography', 'button']);
+    const [lastSquareId, setLastSquareId] = useState<IdParam | null>(null);
+    const [accordionValue, setAccordionValue] = useState<string[]>(['sections', 'images', 'colors', 'typography', 'button']);
 
-    const existingCover = eventImagesQuery.data?.find((image) => image.type === 'EVENT_COVER');
+    const existingSquare = eventImagesQuery.data?.find((image) => image.type === 'EVENT_IMAGE');
 
     const form = useForm<FormValues>({
         initialValues: {
             homepage_theme_settings: {
-                accent: '#8b5cf6',
-                background: '#f5f3ff',
+                accent: '#0B0B0C',
+                background: '#F5F6F8',
                 mode: 'light',
                 background_type: 'COLOR',
                 font_family: DEFAULT_HOMEPAGE_FONT,
             },
             continue_button_text: '',
-            get_tickets_button_text: '',
+            homepage_blocks: [],
         }
     });
 
@@ -69,7 +69,7 @@ const HomepageDesigner = () => {
             form.setValues({
                 homepage_theme_settings: themeSettings,
                 continue_button_text: settings.continue_button_text,
-                get_tickets_button_text: settings.get_tickets_button_text || '',
+                homepage_blocks: settings.homepage_blocks || [],
             });
         }
     }, [eventSettingsQuery.isFetched]);
@@ -81,12 +81,12 @@ const HomepageDesigner = () => {
     }, [eventSettingsQuery.isFetched, eventImagesQuery.isFetched]);
 
     useEffect(() => {
-        if (existingCover?.id !== lastCoverId && iframeSrc) {
-            setLastCoverId(existingCover?.id);
-            setIframeSrc(eventPreviewPath(eventId) + `?cover_image_id=${existingCover?.id}`);
+        if ((existingSquare?.id !== lastSquareId) && iframeSrc) {
+            setLastSquareId(existingSquare?.id);
+            setIframeSrc(eventPreviewPath(eventId) + `?event_image_id=${existingSquare?.id}`);
             setIframeLoaded(false);
         }
-    }, [existingCover?.id]);
+    }, [existingSquare?.id]);
 
     const handleSubmit = (values: FormValues) => {
         const validatedTheme = validateThemeSettings(values.homepage_theme_settings);
@@ -94,7 +94,7 @@ const HomepageDesigner = () => {
         const eventSettings: Partial<EventSettings> = {
             homepage_theme_settings: validatedTheme,
             continue_button_text: values.continue_button_text,
-            get_tickets_button_text: values.get_tickets_button_text,
+            homepage_blocks: values.homepage_blocks,
             // Also update legacy fields for backward compatibility during transition
             homepage_primary_color: validatedTheme.accent,
             homepage_body_background_color: validatedTheme.background,
@@ -130,7 +130,8 @@ const HomepageDesigner = () => {
             const settingsToSend = {
                 homepage_theme_settings: themeSettings,
                 continue_button_text: form.values.continue_button_text,
-                get_tickets_button_text: form.values.get_tickets_button_text,
+                // Sections are page content: send them so the preview reflects edits live.
+                homepage_blocks: form.values.homepage_blocks,
             };
 
             const settingsJson = JSON.stringify(settingsToSend);
@@ -150,14 +151,6 @@ const HomepageDesigner = () => {
 
     const handleThemeChange = (themeSettings: Partial<HomepageThemeSettings>) => {
         form.setFieldValue('homepage_theme_settings', themeSettings);
-    };
-
-    const handleBackgroundTypeChange = (backgroundType: string | string[]) => {
-        const value = Array.isArray(backgroundType) ? backgroundType[0] : backgroundType;
-        form.setFieldValue('homepage_theme_settings', {
-            ...form.values.homepage_theme_settings,
-            background_type: value as 'COLOR' | 'MIRROR_COVER_IMAGE',
-        });
     };
 
     return (
@@ -184,23 +177,24 @@ const HomepageDesigner = () => {
                                 <Stack gap="lg">
                                     <div>
                                         <Group justify={'space-between'} mb="xs">
-                                            <Text fw={500} size="sm">{t`Cover Image`}</Text>
+                                            <Text fw={500} size="sm">{t`Square Event Image`}</Text>
                                             <Tooltip
-                                                label={t`We recommend dimensions of 1950px by 650px, a ratio of 3:1, and a maximum file size of 5MB`}>
+                                                label={t`We recommend dimensions of 1000px by 1000px, a ratio of 1:1, and a maximum file size of 5MB`}>
                                                 <IconHelp size={16} style={{ color: 'var(--mantine-color-gray-6)' }}/>
                                             </Tooltip>
                                         </Group>
                                         <ImageUploadDropzone
-                                            imageType="EVENT_COVER"
+                                            imageType="EVENT_IMAGE"
                                             entityId={eventId}
                                             onUploadSuccess={handleImageChange}
                                             onDeleteSuccess={handleImageChange}
                                             existingImageData={{
-                                                url: existingCover?.url,
-                                                id: existingCover?.id,
+                                                url: existingSquare?.url,
+                                                id: existingSquare?.id,
                                             }}
-                                            helpText={t`Cover image will be displayed at the top of your event page`}
+                                            helpText={t`Square (1:1) image shown on your event page`}
                                             displayMode="compact"
+                                            dataTestId="event-square-image-upload"
                                         />
                                     </div>
                                 </Stack>
@@ -215,32 +209,13 @@ const HomepageDesigner = () => {
                                 <form onSubmit={form.onSubmit(handleSubmit)}>
                                     <fieldset disabled={eventSettingsQuery.isLoading || updateMutation.isPending} className={classes.fieldset}>
                                         <Stack gap="md">
-                                            <CustomSelect
-                                                optionList={[
-                                                    {
-                                                        icon: <IconColorPicker/>,
-                                                        label: t`Color`,
-                                                        value: 'COLOR',
-                                                        description: t`Choose a color for your background`,
-                                                    },
-                                                    {
-                                                        icon: <IconPhoto/>,
-                                                        label: t`Use cover image`,
-                                                        value: 'MIRROR_COVER_IMAGE',
-                                                        description: t`Use a blurred version of the cover image as the background`,
-                                                        disabled: !existingCover,
-                                                    },
-                                                ]}
-                                                label={t`Background Type`}
-                                                name={'homepage_theme_settings.background_type'}
-                                                value={form.values.homepage_theme_settings.background_type || 'COLOR'}
-                                                onChange={handleBackgroundTypeChange}
-                                            />
-
-                                            <ThemeColorControls
+                                            <BackgroundControls
                                                 values={form.values.homepage_theme_settings}
                                                 onChange={handleThemeChange}
+                                                imageType="EVENT_BACKGROUND"
+                                                entityId={eventId}
                                                 disabled={eventSettingsQuery.isLoading || updateMutation.isPending}
+                                                refetchImages={async () => (await eventImagesQuery.refetch()).data}
                                             />
                                         </Stack>
                                     </fieldset>
@@ -276,21 +251,29 @@ const HomepageDesigner = () => {
                                         <Stack gap="md">
                                             <TextInput
                                                 label={t`Continue Button Text`}
-                                                description={t`Customize the text shown on the continue button`}
+                                                description={t`Customize the text shown on the checkout button in the ticket panel`}
                                                 placeholder={t`e.g., Get Tickets, Register Now`}
                                                 size="sm"
                                                 {...form.getInputProps('continue_button_text')}
                                             />
-                                            <TextInput
-                                                label={t`Get Tickets Button Text`}
-                                                description={t`Customize the text shown on the floating button that scrolls to the tickets section`}
-                                                placeholder={t`Get Tickets`}
-                                                size="sm"
-                                                {...form.getInputProps('get_tickets_button_text')}
-                                            />
                                         </Stack>
                                     </fieldset>
                                 </form>
+                            </Accordion.Panel>
+                        </Accordion.Item>
+                        <Accordion.Item value="sections" className={classes.accordionItem}>
+                            <Accordion.Control icon={<IconLayoutList size={20}/>}>
+                                <Text fw={500}>{t`Page sections`}</Text>
+                            </Accordion.Control>
+                            <Accordion.Panel>
+                                <BlockBuilder
+                                    value={form.values.homepage_blocks || []}
+                                    onChange={(blocks) => form.setFieldValue('homepage_blocks', blocks)}
+                                    // Lock until the server settings hydrate the form — otherwise a
+                                    // slow settings response resets homepage_blocks and wipes any
+                                    // section the user (or a test) added in the meantime.
+                                    disabled={eventSettingsQuery.isLoading || updateMutation.isPending}
+                                />
                             </Accordion.Panel>
                         </Accordion.Item>
                     </Accordion>
@@ -315,7 +298,12 @@ const HomepageDesigner = () => {
                             ref={iframeRef}
                             src={iframeSrc}
                             title="Event Preview"
-                            onLoad={() => setIframeLoaded(true)}
+                            onLoad={() => {
+                                // A freshly loaded document starts with no settings; clear the
+                                // send-once cache so the resend actually posts.
+                                lastSentSettings.current = '';
+                                setIframeLoaded(true);
+                            }}
                         />
                     ) : (
                         <LoadingMask/>

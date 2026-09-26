@@ -47,7 +47,7 @@
 {{ __('Please find your ticket details below.') }}
 
 @if($startFormatted || $venueName || $addressString || $productTitle)
-<div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin: 16px 0; line-height: 1.6;">
+<div style="border: 1px solid #E4E6EA; border-radius: 6px; padding: 16px; margin: 16px 0; line-height: 1.6;">
 @if($startFormatted)
 <strong>{{ __('Date & Time:') }}</strong> {{ $startFormatted }}@if($endFormatted) – {{ $endFormatted }}@endif<br>
 @if($occurrence?->getLabel())

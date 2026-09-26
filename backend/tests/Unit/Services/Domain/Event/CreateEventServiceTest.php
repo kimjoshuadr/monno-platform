@@ -243,6 +243,10 @@ class CreateEventServiceTest extends TestCase
             $mock->shouldReceive('getAttributes')->andReturn([]);
             $mock->shouldReceive('getType')->andReturn('RECURRING');
             $mock->shouldReceive('getRecurrenceRule')->andReturn(null);
+            $mock->shouldReceive('getTagline')->andReturn(null);
+            $mock->shouldReceive('isFeatured')->andReturn(false);
+            $mock->shouldReceive('getImageAlt')->andReturn(null);
+            $mock->shouldReceive('getAgenda')->andReturn(null);
         });
 
         $organizer = $this->createMockOrganizerDomainObject()
@@ -570,6 +574,10 @@ class CreateEventServiceTest extends TestCase
             $mock->shouldReceive('getAttributes')->andReturn([]);
             $mock->shouldReceive('getType')->andReturn('SINGLE');
             $mock->shouldReceive('getRecurrenceRule')->andReturn(null);
+            $mock->shouldReceive('getTagline')->andReturn(null);
+            $mock->shouldReceive('isFeatured')->andReturn(false);
+            $mock->shouldReceive('getImageAlt')->andReturn(null);
+            $mock->shouldReceive('getAgenda')->andReturn(null);
         });
     }
 
@@ -611,6 +619,10 @@ class CreateEventServiceTest extends TestCase
             $mock->shouldReceive('getAttributes')->andReturn([]);
             $mock->shouldReceive('getType')->andReturn('SINGLE');
             $mock->shouldReceive('getRecurrenceRule')->andReturn(null);
+            $mock->shouldReceive('getTagline')->andReturn(null);
+            $mock->shouldReceive('isFeatured')->andReturn(false);
+            $mock->shouldReceive('getImageAlt')->andReturn(null);
+            $mock->shouldReceive('getAgenda')->andReturn(null);
         });
     }
 }

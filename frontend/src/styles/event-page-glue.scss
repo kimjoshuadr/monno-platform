@@ -1,0 +1,751 @@
+/*
+ * Event page — platform glue.
+ *
+ * `event-page.scss` is generated from monno's CSS; this is what the platform needs on top
+ * of it (the shell's banner and footer, the cover fallback, the host socials row and the
+ * ticket widget's slot in the design).
+ */
+
+.event-room {
+  min-height: 100vh;
+}
+
+/* The widget brings its own submit button; keep the design's spacing around it. */
+.event-room .event-section#tickets {
+  padding-top: 32px;
+}
+
+.event-room .event-cover-empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+}
+
+/* The host row: the copy takes the free space so a long name never runs into the link. */
+.event-room .event-host-card {
+  gap: 12px;
+}
+
+.event-room .event-host-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.event-room .event-host-name,
+.event-room .event-host-sub {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-room .event-host-card > .btn {
+  flex: none;
+}
+
+.event-room .event-host-socials {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-room .event-host-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--muted-strong);
+}
+
+.event-room .event-host-socials a:hover {
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+.event-room .price-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--muted-strong);
+  font-size: 12.5px;
+}
+
+.event-room .price-when strong {
+  color: var(--fg);
+  font-size: 14px;
+}
+
+.event-room .rail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-room .rail-note svg {
+  vertical-align: -2px;
+}
+
+/* Authored blocks (the builder's "Write your own" sections). */
+.event-room .block-cta {
+  padding-top: 24px;
+}
+
+.event-room .block-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.event-room .block-faq-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-room .block-faq-item dt {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.event-room .block-faq-item dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.event-room .block-lineup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-room .block-lineup li {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.event-room .block-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.event-room .block-gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.event-room .block-embed iframe {
+  width: 100%;
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* The footer, in the same rhythm as the room's. */
+.event-room .event-foot {
+  margin-top: clamp(40px, 6vw, 72px);
+  padding: 28px 0 48px;
+  border-top: 1px solid var(--border);
+}
+
+.event-room .event-foot-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+
+.event-room .event-foot-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.event-room .event-foot-links a {
+  color: var(--muted-strong);
+}
+
+.event-room .event-foot-links a:hover {
+  color: var(--fg);
+}
+
+/* ---- site chrome (monno's header and footer) -------------------------------
+ *
+ * The room is monno's design, so the page it sits in is monno's too. Selectors
+ * and values mirror monno's site.css/pages.css; scoping is all that differs.
+ */
+
+.event-room .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(245, 246, 248, 0.86);
+  backdrop-filter: saturate(150%) blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.event-room .header-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 68px;
+}
+
+.event-room .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.event-room .brand img {
+  height: 30px;
+  width: auto;
+}
+
+.event-room .main-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.event-room .nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--muted-strong);
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.event-room .nav-link:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+.event-room .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.event-room .header-search {
+  flex: 1 1 200px;
+  max-width: 280px;
+  margin-left: 4px;
+}
+
+.event-room .search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.event-room .search-field svg {
+  position: absolute;
+  left: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.event-room .search-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px 0 46px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.event-room .search-field input::placeholder {
+  color: var(--muted);
+}
+
+.event-room .search-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(20, 120, 201, 0.16);
+}
+
+.event-room .header-search .search-field input {
+  min-height: 40px;
+  font-size: 14px;
+  padding: 0 14px 0 40px;
+}
+
+.event-room .header-search .search-field svg {
+  left: 13px;
+}
+
+.event-room .mobile-search {
+  padding: 12px 20px 2px;
+}
+
+.event-room .mobile-search .search-field input {
+  min-height: 44px;
+}
+
+.event-room .menu-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.event-room .mobile-nav {
+  display: none;
+}
+
+.event-room .site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  margin-top: var(--section);
+}
+
+.event-room .footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 40px;
+  padding-block: 56px 40px;
+}
+
+.event-room .footer-brand p {
+  color: var(--muted-strong);
+  font-size: 14px;
+  max-width: 34ch;
+  margin-top: 14px;
+}
+
+.event-room .footer-col h3 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.event-room .footer-col ul {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+.event-room .footer-col li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  font-size: 14px;
+  color: var(--muted-strong);
+}
+
+.event-room .footer-col a:hover {
+  color: var(--fg);
+}
+
+.event-room .footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-block: 20px 32px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.event-room .footer-legal .event-foot-links {
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .event-room .header-search {
+    display: none;
+  }
+
+  .event-room .main-nav {
+    display: none;
+  }
+
+  .event-room .menu-toggle {
+    display: inline-flex;
+  }
+
+  .event-room .mobile-nav {
+    display: block;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .event-room .mobile-nav-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-block: 14px 20px;
+  }
+
+  .event-room .mobile-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .event-room .mobile-nav a:hover {
+    background: var(--surface-2);
+  }
+
+  .event-room .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 620px) {
+  .event-room .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- the ticket picker, in the rail ---------------------------------------
+ *
+ * The platform's widget is unchanged — it is styled here for the place monno's
+ * design puts it. Same class names as the website's rail picker on purpose: the
+ * two stylesheets stay diffable.
+ *
+ * The widget's own stylesheet is imported by the component, so it can land after
+ * this file: every selector below therefore carries the widget container too, and
+ * wins on specificity rather than on order.
+ */
+
+.event-room .register-rail .rail-tickets {
+  margin-top: 18px;
+}
+
+.event-room .register-rail .hi-product-widget-container {
+  padding: 0;
+  background: transparent;
+}
+
+/* A single category is the norm here; its heading would only repeat the card. */
+.event-room .register-rail .hi-product-widget-container .hi-product-category-rows > .hi-product-category-row:only-child > .hi-product-category-title {
+  display: none;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-rows {
+  gap: 0;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-row,
+.event-room .register-rail .hi-product-widget-container .hi-product-row:hover {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-row:first-child {
+  padding-top: 2px;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-row:last-child {
+  padding-bottom: 2px;
+  border-bottom: 0;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-row[data-availability='sold-out'] {
+  opacity: 0.72;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-title h3 {
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-title-metadata {
+  margin-top: 5px;
+  font-size: inherit;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-scarcity-pill,
+.event-room .register-rail .hi-product-widget-container .hi-quantity-remaining-note {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-header-body {
+  margin-top: 11px;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-header-pricing {
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-price-tier-price-amount {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-price-strike .hi-price-tier-price-amount {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* The widget's own stepper, dressed as the rail's pill. */
+.event-room .register-rail .hi-product-widget-container .hi-product-quantity-selector .button-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-quantity-selector .button-input button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-quantity-selector .button-input button:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-quantity-selector .button-input button:disabled {
+  color: var(--border-strong);
+  cursor: not-allowed;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-quantity-selector .button-input input {
+  width: 34px;
+  min-width: 34px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-promo-code-row {
+  margin-top: 16px;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-footer-row {
+  margin-top: 16px;
+  gap: 0;
+}
+
+/* The checkout button is the rail's primary action: ink, like the design's. */
+.event-room .register-rail .hi-product-widget-container .hi-footer-row .hi-continue-button,
+.event-room .register-rail .hi-product-widget-container .hi-footer-row .hi-continue-button:hover:not(:disabled):not([data-disabled]) {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 20px;
+  background: var(--fg);
+  color: var(--surface);
+  border: 1px solid var(--fg);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  filter: none;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-footer-row .hi-continue-button:hover:not(:disabled):not([data-disabled]) {
+  background: var(--fg-soft);
+  border-color: var(--fg-soft);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-footer-row .hi-continue-button:disabled,
+.event-room .register-rail .hi-product-widget-container .hi-footer-row .hi-continue-button[data-disabled] {
+  background: var(--fg);
+  color: var(--surface);
+  border-color: var(--fg);
+  /* monno's disabled button: the ink fill, half faded. */
+  opacity: 0.5;
+}
+
+/* In the rail the widget's rows are a list, not cards: the "Details" line is the
+   affordance, so the collapse chevron would only add noise. */
+.event-room .register-rail .hi-product-widget-container .hi-product-title .hi-product-collapse-arrow {
+  display: none;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-product-title {
+  cursor: default;
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-have-a-promo-code-link {
+  color: var(--accent);
+}
+
+.event-room .register-rail .hi-product-widget-container .hi-details-toggle {
+  color: var(--muted-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- who's coming -------------------------------------------------------- */
+
+.event-room .who-coming-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.event-room .monogram-anon {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--surface-2) 0 4px,
+    var(--border-strong) 4px 8px
+  );
+  color: transparent;
+}
+
+.event-room .who-coming-count {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted-strong);
+}
+
+/* monno's badge/breadcrumb row: the breadcrumb goes through it too. */
+.event-room .meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  color: var(--muted-strong);
+}
+
+.event-room .event-crumbs .meta-row {
+  font-size: 13px;
+}
+
+.event-room .progress-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* monno's eyebrow: the small uppercase label above a title or the cover. */
+.event-room .eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* In the rail the widget's rows are a list, not cards: the "Details" line is the
+   affordance, so the collapse chevron would only add noise. */
+.event-room .register-rail .hi-product-collapse-arrow {
+  display: none;
+}
+
+.event-room .register-rail .hi-product-title {
+  cursor: default;
+}
+
+/* The checkout button is the rail's primary action: ink, like the design's. */
+.event-room .register-rail .hi-continue-button {
+  background: var(--fg);
+  color: var(--surface);
+  border: 1px solid var(--fg);
+}
+
+.event-room .register-rail .hi-continue-button:hover:not(:disabled) {
+  background: var(--fg-soft);
+  border-color: var(--fg-soft);
+}
+
+.event-room .register-rail .hi-continue-button:disabled {
+  background: var(--border-strong);
+  border-color: var(--border-strong);
+  color: var(--surface);
+  opacity: 1;
+}
+
+.event-room .register-rail .hi-product-quantity-selector .button-input button:disabled {
+  color: var(--border-strong);
+  cursor: not-allowed;
+}

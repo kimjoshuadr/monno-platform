@@ -101,34 +101,33 @@ export const NumberSelector = ({formInstance, fieldName, min, max, sharedValues,
     return (
         <div className={classNames(classes.wrapper, 'button-input', selectorSize === 'compact' && classes.compact)}
              data-empty={value === 0 || undefined}>
-            {value > 0 && (
-                <>
-                    <ActionIcon
-                        size={buttonSize}
-                        radius={999}
-                        variant={'transparent'}
-                        onClick={decrement}
-                        aria-label={t`Decrease quantity`}
-                        onMouseDown={(event) => event.preventDefault()}
-                        className={classNames(classes.control, classes.decrement)}
-                    >
-                        <IconMinus size={iconSize} stroke={2}/>
-                    </ActionIcon>
+            {/* The stepper is always drawn — at rest it reads "0", so the control does not
+                appear and disappear as the buyer steps it. */}
+            <ActionIcon
+                size={buttonSize}
+                radius={999}
+                variant={'transparent'}
+                onClick={decrement}
+                disabled={value <= 0}
+                aria-label={t`Decrease quantity`}
+                onMouseDown={(event) => event.preventDefault()}
+                className={classNames(classes.control, classes.decrement)}
+            >
+                <IconMinus size={iconSize} stroke={2}/>
+            </ActionIcon>
 
-                    <NumberInput
-                        mb={0}
-                        variant="unstyled"
-                        min={minValue}
-                        max={maxValue}
-                        handlersRef={handlers}
-                        value={value}
-                        hideControls
-                        onChange={(newValue) => changeValue(Number(newValue) || 0)}
-                        aria-label={t`Quantity`}
-                        classNames={{input: classes.input}}
-                    />
-                </>
-            )}
+            <NumberInput
+                mb={0}
+                variant="unstyled"
+                min={minValue}
+                max={maxValue}
+                handlersRef={handlers}
+                value={value}
+                hideControls
+                onChange={(newValue) => changeValue(Number(newValue) || 0)}
+                aria-label={t`Quantity`}
+                classNames={{input: classes.input}}
+            />
 
             <ActionIcon
                 size={buttonSize}

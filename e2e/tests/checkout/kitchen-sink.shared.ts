@@ -6,6 +6,7 @@ import { createDraftEvent, OFFLINE_PAYMENT_INSTRUCTIONS } from '../../api/factor
 import { deliverPaymentIntentSucceededWebhook, parsePaymentReturnUrl } from '../../api/stripe';
 import type { MailpitClient } from '../../utils/mailpit';
 import { uniqueCode, uniqueEmail, uniqueName, uniqueShort } from '../../utils/unique';
+import { STRIPE_UI_ENABLED } from '../../utils/env';
 
 const GA_DESCRIPTION = 'Access tickets for the main event floor.';
 const EXTRAS_DESCRIPTION = 'Merchandise and add-ons.';
@@ -387,8 +388,14 @@ export async function runKitchenSinkCheckout(
   await expectSummaryTotals();
   await checkout.continueToPayment();
 
-  await expect(checkoutRoot.getByRole('button', { name: 'Online' })).toBeVisible();
-  await expect(checkoutRoot.getByRole('button', { name: 'Offline' })).toBeVisible();
+  // The method picker only renders with more than one available method. Stripe is
+  // disabled in this deployment, so offline is the only method and the picker is gone.
+  if (STRIPE_UI_ENABLED) {
+    await expect(checkoutRoot.getByRole('button', { name: 'Online' })).toBeVisible();
+    await expect(checkoutRoot.getByRole('button', { name: 'Offline' })).toBeVisible();
+  } else {
+    await expect(checkoutRoot.getByText('Payment method', { exact: true })).toHaveCount(0);
+  }
   await expect(checkoutRoot.getByRole('button', { name: `Pay ${totals.total}` })).toBeVisible();
 
   if (paymentMode === 'offline') {

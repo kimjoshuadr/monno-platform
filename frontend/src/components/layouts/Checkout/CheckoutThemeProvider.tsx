@@ -13,20 +13,20 @@ interface CheckoutThemeProviderProps {
  */
 const LIGHT_PALETTE = {
     surface: '#ffffff',
-    background: '#f8f9fa',
-    textPrimary: '#1a1a1a',
-    textSecondary: '#525252',
-    textTertiary: '#737373',
-    border: '#e5e7eb',
+    background: '#F5F6F8',
+    textPrimary: '#0B0B0C',
+    textSecondary: '#5A5D63',
+    textTertiary: '#6E7178',
+    border: '#E4E6EA',
 };
 
 const DARK_PALETTE = {
-    surface: '#1f1f1f',
-    background: '#121212',
-    textPrimary: '#ffffff',
-    textSecondary: '#a3a3a3',
-    textTertiary: '#737373',
-    border: '#333333',
+    surface: '#1A1B1E',
+    background: '#121214',
+    textPrimary: '#F7F8F9',
+    textSecondary: '#A9ADB4',
+    textTertiary: '#8A8E96',
+    border: '#2A2C30',
 };
 
 /**
@@ -35,7 +35,7 @@ const DARK_PALETTE = {
 function createColorPalette(accentColor: string): MantineColorsTuple {
     const rgb = hexToRgb(accentColor);
     if (!rgb) {
-        return ['#f3e8ff', '#e9d5ff', '#d8b4fe', '#c084fc', '#a855f7', '#9333ea', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95'];
+        return ['#f1f1f2', '#e2e2e4', '#c8c9cb', '#aaabae', '#8a8c90', '#6b6d71', '#4c4e52', '#35373a', '#1c1d1f', '#0B0B0C'];
     }
 
     const {r, g, b} = rgb;
@@ -140,11 +140,11 @@ function createCSSVariablesResolver(accentColor: string, mode: 'light' | 'dark')
 
         const accentSoft = rgb
             ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${mode === 'light' ? 0.1 : 0.2})`
-            : mode === 'light' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.2)';
+            : mode === 'light' ? 'rgba(11, 11, 12, 0.1)' : 'rgba(255, 255, 255, 0.18)';
 
         const accentMuted = rgb
             ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${mode === 'light' ? 0.6 : 0.7})`
-            : mode === 'light' ? 'rgba(139, 92, 246, 0.6)' : 'rgba(139, 92, 246, 0.7)';
+            : mode === 'light' ? 'rgba(11, 11, 12, 0.6)' : 'rgba(255, 255, 255, 0.7)';
 
         return {
             variables: {

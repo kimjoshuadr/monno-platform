@@ -21,11 +21,23 @@ class GetEventsAction extends BaseAction
 
     public function __invoke(Request $request): JsonResponse
     {
+        $accountId = $this->getAuthenticatedAccountIdOrNull();
+
+        // Account-less users (ticket buyers) have no events, and a 403 here
+        // would send the frontend's interceptor to /auth/login. Answer empty.
+        if ($accountId === null) {
+            return $this->filterableResourceResponse(
+                resource: EventResource::class,
+                data: collect(),
+                domainObject: EventDomainObject::class,
+            );
+        }
+
         $this->minimumAllowedRole(Role::ORGANIZER);
 
         $events = $this->getEventsHandler->handle(
             GetEventsDTO::fromArray([
-                'accountId' => $this->getAuthenticatedAccountId(),
+                'accountId' => $accountId,
                 'queryParams' => $this->getPaginationQueryParams($request),
             ]),
         );

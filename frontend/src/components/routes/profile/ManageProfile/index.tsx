@@ -193,7 +193,7 @@ export const ManageProfile = () => {
                                                 required
                                                 data={localeSelectData}
                                                 value={profileForm.values.locale || ''}
-                                                onChange={(e) => profileForm.setFieldValue('locale', e.target.value)}
+                                                onChange={(e) => profileForm.setFieldValue('locale', e.target.value as SupportedLocales)}
                                                 label={t`Language`}
                                             />
                                         </InputGroup>
@@ -207,7 +207,7 @@ export const ManageProfile = () => {
                                     }>
                                         <Checkbox
                                             {...profileForm.getInputProps('marketing_opt_in', {type: 'checkbox'})}
-                                            label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "Hi.Events")}.</Trans>}
+                                            label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "monno")}.</Trans>}
                                         />
                                     </Fieldset>
 

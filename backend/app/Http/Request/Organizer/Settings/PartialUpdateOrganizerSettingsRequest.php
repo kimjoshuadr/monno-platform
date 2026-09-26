@@ -9,6 +9,7 @@ use HiEvents\DomainObjects\Enums\OrganizerHomepageVisibility;
 use HiEvents\DomainObjects\Enums\TrackingPixelProvider;
 use HiEvents\Http\Request\BaseRequest;
 use HiEvents\Validators\Rules\RulesHelper;
+use HiEvents\Validators\Rules\ValidHomepageBlocks;
 use Illuminate\Validation\Rule;
 
 class PartialUpdateOrganizerSettingsRequest extends BaseRequest
@@ -98,10 +99,19 @@ class PartialUpdateOrganizerSettingsRequest extends BaseRequest
 
             // Homepage theme settings
             'homepage_theme_settings' => ['nullable', 'array'],
+
+            // Section list the public homepage is assembled from
+            'homepage_blocks' => ['sometimes', 'nullable', 'array', new ValidHomepageBlocks],
             'homepage_theme_settings.accent' => ['nullable', 'string', ...RulesHelper::HEX_COLOR],
             'homepage_theme_settings.background' => ['nullable', 'string', ...RulesHelper::HEX_COLOR],
             'homepage_theme_settings.mode' => ['nullable', 'string', Rule::in(['light', 'dark'])],
             'homepage_theme_settings.background_type' => ['nullable', 'string', Rule::in(HomepageBackgroundType::valuesArray())],
+            'homepage_theme_settings.background_placement' => ['nullable', 'string', Rule::in(HomepageBackgroundType::placements())],
+            'homepage_theme_settings.background_image_url' => ['nullable', 'string', 'url', 'max:2048'],
+            'homepage_theme_settings.background_video_url' => ['nullable', 'string', 'url', 'max:2048'],
+            'homepage_theme_settings.background_poster_url' => ['nullable', 'string', 'url', 'max:2048'],
+            'homepage_theme_settings.background_overlay_opacity' => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'homepage_theme_settings.background_blur' => ['nullable', 'integer', 'min:0', 'max:24'],
             'homepage_theme_settings.font_family' => ['nullable', 'string', Rule::in(HomepageFontFamily::valuesArray())],
 
             // SEO

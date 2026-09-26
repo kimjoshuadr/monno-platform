@@ -3,6 +3,7 @@
 namespace HiEvents\Http\Request\Image;
 
 use HiEvents\DomainObjects\Enums\ImageType;
+use HiEvents\Validators\Rules\ValidBackgroundMediaRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,13 +17,18 @@ class CreateImageRequest extends FormRequest
 
         [$minWidth, $minHeight] = ImageType::getMinimumDimensionsMap($imageType);
 
+        // Page backgrounds are allowed to be larger artwork, and to be an animated GIF (which
+        // covers and logos still reject). Everything else keeps the original limits.
+        $isBackground = in_array($imageType, [ImageType::EVENT_BACKGROUND, ImageType::ORGANIZER_BACKGROUND], true);
+        $maxKilobytes = $isBackground ? ValidBackgroundMediaRule::MAX_IMAGE_BYTES / 1024 : 5120;
+
         return [
             'image' => [
                 'required',
                 'image',
-                'max:5120', // 5mb
+                'max:'.$maxKilobytes,
                 'dimensions:min_width='.$minWidth.',min_height='.$minHeight.',max_width=4000,max_height=4000',
-                'mimes:jpeg,png,jpg,webp',
+                $isBackground ? 'mimes:jpeg,png,jpg,webp,gif' : 'mimes:jpeg,png,jpg,webp',
             ],
             'image_type' => [
                 Rule::in(ImageType::valuesArray()),

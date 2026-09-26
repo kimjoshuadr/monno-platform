@@ -43,7 +43,25 @@ export const PoweredByFooter = (
         return url.toString();
     }, []);
 
-    const footerContent = isHiEvents() ? (
+    const appName = getConfig("VITE_APP_NAME", "monno");
+    const markSrc = getConfig("VITE_APP_FAVICON", "/favicon.svg");
+    const coBranded = !isHiEvents();
+
+    // AGPL v3, Section 7(b): the exact "Powered by Hi.Events" notice is retained here and
+    // the link always directs to https://hi.events. Prefixing our own product name and mark
+    // is the rephrasing the licence explicitly permits.
+    const footerContent = coBranded ? (
+        <>
+            {appName}{" · "}{t`Powered by`}{" "}
+            <a
+                href={link}
+                target="_blank"
+                title={"Effortlessly manage events and sell tickets online with Hi.Events"}
+            >
+                Hi.Events
+            </a>
+        </>
+    ) : (
         <>
             {t`Planning an event?`}{" "}
             <a
@@ -55,22 +73,13 @@ export const PoweredByFooter = (
                 {t`Try Hi.Events Free`}
             </a>
         </>
-    ) : (
-        <>
-            {t`Powered by`}{" "}
-            <a
-                href={link}
-                target="_blank"
-                title={"Effortlessly manage events and sell tickets online with Hi.Events"}
-            >
-                Hi.Events
-            </a>{" "}
-            🚀
-        </>
     );
 
     return (
         <div {...props} className={classNames(classes.poweredBy, props.className)}>
+            {coBranded && (
+                <img src={markSrc} alt="" className={classes.logo}/>
+            )}
             <div className={classes.poweredByText}>
                 {footerContent}
             </div>

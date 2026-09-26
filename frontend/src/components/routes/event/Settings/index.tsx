@@ -1,6 +1,7 @@
 import {PageBody} from "../../../common/PageBody";
 import {EventDetailsForm} from "./Sections/EventDetailsForm";
 import {LocationSettings} from "./Sections/LocationSettings";
+import {AgendaSettings} from "./Sections/AgendaSettings";
 import {HomepageAndCheckoutSettings} from "./Sections/HomepageAndCheckoutSettings";
 import {EmailSettings} from "./Sections/EmailSettings";
 import {PageTitle} from "../../../common/PageTitle";
@@ -16,6 +17,7 @@ import {
     IconBuildingStore,
     IconCreditCard,
     IconHome,
+    IconList,
     IconListCheck,
     IconMapPin,
     IconPercentage,
@@ -33,6 +35,7 @@ import {useGetAccount} from "../../../../queries/useGetAccount.ts";
 import {useGetEvent} from "../../../../queries/useGetEvent.ts";
 import {useParams} from "react-router";
 import {EventType} from "../../../../types.ts";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 
 export const Settings = () => {
     const {data: account} = useGetAccount();
@@ -54,6 +57,12 @@ export const Settings = () => {
                 label: t`Location`,
                 icon: IconMapPin,
                 component: LocationSettings
+            },
+            {
+                id: 'agenda-settings',
+                label: t`Agenda`,
+                icon: IconList,
+                component: AgendaSettings
             },
             {
                 id: 'homepage-settings',
@@ -106,7 +115,8 @@ export const Settings = () => {
             }
         ];
 
-        if (isSaasMode) {
+        // Platform fees are charged through Stripe Connect.
+        if (isSaasMode && STRIPE_ENABLED) {
             baseSections.splice(baseSections.length - 1, 0, {
                 id: 'platform-fees',
                 label: t`Platform Fees`,

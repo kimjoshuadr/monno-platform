@@ -49,7 +49,7 @@ import {SidebarCallout} from "../../common/SidebarCallout";
 import {useGetMe} from "../../../queries/useGetMe.ts";
 import {useResendEmailConfirmation} from "../../../mutations/useResendEmailConfirmation.ts";
 import {useMemo, useState} from "react";
-import {eventHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {monnoEventUrl} from "../EventRoom/EventRoomChrome";
 import {EventType} from "../../../types.ts";
 import {useGetEventOccurrence} from "../../../queries/useGetEventOccurrence.ts";
 import {prettyDate} from "../../../utilites/dates.ts";
@@ -242,7 +242,7 @@ const EventLayout = () => {
                             </Button>
 
                             <ShareModal
-                                url={eventHomepageUrl(event)}
+                                url={monnoEventUrl(event.id)!}
                                 title={event.title}
                                 modalTitle={t`Share Event`}
                                 opened={opened}
@@ -252,7 +252,7 @@ const EventLayout = () => {
                             <EventLiveCelebrationModal
                                 opened={celebrationOpened}
                                 onClose={closeCelebration}
-                                url={eventHomepageUrl(event)}
+                                url={monnoEventUrl(event.id)!}
                                 eventTitle={event.title}
                                 eventId={String(event.id)}
                             />

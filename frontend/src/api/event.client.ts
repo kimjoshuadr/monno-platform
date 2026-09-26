@@ -9,7 +9,6 @@ import {
     GenericPaginatedResponse,
     IdParam,
     Image,
-    ImageType,
     QueryFilters,
     UpsertEventLocationPayload,
 } from "../types";
@@ -65,18 +64,6 @@ export const eventsClient = {
 
     getEventImages: async (eventId: IdParam) => {
         const response = await api.get<GenericDataResponse<Image[]>>('events/' + eventId + '/images');
-        return response.data;
-    },
-
-    uploadEventImage: async (eventId: IdParam, image: File, type: ImageType = 'EVENT_COVER') => {
-        const formData = new FormData();
-        formData.append('image', image);
-        formData.append('type', type);
-        const response = await api.post<GenericDataResponse<Image>>('events/' + eventId + '/images', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
         return response.data;
     },
 

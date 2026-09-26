@@ -8,6 +8,7 @@ use HiEvents\Http\Actions\BaseAction;
 use HiEvents\Http\Request\Order\CreateOrderRequest;
 use HiEvents\Http\ResponseCodes;
 use HiEvents\Resources\Order\OrderResourcePublic;
+use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\CreateOrderHandler;
 use HiEvents\Services\Application\Handlers\Order\DTO\CreateOrderPublicDTO;
 use HiEvents\Services\Application\Handlers\Order\DTO\ProductOrderDetailsDTO;
@@ -24,7 +25,7 @@ class CreateOrderActionPublic extends BaseAction
         private readonly OrderCreateRequestValidationService $orderCreateRequestValidationService,
         private readonly CheckoutSessionManagementService $sessionIdentifierService,
         private readonly LocaleService $localeService,
-
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {}
 
     /**
@@ -54,6 +55,17 @@ class CreateOrderActionPublic extends BaseAction
         );
 
         $order->setSessionIdentifier($sessionId);
+
+        // A signed-in buyer's order must know who placed it, or the ticket
+        // never turns up on their profile. Done here rather than inside the
+        // handler to keep the checkout path untouched; the email backfill in
+        // the user_id migration covers anything this misses.
+        if ($this->isUserAuthenticated()) {
+            $this->orderRepository->updateWhere(
+                ['user_id' => $this->getAuthenticatedUser()->getId()],
+                ['id' => $order->getId()],
+            );
+        }
 
         $response = $this->resourceResponse(
             resource: OrderResourcePublic::class,

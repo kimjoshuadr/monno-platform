@@ -35,7 +35,37 @@ readonly class AuthUserService
             return null;
         }
 
-        return $payload->get('account_id');
+        $accountId = $payload->get('account_id');
+
+        if ($accountId !== null) {
+            return $accountId;
+        }
+
+        // Token minted while this user belonged to no account — a ticket buyer
+        // who has since been promoted to organizer. Resolve it from the
+        // database so their existing session keeps working without a re-login,
+        // but only when unambiguous: a user with several accounts must keep the
+        // account-chooser behaviour, which deliberately yields null.
+        return $this->resolveSoleAccountId();
+    }
+
+    private function resolveSoleAccountId(): ?int
+    {
+        $userId = $this->authManager->id();
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $memberships = $this->accountUserRepository->findWhere([
+            'user_id' => (int) $userId,
+        ]);
+
+        if (count($memberships) !== 1) {
+            return null;
+        }
+
+        return $memberships->first()->getAccountId();
     }
 
     public function getAuthenticatedUserRole(): ?Role

@@ -7,6 +7,7 @@ import {useGetMe} from "../../../../queries/useGetMe.ts";
 import {t, Trans} from "@lingui/macro";
 import {ProductSalesChartCard, RevenueChartCard} from "../../../common/StatsCharts";
 import classes from "./EventDashboard.module.scss";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 import {useGetEventStats} from "../../../../queries/useGetEventStats.ts";
 import {formatDateWithLocale} from "../../../../utilites/dates.ts";
 import {Skeleton} from "@mantine/core";
@@ -89,7 +90,7 @@ export const EventDashboard = () => {
         isRecurring,
     );
     const hasOccurrences = (occurrencesQuery?.data?.data?.length ?? 0) > 0;
-    const hasCoverImage = (eventImages?.length ?? 0) > 0;
+    const hasCoverImage = (eventImages ?? []).some((image) => image.type === 'EVENT_COVER');
 
     const isNewEvent = new URLSearchParams(location.search).get('new_event') === 'true';
 
@@ -153,17 +154,17 @@ export const EventDashboard = () => {
         navigate(`/manage/event/${eventId}/occurrences`);
     };
 
-    const handleCustomizePage = () => {
+    const handleAddCover = () => {
         if (!eventId) {
             return;
         }
-        navigate(`/manage/event/${eventId}/homepage-designer`);
+        navigate(`/manage/event/${eventId}/settings`);
     };
 
     const isSaasMode = !!account?.is_saas_mode_enabled;
     const allChecklistComplete = !!event
         && (event.status === 'LIVE' || event.status === 'PENDING_MANUAL_REVIEW')
-        && (!isSaasMode || isStripeConnected)
+        && (!isSaasMode || !STRIPE_ENABLED || isStripeConnected)
         && productCount > 0
         && hasEventDetails(event)
         && hasCoverImage
@@ -247,7 +248,7 @@ export const EventDashboard = () => {
                         onAddTickets={handleAddTickets}
                         onEditDetails={handleEditDetails}
                         onSetupSchedule={handleSetupSchedule}
-                        onCustomizePage={handleCustomizePage}
+                        onAddCover={handleAddCover}
                         onDismiss={dismissChecklist}
                         isDismissed={isChecklistDismissed}
                         showCongratsHeader={isNewEvent}

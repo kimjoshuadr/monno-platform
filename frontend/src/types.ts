@@ -26,7 +26,8 @@ export type ConfigKeys =
     | 'VITE_COOKIE_CONSENT_TEXT'
     | 'VITE_COOKIE_CONSENT_DOMAIN'
     | 'VITE_GOOGLE_ADS_CONVERSION_ID'
-    | 'VITE_GOOGLE_ADS_CONVERSION_LABELS';
+    | 'VITE_GOOGLE_ADS_CONVERSION_LABELS'
+    | 'VITE_MONNO_SITE_URL';
 
 export enum StripePlatform {
     Canada = 'ca',
@@ -73,12 +74,22 @@ export interface ColorTheme {
     homepage_secondary_text_color: string;
 }
 
+export type HomepageBackgroundPlacement = 'PAGE' | 'HERO';
+
 export interface HomepageThemeSettings {
     accent: string;
     background: string;
     mode: 'light' | 'dark';
-    background_type: 'COLOR' | 'MIRROR_COVER_IMAGE';
+    background_type: 'COLOR' | 'MIRROR_COVER_IMAGE' | 'IMAGE' | 'VIDEO';
     font_family?: string;
+    /** Media backgrounds: where the layer sits, and what it is. */
+    background_placement?: HomepageBackgroundPlacement;
+    background_image_url?: string | null;
+    background_video_url?: string | null;
+    /** Poster frame for a video background (also the reduced-motion fallback). */
+    background_poster_url?: string | null;
+    background_overlay_opacity?: number;
+    background_blur?: number;
 }
 
 export interface LoginResponse {
@@ -207,6 +218,8 @@ export interface LoginData {
     password: string;
 }
 
+export type ImageProcessingState = 'PENDING' | 'READY' | 'FAILED';
+
 export interface Image {
     id: IdParam;
     file_name: string;
@@ -218,17 +231,46 @@ export interface Image {
     height?: number | null;
     avg_colour?: string | null;
     lqip_base64?: string | null;
+    state?: ImageProcessingState | null;
+    state_reason?: string | null;
 }
 
-export type ImageType = 'EVENT_COVER' | 'EDITOR_IMAGE' | 'ORGANIZER_LOGO' | 'ORGANIZER_COVER' | 'ORGANIZER_IMAGE' | 'TICKET_LOGO';
+export type ImageType =
+    | 'EVENT_COVER'
+    | 'EVENT_IMAGE'
+    | 'EDITOR_IMAGE'
+    | 'ORGANIZER_LOGO'
+    | 'ORGANIZER_COVER'
+    | 'ORGANIZER_IMAGE'
+    | 'TICKET_LOGO'
+    | 'EVENT_BACKGROUND'
+    | 'EVENT_BACKGROUND_POSTER'
+    | 'ORGANIZER_BACKGROUND'
+    | 'ORGANIZER_BACKGROUND_POSTER';
+
+export type BackgroundMediaImageType = 'EVENT_BACKGROUND' | 'ORGANIZER_BACKGROUND';
 
 export type PaymentProvider = 'STRIPE' | 'OFFLINE';
 
 export type AttendeeDetailsCollectionMethod = 'PER_TICKET' | 'PER_ORDER';
 
+export type HomepageBlockType =
+    | 'HERO' | 'ABOUT' | 'AGENDA' | 'TICKETS' | 'VENUE' | 'ORGANIZER'
+    | 'GALLERY' | 'FAQ' | 'LINEUP' | 'TEXT' | 'CTA' | 'ATTENDEES' | 'EMBED';
+
+/** One section of a homepage, in render order. */
+export interface HomepageBlock {
+    id: string;
+    type: HomepageBlockType;
+    visible?: boolean;
+    settings?: Record<string, any>;
+}
+
 export interface EventSettings {
     event_id?: IdParam;
     id?: IdParam;
+    website_url?: string;
+    homepage_blocks?: HomepageBlock[];
     continue_button_text: string;
     get_tickets_button_text?: string;
     email_footer_message: string;
@@ -244,7 +286,7 @@ export interface EventSettings {
     homepage_secondary_color: string;
     homepage_secondary_text_color: string;
     homepage_body_background_color: string;
-    homepage_background_type: 'COLOR' | 'MIRROR_COVER_IMAGE';
+    homepage_background_type: 'COLOR' | 'MIRROR_COVER_IMAGE' | 'IMAGE' | 'VIDEO';
     maps_url?: string;
     seo_title?: string;
     seo_description?: string;
@@ -565,6 +607,13 @@ export interface UpsertPriceOverrideRequest {
     quantity_available?: number | null;
 }
 
+export interface AgendaItem {
+    /** "19:45" — free text so doors/openers don't need real dates. */
+    time?: string | null;
+    title: string;
+    detail?: string | null;
+}
+
 export interface Event extends EventBase {
     id?: IdParam;
     slug: string;
@@ -572,6 +621,14 @@ export interface Event extends EventBase {
     type?: EventType;
     recurrence_rule?: RecurrenceRule;
     description_preview?: string;
+    /** Short lede shown under the title on the public site. */
+    tagline?: string;
+    /** Drives featured rails/hero placement downstream. */
+    featured?: boolean;
+    /** Alt text for the primary cover image. */
+    image_alt?: string;
+    /** Run of show: ordered {time, title, detail} rows. */
+    agenda?: AgendaItem[];
     lifecycle_status?: EventLifecycleStatus;
     settings?: EventSettings;
     products?: Product[];
@@ -689,6 +746,8 @@ export interface Organizer {
 export interface OrganizerSettings {
     id: IdParam;
     organizer_id: IdParam;
+    homepage_password?: string;
+    homepage_blocks?: HomepageBlock[];
     default_attendee_details_collection_method?: AttendeeDetailsCollectionMethod;
     default_show_marketing_opt_in?: boolean;
     default_pass_platform_fee_to_buyer?: boolean;

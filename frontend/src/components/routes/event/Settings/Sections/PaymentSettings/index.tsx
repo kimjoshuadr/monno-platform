@@ -1,5 +1,6 @@
 import {t} from "@lingui/macro";
-import {Button, Card as MantineCard, Checkbox, NumberInput, Paper, Stack, Switch, Text, TextInput} from "@mantine/core";
+import {Alert, Button, Card as MantineCard, Checkbox, NumberInput, Paper, Stack, Switch, Text, TextInput} from "@mantine/core";
+import {IconInfoCircle} from "@tabler/icons-react";
 import {useForm} from "@mantine/form";
 import {useParams} from "react-router";
 import {useEffect} from "react";
@@ -14,6 +15,7 @@ import {Editor} from "../../../../../common/Editor";
 import {LiquidTokenControl} from "../../../../../common/Editor/Controls/LiquidTokenControl";
 import {InputLabelWithHelp} from "../../../../../common/InputLabelWithHelp";
 import {isEmptyHtml} from "../../../../../../utilites/helpers.ts";
+import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../../../../utilites/paymentProviders.ts";
 
 export const PaymentAndInvoicingSettings = () => {
     const {eventId} = useParams();
@@ -37,7 +39,7 @@ export const PaymentAndInvoicingSettings = () => {
         },
         transformValues: (values) => ({
             ...values,
-            payment_providers: Array.isArray(values.payment_providers) ? values.payment_providers : [],
+            payment_providers: resolvePaymentProviders(values.payment_providers),
             offline_payment_instructions: isEmptyHtml(values.offline_payment_instructions) ? null : values.offline_payment_instructions,
             invoice_notes: isEmptyHtml(values.invoice_notes) ? null : values.invoice_notes,
             invoice_tax_details: isEmptyHtml(values.invoice_tax_details) ? null : values.invoice_tax_details,
@@ -49,7 +51,7 @@ export const PaymentAndInvoicingSettings = () => {
     useEffect(() => {
         if (eventSettingsQuery?.isFetched && eventSettingsQuery?.data) {
             form.setValues({
-                payment_providers: eventSettingsQuery.data.payment_providers || [],
+                payment_providers: resolvePaymentProviders(eventSettingsQuery.data.payment_providers),
                 offline_payment_instructions: eventSettingsQuery.data.offline_payment_instructions || "",
                 allow_orders_awaiting_offline_payment_to_check_in: eventSettingsQuery.data.allow_orders_awaiting_offline_payment_to_check_in || false,
                 enable_invoicing: eventSettingsQuery.data.enable_invoicing || false,
@@ -81,15 +83,15 @@ export const PaymentAndInvoicingSettings = () => {
     };
 
     const paymentOptions = [
-        {
+        ...(STRIPE_ENABLED ? [{
             value: "STRIPE",
             label: t`Stripe`,
             description: t`Accept credit card payments with Stripe`
-        },
+        }] : []),
         {
             value: "OFFLINE",
-            label: t`Offline Payments`,
-            description: t`Accept bank transfers, checks, or other offline payment methods`
+            label: t`Pay via invoice or bank transfer`,
+            description: t`Accept payment outside the platform (bank transfer, invoice, e-wallet) and mark orders as paid manually.`
         },
     ];
 
@@ -104,25 +106,35 @@ export const PaymentAndInvoicingSettings = () => {
                     <Stack gap="xl">
                         <Paper withBorder p="md" radius="md">
                             <Text size="lg" fw={500} mb="md">{t`Payment Methods`}</Text>
-                            {paymentOptions.map((option) => (
-                                <Checkbox
-                                    key={option.value}
-                                    label={option.label}
-                                    description={option.description}
-                                    checked={form.values.payment_providers?.includes(option.value as PaymentProvider)}
-                                    onChange={(event) => {
-                                        const checked = event.currentTarget.checked;
-                                        const currentValues = form.values.payment_providers || [];
-                                        form.setFieldValue(
-                                            'payment_providers',
-                                            checked
-                                                ? [...currentValues, option.value as PaymentProvider]
-                                                : currentValues.filter(v => v !== option.value)
-                                        );
-                                    }}
-                                    mb="sm"
-                                />
-                            ))}
+                            {!STRIPE_ENABLED && (
+                                <Alert variant="light" color="blue" icon={<IconInfoCircle size={18}/>} mb="md">
+                                    {t`Online card payments are unavailable in this region. Take payment outside the platform and mark each order as paid once the money arrives. Add your payment instructions below so buyers know how to pay.`}
+                                </Alert>
+                            )}
+                            {paymentOptions.map((option) => {
+                                const isOnlyAvailableMethod = !STRIPE_ENABLED && option.value === 'OFFLINE';
+
+                                return (
+                                    <Checkbox
+                                        key={option.value}
+                                        label={option.label}
+                                        description={option.description}
+                                        checked={isOnlyAvailableMethod || form.values.payment_providers?.includes(option.value as PaymentProvider)}
+                                        disabled={isOnlyAvailableMethod}
+                                        onChange={(event) => {
+                                            const checked = event.currentTarget.checked;
+                                            const currentValues = form.values.payment_providers || [];
+                                            form.setFieldValue(
+                                                'payment_providers',
+                                                checked
+                                                    ? [...currentValues, option.value as PaymentProvider]
+                                                    : currentValues.filter(v => v !== option.value)
+                                            );
+                                        }}
+                                        mb="sm"
+                                    />
+                                );
+                            })}
                             {form.errors["payment_providers"] && (
                                 <Text c="red">{form.errors["payment_providers"]}</Text>
                             )}
@@ -151,7 +163,7 @@ export const PaymentAndInvoicingSettings = () => {
                                         error={form.errors.offline_payment_instructions as string}
                                         label={<InputLabelWithHelp label={t`Offline Payment Instructions`}
                                                                    helpText={t`This information will be shown on the payment page, order summary page, and order confirmation email.`}/>}
-                                        description={t`Add instructions for offline payments (e.g., bank transfer details, where to send checks, payment deadlines)`}
+                                        description={t`Add instructions for offline payments (e.g., bank transfer details, e-wallet details, payment deadlines)`}
                                         onChange={(value) => form.setFieldValue('offline_payment_instructions', value)}
                                         additionalToolbarControls={
                                             <LiquidTokenControl

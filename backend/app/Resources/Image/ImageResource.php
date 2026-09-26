@@ -25,6 +25,8 @@ class ImageResource extends BaseResource
             'height' => $this->getHeight(),
             'avg_colour' => $this->getAvgColour(),
             'lqip_base64' => $this->getLqipBase64(),
+            'state' => $this->getState(),
+            'state_reason' => $this->getStateReason(),
         ];
     }
 }

@@ -45,7 +45,7 @@ return [
      */
     'headers' => [
         'Content-Type' => 'application/json',
-        'X-Webhook-Source' => 'Hi.Events',
+        'X-Webhook-Source' => 'monno',
     ],
 
     /*

@@ -30,7 +30,7 @@
 {{ __('Your order is pending payment. Tickets have been issued but will not be valid until payment is received.') }}
 </p>
 
-<div style="border-radius: 4px; background-color: #d7e8f8; color: #204e84; margin-bottom: 1.5rem; padding: 1rem;">
+<div style="border-radius: 4px; background-color: #EDF6FD; color: #0A4F86; margin-bottom: 1.5rem; padding: 1rem;">
 <h2>{{ __('Payment Instructions') }}</h2>
 {{ __('Please follow the instructions below to complete your payment.') }}
 {!! $eventSettings->getOfflinePaymentInstructions() !!}

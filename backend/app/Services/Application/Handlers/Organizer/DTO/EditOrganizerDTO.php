@@ -18,5 +18,8 @@ class EditOrganizerDTO extends BaseDataObject
         public ?string $website = null,
         public ?string $description = null,
         public ?UploadedFile $logo = null,
+        // Optional handle. The handler only writes it when non-null, so callers
+        // that don't expose a handle (the quick-edit modal) can't wipe it.
+        public ?string $slug = null,
     ) {}
 }

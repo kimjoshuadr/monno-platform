@@ -29,7 +29,11 @@ async function initClientApp() {
     if (matches && matches.length > 0) {
         await Promise.all(
             matches.map(async (m) => {
-                const routeModule = await m.route.lazy?.();
+                const lazy = m.route.lazy;
+                if (typeof lazy !== 'function') {
+                    return;
+                }
+                const routeModule = await lazy();
                 Object.assign(m.route, {...routeModule, lazy: undefined});
             })
         );

@@ -174,7 +174,7 @@ const AccountDetail = () => {
 
                             <Switch
                                 label={t`Manually verified`}
-                                description={t`Verified accounts can send messages to attendees and manage email templates. Connecting Stripe verifies an account automatically.`}
+                                description={t`Verified accounts can send messages to attendees and manage email templates.`}
                                 checked={account.is_manually_verified}
                                 onChange={(event) => handleVerificationChange(event.currentTarget.checked)}
                                 disabled={updateVerificationMutation.isPending}

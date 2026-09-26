@@ -17,6 +17,10 @@ import "@mantine/dropzone/styles.css";
 import '@mantine/dates/styles.css';
 import "@mantine/charts/styles.css";
 import "./styles/global.scss";
+import "./styles/organizer-room.scss";
+import "./styles/organizer-room-glue.scss";
+import "./styles/event-page.scss";
+import "./styles/event-page-glue.scss";
 import {isSsr} from "./utilites/helpers.ts";
 import {StartupChecks} from "./StartupChecks.tsx";
 import {ThirdPartyScripts} from "./components/common/ThirdPartyScripts";
@@ -70,7 +74,20 @@ export const App: FC<
                     primaryColor: "primary",
                     fontFamily: "Outfit, sans-serif",
                     primaryShade: 8,
-                    defaultRadius: "sm",
+                    // monno: rounded geometry throughout, pill actions
+                    defaultRadius: "md",
+                    components: {
+                        Button: {
+                            defaultProps: {
+                                radius: "xl",
+                            },
+                        },
+                        Badge: {
+                            defaultProps: {
+                                radius: "xl",
+                            },
+                        },
+                    },
                 }}
             >
                 <HelmetProvider context={props.helmetContext}>
@@ -82,7 +99,7 @@ export const App: FC<
                                 <ThirdPartyScripts/>
                                 <ModalsProvider>
                                     <Helmet>
-                                        <title>{getConfig("VITE_APP_NAME", "Hi.Events")}</title>
+                                        <title>{getConfig("VITE_APP_NAME", "monno")}</title>
                                         <link rel="icon"
                                               type="image/svg+xml"
                                               href={getConfig("VITE_APP_FAVICON", "/favicon.svg")}

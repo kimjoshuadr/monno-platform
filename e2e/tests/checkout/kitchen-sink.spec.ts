@@ -1,6 +1,6 @@
 import { test } from '../../fixtures';
 import { arrangeKitchenSinkEvent, runKitchenSinkCheckout, type KitchenSinkTotals } from './kitchen-sink.shared';
-import { STRIPE_PUBLIC_KEY } from '../../utils/env';
+import { skipStripeSpecs, STRIPE_SPEC_SKIP_REASON } from '../../utils/env';
 import { nonSaasOnly } from '../../utils/mode';
 
 const TOTALS: KitchenSinkTotals = {
@@ -25,7 +25,7 @@ test.describe('kitchen sink checkout', () => {
   });
 
   test.describe(() => {
-    test.skip(!STRIPE_PUBLIC_KEY, 'Requires STRIPE_PUBLIC_KEY (Stripe test mode) to be configured.');
+    test.skip(skipStripeSpecs, STRIPE_SPEC_SKIP_REASON);
     nonSaasOnly();
 
     test('a buyer completes the kitchen-sink checkout with a Stripe card payment', { tag: '@stripe' }, async ({ page, api, account, publicApi, mailpit }) => {

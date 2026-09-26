@@ -75,6 +75,7 @@ class EventSettingsResource extends JsonResource
 
             // Homepage theme settings
             'homepage_theme_settings' => $this->getHomepageThemeSettings(),
+            'homepage_blocks' => $this->getHomepageBlocks(),
 
             // Self-service settings
             'allow_attendee_self_edit' => $this->getAllowAttendeeSelfEdit(),

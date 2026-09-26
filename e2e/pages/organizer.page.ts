@@ -60,8 +60,12 @@ export class OrganizerPublicPage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  /**
+   * The room's cards are a stretched link with the title as its accessible name (the
+   * heading itself sits beside it, not inside it).
+   */
   eventLink(title: string): Locator {
-    return this.page.getByRole('link').filter({ has: this.page.getByRole('heading', { name: title }) });
+    return this.page.getByRole('link', { name: title, exact: true });
   }
 
   get contactButton(): Locator {

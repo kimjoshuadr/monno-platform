@@ -13,6 +13,7 @@ use HiEvents\DomainObjects\Status\EventStatus;
 use HiEvents\Events\Dispatcher;
 use HiEvents\Events\EventUpdateEvent;
 use HiEvents\Exceptions\CannotChangeCurrencyException;
+use HiEvents\Exceptions\CannotChangeEventTypeException;
 use HiEvents\Helper\DateHelper;
 use HiEvents\Helper\StringHelper;
 use HiEvents\Jobs\Event\Webhook\DispatchEventWebhookJob;
@@ -85,6 +86,35 @@ readonly class UpdateEventHandler
             'currency' => $eventData->currency ?? $existingEvent->getCurrency(),
         ];
 
+        // Custom key/value attributes are validated on the request and were
+        // already written on create — update silently dropped them.
+        if ($eventData->attributes !== null) {
+            $attributes['attributes'] = $eventData->attributes->toArray();
+        }
+
+        if ($eventData->type !== null && $eventData->type->name !== $existingEvent->getType()) {
+            $this->guardEventTypeChange($eventData, $existingEvent);
+            $attributes['type'] = $eventData->type->name;
+        }
+
+        // Public-site display fields — only touch the ones actually sent, so a
+        // partial payload can't wipe them.
+        if ($eventData->tagline !== null) {
+            $attributes['tagline'] = StringHelper::stripControlCharacters($eventData->tagline);
+        }
+
+        if ($eventData->featured !== null) {
+            $attributes['featured'] = $eventData->featured;
+        }
+
+        if ($eventData->image_alt !== null) {
+            $attributes['image_alt'] = StringHelper::stripControlCharacters($eventData->image_alt);
+        }
+
+        if ($eventData->agenda !== null) {
+            $attributes['agenda'] = $eventData->agenda;
+        }
+
         $this->eventRepository->updateWhere(
             attributes: $attributes,
             where: [
@@ -126,7 +156,11 @@ readonly class UpdateEventHandler
 
     private function updateSingleOccurrenceDates(UpdateEventDTO $eventData, EventDomainObject $existingEvent): void
     {
-        if ($existingEvent->getType() !== EventType::SINGLE->name) {
+        // Use the type as it will be *after* this update, so converting a
+        // one-date recurring event to single also lands the submitted dates.
+        $effectiveType = $eventData->type?->name ?? $existingEvent->getType();
+
+        if ($effectiveType !== EventType::SINGLE->name) {
             return;
         }
 
@@ -181,6 +215,33 @@ readonly class UpdateEventHandler
         );
 
         return $event;
+    }
+
+    /**
+     * Recurring -> single would orphan every occurrence beyond the first, so
+     * refuse it while more than one date exists.
+     *
+     * @throws CannotChangeEventTypeException
+     */
+    private function guardEventTypeChange(UpdateEventDTO $eventData, EventDomainObject $existingEvent): void
+    {
+        if ($existingEvent->getType() !== EventType::RECURRING->name) {
+            return;
+        }
+
+        if ($eventData->type?->name !== EventType::SINGLE->name) {
+            return;
+        }
+
+        $occurrenceCount = $this->occurrenceRepository->countWhere([
+            'event_id' => $existingEvent->getId(),
+        ]);
+
+        if ($occurrenceCount > 1) {
+            throw new CannotChangeEventTypeException(
+                __('You cannot turn a recurring event into a single event while it has more than one date. Remove the extra dates first.'),
+            );
+        }
     }
 
     /**

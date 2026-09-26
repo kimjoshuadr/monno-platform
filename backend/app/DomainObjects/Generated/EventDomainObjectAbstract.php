@@ -33,6 +33,10 @@ abstract class EventDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     final public const CATEGORY = 'category';
     final public const TYPE = 'type';
     final public const RECURRENCE_RULE = 'recurrence_rule';
+    final public const TAGLINE = 'tagline';
+    final public const FEATURED = 'featured';
+    final public const IMAGE_ALT = 'image_alt';
+    final public const AGENDA = 'agenda';
 
     protected int $id;
     protected int $account_id;
@@ -57,6 +61,10 @@ abstract class EventDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     protected string $category = 'OTHER';
     protected string $type = 'SINGLE';
     protected array|string|null $recurrence_rule = null;
+    protected ?string $tagline = null;
+    protected bool $featured = false;
+    protected ?string $image_alt = null;
+    protected array|string|null $agenda = null;
 
     public function toArray(): array
     {
@@ -84,6 +92,10 @@ abstract class EventDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
                     'category' => $this->category ?? null,
                     'type' => $this->type ?? null,
                     'recurrence_rule' => $this->recurrence_rule ?? null,
+                    'tagline' => $this->tagline ?? null,
+                    'featured' => $this->featured ?? null,
+                    'image_alt' => $this->image_alt ?? null,
+                    'agenda' => $this->agenda ?? null,
                 ];
     }
 
@@ -338,5 +350,49 @@ abstract class EventDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     public function getRecurrenceRule(): array|string|null
     {
         return $this->recurrence_rule;
+    }
+
+    public function setTagline(?string $tagline): self
+    {
+        $this->tagline = $tagline;
+        return $this;
+    }
+
+    public function getTagline(): ?string
+    {
+        return $this->tagline;
+    }
+
+    public function setFeatured(bool $featured): self
+    {
+        $this->featured = $featured;
+        return $this;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->featured;
+    }
+
+    public function setImageAlt(?string $image_alt): self
+    {
+        $this->image_alt = $image_alt;
+        return $this;
+    }
+
+    public function getImageAlt(): ?string
+    {
+        return $this->image_alt;
+    }
+
+    public function setAgenda(array|string|null $agenda): self
+    {
+        $this->agenda = $agenda;
+        return $this;
+    }
+
+    public function getAgenda(): array|string|null
+    {
+        return $this->agenda;
     }
 }

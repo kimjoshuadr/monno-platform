@@ -99,13 +99,18 @@ readonly class LoginService
     ): ?string {
         $accountId = $this->getAccountId($accounts, $requestedAccountId);
 
-        // if there's no account, we can't generate a token. The user will be prompted to select an account
-        if ($accountId === null) {
+        // Someone who belongs to accounts but hasn't picked one still goes to
+        // the account chooser and gets no token yet. A ticket buyer belongs to
+        // no account at all: they must be able to sign in, so their token simply
+        // carries neither the account nor the role claim.
+        if ($accountId === null && $accounts->isNotEmpty()) {
             return null;
         }
 
-        $claims = ['account_id' => $accountId];
-
+        $claims = [];
+        if ($accountId !== null) {
+            $claims['account_id'] = $accountId;
+        }
         if ($userRole !== null) {
             $claims['role'] = $userRole->value;
         }

@@ -129,6 +129,10 @@ class CreateEventService
             'attributes' => $eventData->getAttributes(),
             'type' => $eventData->getType() ?? EventType::SINGLE->name,
             'recurrence_rule' => $eventData->getRecurrenceRule(),
+            'tagline' => $eventData->getTagline(),
+            'featured' => $eventData->isFeatured(),
+            'image_alt' => $eventData->getImageAlt(),
+            'agenda' => $eventData->getAgenda(),
         ]);
 
         if (($eventData->getType() ?? EventType::SINGLE->name) === EventType::SINGLE->name && $startDate !== null) {
@@ -212,8 +216,8 @@ class CreateEventService
 
         // Build the new homepage_theme_settings from organizer settings
         $homepageThemeSettings = [
-            'accent' => $organizerThemeSettings['accent'] ?? '#8b5cf6',
-            'background' => $organizerThemeSettings['background'] ?? '#f5f3ff',
+            'accent' => $organizerThemeSettings['accent'] ?? '#0B0B0C',
+            'background' => $organizerThemeSettings['background'] ?? '#F5F6F8',
             'mode' => $organizerThemeSettings['mode'] ?? 'light',
             'background_type' => $eventCoverCreated
                 ? HomepageBackgroundType::MIRROR_COVER_IMAGE->name

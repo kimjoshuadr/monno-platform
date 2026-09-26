@@ -74,9 +74,13 @@ class OrganizerDomainObject extends Generated\OrganizerDomainObjectAbstract
         return $this;
     }
 
+    /**
+     * The handle is stored only when an organizer picked one; otherwise it is
+     * still derived from the name so existing rooms keep working.
+     */
     public function getSlug(): string
     {
-        return Str::slug($this->name);
+        return $this->getStoredSlug() ?: Str::slug($this->name);
     }
 
     public function getPrimaryStripePlatform(): ?OrganizerStripePlatformDomainObject

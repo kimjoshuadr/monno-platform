@@ -1,6 +1,6 @@
 import {Button, PasswordInput, TextInput, Collapse, UnstyledButton} from "@mantine/core";
 import {NavLink, useLocation} from "react-router";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {notifications} from '@mantine/notifications';
 import {authClient} from "../../../../api/auth.client.ts";
 import {LoginData, LoginResponse} from "../../../../types.ts";
@@ -15,6 +15,7 @@ import {showError} from "../../../../utilites/notifications.tsx";
 import {IconTicket, IconChevronDown} from "@tabler/icons-react";
 
 const Login = () => {
+    const queryClient = useQueryClient();
     const location = useLocation();
     const form = useForm({
         initialValues: {
@@ -38,6 +39,7 @@ const Login = () => {
 
         onSuccess: (response: LoginResponse) => {
             if (response.token) {
+                queryClient.clear();
                 redirectToPreviousUrl();
                 return;
             }

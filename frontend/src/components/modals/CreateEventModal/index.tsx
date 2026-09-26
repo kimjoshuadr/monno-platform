@@ -2,7 +2,7 @@ import {useFormErrorResponseHandler} from "../../../hooks/useFormErrorResponseHa
 import {useNavigate} from "react-router";
 import {useGetAccount} from "../../../queries/useGetAccount.ts";
 import {Event, EventType, GenericModalProps, IdParam, Organizer} from "../../../types.ts";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {t} from "@lingui/macro";
 import {Anchor, Button, SegmentedControl, Select, TextInput} from "@mantine/core";
 import {hasLength, useForm} from "@mantine/form";
@@ -269,7 +269,7 @@ export const CreateEventModal = ({onClose, organizerId}: CreateEventModalProps) 
                                             withDropdown: true,
                                         }}
                                         onChange={(value) => {
-                                            form.setFieldValue('start_date', value);
+                                            form.setFieldValue('start_date', value ?? undefined);
 
                                             if (form.values.end_date && value && dayjs(form.values.end_date).isBefore(dayjs(value))) {
                                                 form.setFieldValue('end_date', dayjs(value).add(2, 'hours').toISOString());

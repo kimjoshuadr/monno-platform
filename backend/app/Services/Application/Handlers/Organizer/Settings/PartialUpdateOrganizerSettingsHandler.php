@@ -74,6 +74,8 @@ class PartialUpdateOrganizerSettingsHandler
 
             'homepage_theme_settings' => $dto->getProvided('homepageThemeSettings', $organizerSettings->getHomepageThemeSettings()),
 
+            'homepage_blocks' => $dto->getProvided('homepageBlocks', $organizerSettings->getHomepageBlocks()),
+
             'seo_keywords' => $dto->getProvided('seoKeywords', $organizerSettings->getSeoKeywords()),
             'seo_title' => $dto->getProvided('seoTitle', $organizerSettings->getSeoTitle()),
             'seo_description' => $dto->getProvided('seoDescription', $organizerSettings->getSeoDescription()),

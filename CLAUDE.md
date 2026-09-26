@@ -56,6 +56,11 @@ Unit tests miss wiring bugs — exercise changed endpoints against the dev stack
 # (paid has waitlist) + promo + affiliate; prints ids and a Bearer token:
 docker compose -f docker-compose.dev.yml exec backend php artisan dev:bootstrap
 
+# Native dev (no Docker): the curated content the monno website shows — 8 verified
+# organizer accounts + 27 LIVE events, one per category. Wipes events/organizers/
+# images first (so the E2E test events go too) and prints each organizer's login:
+cd backend && php artisan monno:seed
+
 # Manual token (`token` field → `Authorization: Bearer <token>`):
 curl -sk -X POST https://localhost:8443/api/auth/login -H "Content-Type: application/json" -d '{"email":"<email>","password":"<password>"}'
 ```

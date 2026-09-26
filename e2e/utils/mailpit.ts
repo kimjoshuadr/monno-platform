@@ -25,13 +25,26 @@ const decodeHtmlEntities = (value: string): string =>
 export class MailpitClient {
   constructor(private readonly request: APIRequestContext) {}
 
+  async isAvailable(): Promise<boolean> {
+    try {
+      const response = await this.request.get(`${MAILPIT_URL}/api/v1/info`, { timeout: 1000 });
+      return response.ok();
+    } catch {
+      return false;
+    }
+  }
+
   async search(toAddress: string): Promise<MailpitSummary[]> {
-    const response = await this.request.get(
-      `${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:"${toAddress}"`)}`,
-    );
-    if (!response.ok()) return [];
-    const body = (await response.json()) as { messages?: MailpitSummary[] };
-    return body.messages ?? [];
+    try {
+      const response = await this.request.get(
+        `${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:"${toAddress}"`)}`,
+      );
+      if (!response.ok()) return [];
+      const body = (await response.json()) as { messages?: MailpitSummary[] };
+      return body.messages ?? [];
+    } catch {
+      return [];
+    }
   }
 
   async waitForMessage(

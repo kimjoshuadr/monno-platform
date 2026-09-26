@@ -46,6 +46,7 @@ interface OrganizerReportProps<T> {
     showCurrencyFilter?: boolean;
     availableCurrencies?: string[];
     eventId?: number | null;
+    downloadFileName?: string;
 }
 
 const TIME_PERIODS = [
@@ -75,6 +76,7 @@ const OrganizerReportTable = <T extends Record<string, any>>({
                                                                  showCurrencyFilter = true,
                                                                  availableCurrencies = [],
                                                                  eventId,
+                                                                 downloadFileName,
                                                              }: OrganizerReportProps<T>) => {
     const tz = organizer.timezone || 'UTC';
     const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
@@ -160,7 +162,7 @@ const OrganizerReportTable = <T extends Record<string, any>>({
         onDateRangeChange?.(newRange);
     };
 
-    const handleDateRangeChange = (newRange: [Date | null, Date | null]) => {
+    const handleDateRangeChange = (newRange: [string | null, string | null]) => {
         const [start, end] = newRange;
         const tzStart = start ? dayjs(start).tz(tz) : null;
         const tzEnd = end ? dayjs(end).tz(tz) : null;
@@ -199,7 +201,7 @@ const OrganizerReportTable = <T extends Record<string, any>>({
                 selectedCurrency,
                 eventId
             );
-            const filename = `${reportType}_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.csv`;
+            const filename = downloadFileName || `${reportType}_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.csv`;
             downloadBinary(blob, filename);
             showSuccess(t`Export successful`);
         } catch {

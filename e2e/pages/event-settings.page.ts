@@ -28,8 +28,9 @@ export class EventSettingsPage {
     return this.section('misc-settings').getByLabel('Enable attendee self-service');
   }
 
+  /** Offline payment is the only method in this deployment and is always locked on. */
   get offlinePaymentsCheckbox(): Locator {
-    return this.section('payment-settings').getByLabel('Offline Payments', { exact: true });
+    return this.section('payment-settings').getByLabel('Pay via invoice or bank transfer', { exact: true });
   }
 
   get offlineInstructionsEditor(): Locator {

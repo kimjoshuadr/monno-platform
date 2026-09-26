@@ -32,6 +32,12 @@ class CreateEventDTO extends BaseDTO
         public readonly ?string $status = EventStatus::DRAFT->name,
         public readonly ?EventType $type = EventType::SINGLE,
 
+        // Public-site display fields
+        public readonly ?string $tagline = null,
+        public readonly ?bool $featured = false,
+        public readonly ?string $image_alt = null,
+        public readonly ?array $agenda = null,
+
         public ?UpdateEventSettingsDTO $event_settings = null
     ) {}
 }

@@ -44,6 +44,36 @@ class UpdateEventSettingsRequestTest extends TestCase
         $this->assertFalse($validator->errors()->has('ticket_design_settings.date_display_mode'));
     }
 
+    public function test_product_page_message_is_validatable(): void
+    {
+        $validator = Validator::make(
+            ['product_page_message' => 'Doors open 30 minutes early.'],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('product_page_message'));
+    }
+
+    public function test_product_page_message_must_be_a_string(): void
+    {
+        $validator = Validator::make(
+            ['product_page_message' => ['not' => 'a string']],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertTrue($validator->errors()->has('product_page_message'));
+    }
+
+    public function test_product_page_message_is_optional(): void
+    {
+        $validator = Validator::make(
+            ['pre_checkout_message' => 'hello'],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('product_page_message'));
+    }
+
     public function test_allow_copy_details_to_all_attendees_accepts_boolean(): void
     {
         $validator = Validator::make(

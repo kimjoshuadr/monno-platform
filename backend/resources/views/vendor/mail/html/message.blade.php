@@ -5,7 +5,7 @@
             @if($appLogo = config('app.email_logo_url'))
                 <img src="{{ $appLogo }}" class="logo" alt="{{ config('app.name') }}">
             @else
-                <img src="{{ config('app.frontend_url') }}/logos/hi-events-stacked-light.png" class="logo" alt="{{ config('app.name') }}">
+                <img src="{{ config('app.frontend_url') }}/logos/monno-email-logo.png" class="logo" alt="{{ config('app.name') }}">
             @endif
         </x-mail::header>
     </x-slot:header>
@@ -35,6 +35,7 @@
                 {{-- In accordance with Section 7(b) of the AGPL, we ask that you retain the "Powered by Hi.Events" notice. --}}
                 {{-- If you wish to remove this notice, a commercial license is available at: https://hi.events/licensing --}}
 
+                {{-- AGPL v3, Section 7(b): the exact "Powered by Hi.Events" notice is retained here and the link always directs to https://hi.events. Prefixing our own product name (config('app.name')) is the permitted rephrasing. --}}
                 © {{ date('Y') }} {{ config('app.name') }} | Powered by <a title="Manage events and sell tickets online with Hi.Events" href="https://hi.events?utm_source=app-email-footer">Hi.Events</a>
             @endif
         </x-mail::footer>

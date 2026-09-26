@@ -177,6 +177,23 @@ abstract class BaseAction extends Controller
         throw new UnauthorizedException;
     }
 
+    /**
+     * Account context is absent for ticket buyers, who belong to no account.
+     * Use this on routes a buyer may legitimately reach; keep
+     * getAuthenticatedAccountId() where an organizer tenant is required.
+     */
+    protected function getAuthenticatedAccountIdOrNull(): ?int
+    {
+        if (! Auth::check()) {
+            return null;
+        }
+
+        /** @var AuthUserService $service */
+        $service = app(AuthUserService::class);
+
+        return $service->getAuthenticatedAccountId();
+    }
+
     protected function getAuthenticatedUserRole(): Role
     {
         if (Auth::check()) {

@@ -881,6 +881,8 @@ const SelectProducts = (props: SelectProductsProps) => {
                 })}
             </div>
 
+            {promoSection()}
+
             <div className={'hi-footer-row'}>
                 {event?.settings?.product_page_message && (
                     <UserGeneratedContent
@@ -898,7 +900,10 @@ const SelectProducts = (props: SelectProductsProps) => {
         </>
     );
 
-    const promoSection = (
+    // A hoisted function rather than a const so the product section below can render it
+    // inline, above the checkout button, where a buyer expects the code field to be.
+    function promoSection() {
+        return (
         <div className={'hi-promo-code-row'}>
             {(!showPromoCodeInput && !form.values.promo_code) && (
                 <Anchor className={'hi-have-a-promo-code-link'} underline={'always'}
@@ -962,7 +967,8 @@ const SelectProducts = (props: SelectProductsProps) => {
                 </Group>
             )}
         </div>
-    );
+        );
+    }
 
     const noProductsForOccurrence = (
         <div className={'hi-no-products'}>
@@ -1099,7 +1105,7 @@ const SelectProducts = (props: SelectProductsProps) => {
                             colors={props.colors}
                             isProductsLoading={occurrenceEventRefetchMutation.isPending}
                             productSlot={productAreAvailable
-                                ? <>{productFormSection}{promoSection}</>
+                                ? <>{productFormSection}</>
                                 : noProductsForOccurrence}
                             waitlistAvailable={waitlistAvailable}
                         />
@@ -1108,7 +1114,6 @@ const SelectProducts = (props: SelectProductsProps) => {
                     )}
                 </form>
             )}
-            {!isRecurring && !eventHasEnded && promoSection}
 
             {
                 /**

@@ -27,6 +27,7 @@ import { useState } from "react";
 import { CreateEventModal } from "../../modals/CreateEventModal";
 import { TopBarButton } from "../../common/TopBarButton";
 import classes from "./OrganizerLayout.module.scss";
+import { STRIPE_ENABLED } from "../../../utilites/paymentProviders.ts";
 import { CalloutConfig, SidebarCalloutQueue } from "../../common/SidebarCallout/SidebarCalloutQueue";
 import { InviteUserModal } from "../../modals/InviteUserModal";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
@@ -68,7 +69,8 @@ const OrganizerLayout = () => {
     const statusToggleMutation = useUpdateOrganizerStatus();
 
     const isStripeConnected = !!organizer?.stripe_connect_setup_complete;
-    const showPayoutsSection = !!account?.is_saas_mode_enabled;
+    // Payouts are a Stripe Connect feature.
+    const showPayoutsSection = !!account?.is_saas_mode_enabled && STRIPE_ENABLED;
 
     const navItems: NavItem[] = [
         {

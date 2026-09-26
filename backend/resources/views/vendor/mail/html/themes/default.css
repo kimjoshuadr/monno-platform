@@ -11,8 +11,8 @@ body *:not(html):not(style):not(br):not(tr):not(code) {
 body {
     -webkit-text-size-adjust: none;
     -webkit-font-smoothing: antialiased;
-    background-color: #f4f2f7;
-    color: #56506a;
+    background-color: #F5F6F8;
+    color: #3F4247;
     height: 100%;
     line-height: 1.65;
     margin: 0;
@@ -29,7 +29,7 @@ blockquote {
 }
 
 a {
-    color: #40296c;
+    color: #0B0B0C;
     text-decoration: underline;
 }
 
@@ -40,7 +40,7 @@ a img {
 /* Typography */
 
 h1 {
-    color: #191029;
+    color: #0B0B0C;
     font-size: 25px;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -50,7 +50,7 @@ h1 {
 }
 
 h2 {
-    color: #2b2140;
+    color: #1B1C1F;
     font-size: 18px;
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -60,7 +60,7 @@ h2 {
 }
 
 h3 {
-    color: #2b2140;
+    color: #1B1C1F;
     font-size: 15px;
     font-weight: 600;
     line-height: 1.5;
@@ -76,13 +76,13 @@ p {
 }
 
 p.sub {
-    color: #8e879e;
+    color: #6E7178;
     font-size: 13px;
 }
 
 strong,
 b {
-    color: #2b2140;
+    color: #1B1C1F;
     font-weight: 600;
 }
 
@@ -100,21 +100,21 @@ li {
 
 hr {
     border: none;
-    border-top: 1px solid #ebe7f2;
+    border-top: 1px solid #E4E6EA;
     margin: 32px 0;
 }
 
 blockquote {
-    border-left: 3px solid #e2dcee;
-    color: #8e879e;
+    border-left: 3px solid #E4E6EA;
+    color: #6E7178;
     margin: 0 0 16px;
     padding: 2px 0 2px 16px;
 }
 
 code {
-    background-color: #f3f0f9;
+    background-color: #F0F1F3;
     border-radius: 4px;
-    color: #40296c;
+    color: #0B0B0C;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 14px;
     padding: 2px 6px;
@@ -130,7 +130,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4f2f7;
+    background-color: #F5F6F8;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -153,7 +153,7 @@ img {
 }
 
 .header a {
-    color: #191029;
+    color: #0B0B0C;
     font-size: 19px;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -163,8 +163,10 @@ img {
 /* Logo */
 
 .logo {
-    max-width: 220px;
-    width: 150px;
+    max-width: 240px;
+    max-height: 56px;
+    width: auto;
+    height: auto;
 }
 
 /* Body */
@@ -173,7 +175,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f4f2f7;
+    background-color: #F5F6F8;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -185,7 +187,7 @@ img {
     -premailer-width: 600px;
     background-color: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 1px 2px rgba(25, 16, 41, 0.04), 0 10px 28px rgba(25, 16, 41, 0.06);
+    box-shadow: 0 1px 2px rgba(11, 11, 12, 0.05), 0 10px 28px rgba(11, 11, 12, 0.07);
     margin: 0 auto;
     padding: 0;
     width: 600px;
@@ -194,19 +196,19 @@ img {
 /* Subcopy */
 
 .subcopy {
-    border-top: 1px solid #ebe7f2;
+    border-top: 1px solid #E4E6EA;
     margin-top: 32px;
     padding-top: 24px;
 }
 
 .subcopy p {
-    color: #8e879e;
+    color: #6E7178;
     font-size: 13px;
     line-height: 1.6;
 }
 
 .subcopy a {
-    color: #8e879e;
+    color: #6E7178;
 }
 
 /* Footer */
@@ -226,7 +228,7 @@ img {
 }
 
 .footer p {
-    color: #948da3;
+    color: #8A8E96;
     font-size: 13px;
     line-height: 1.6;
     margin: 0;
@@ -234,7 +236,7 @@ img {
 }
 
 .footer a {
-    color: #948da3;
+    color: #8A8E96;
     text-decoration: underline;
 }
 
@@ -250,8 +252,8 @@ img {
 }
 
 .table th {
-    border-bottom: 1px solid #ebe7f2;
-    color: #8e879e;
+    border-bottom: 1px solid #E4E6EA;
+    color: #6E7178;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -262,8 +264,8 @@ img {
 }
 
 .table td {
-    border-bottom: 1px solid #f2eff7;
-    color: #56506a;
+    border-bottom: 1px solid #EFF1F3;
+    color: #3F4247;
     font-size: 15px;
     line-height: 1.5;
     margin: 0;
@@ -303,8 +305,8 @@ img {
 
 .button-blue,
 .button-primary {
-    background-color: #40296c;
-    box-shadow: 0 2px 6px rgba(64, 41, 108, 0.24);
+    background-color: #0B0B0C;
+    box-shadow: 0 2px 6px rgba(11, 11, 12, 0.24);
 }
 
 .button-green,
@@ -326,15 +328,15 @@ img {
 }
 
 .panel-content {
-    background-color: #f7f5fb;
-    border-left: 3px solid #40296c;
+    background-color: #F7F8F9;
+    border-left: 3px solid #0B0B0C;
     border-radius: 10px;
-    color: #56506a;
+    color: #3F4247;
     padding: 18px 20px;
 }
 
 .panel-content p {
-    color: #56506a;
+    color: #3F4247;
     margin-bottom: 12px;
 }
 

@@ -6,6 +6,7 @@ use HiEvents\DataTransferObjects\Attributes\CollectionOf;
 use HiEvents\DataTransferObjects\AttributesDTO;
 use HiEvents\DataTransferObjects\BaseDTO;
 use HiEvents\DomainObjects\Enums\EventCategory;
+use HiEvents\DomainObjects\Enums\EventType;
 use HiEvents\DomainObjects\Status\EventStatus;
 use Illuminate\Support\Collection;
 
@@ -25,5 +26,10 @@ class UpdateEventDTO extends BaseDTO
         public readonly ?string $timezone = null,
         public readonly ?string $currency = null,
         public readonly ?string $status = EventStatus::DRAFT->name,
+        public readonly ?EventType $type = null,
+        public readonly ?string $tagline = null,
+        public readonly ?bool $featured = null,
+        public readonly ?string $image_alt = null,
+        public readonly ?array $agenda = null,
     ) {}
 }

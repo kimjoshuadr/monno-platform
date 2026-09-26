@@ -36,10 +36,9 @@ export const CreateCheckInListModal = ({onClose, initialOccurrenceId}: CreateChe
         }
     });
     const createMutation = useCreateCheckInList();
-    const eventHasTickets = event?.product_categories
-        && event.product_categories.some(category => category.products.length > 0)
-        && event.product_categories.filter(category =>
-            category?.products?.filter((product: Product) => product.product_type === 'TICKET').length > 0).length > 0
+    const eventHasTickets = !!event?.product_categories?.some(category =>
+        (category.products ?? []).some((product: Product) => product.product_type === 'TICKET')
+    );
 
     const handleSubmit = (requestData: CheckInListRequest) => {
         createMutation.mutate({

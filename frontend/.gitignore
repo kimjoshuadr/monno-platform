@@ -25,3 +25,6 @@ dist-ssr
 
 
 .vercel
+# Local env files are never committed; .env.production carries the deploy values.
+.env
+.env*.local

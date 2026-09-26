@@ -5,7 +5,8 @@ import {t} from "@lingui/macro";
 import {Countdown} from "../../common/Countdown";
 import {ActionIcon, Button, Group, Modal, Tooltip} from "@mantine/core";
 import {IconArrowLeft, IconClock, IconPrinter, IconReceipt} from "@tabler/icons-react";
-import {eventHomepagePath, eventHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {eventHomepagePath} from "../../../utilites/urlHelper.ts";
+import {monnoEventUrl} from "../EventRoom/EventRoomChrome";
 import {ShareComponent} from "../../common/ShareIcon";
 import {AddToEventCalendarButton} from "../../common/AddEventToCalendarButton";
 import classNames from "classnames";
@@ -27,7 +28,7 @@ import {trackPixelEvent, hasActivePixels} from "../../../utilites/trackingPixels
 import {CookieSettingsLink} from "../../common/CookieSettingsLink";
 import {useGetEventPublic} from "../../../queries/useGetEventPublic.ts";
 
-const DEFAULT_ACCENT = '#8b5cf6';
+const DEFAULT_ACCENT = '#0B0B0C';
 
 const Checkout = () => {
     const {eventId, orderShortId} = useParams();
@@ -354,7 +355,7 @@ const Checkout = () => {
                                             <ShareComponent
                                                 title={event.title}
                                                 text={t`Check out this event!`}
-                                                url={eventHomepageUrl(event)}
+                                                url={monnoEventUrl(event.id)!}
                                                 hideShareButtonText
                                             />
 

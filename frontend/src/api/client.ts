@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, {type InternalAxiosRequestConfig} from "axios";
 import {isSsr} from "../utilites/helpers.ts";
 import {getConfig} from "../utilites/config.ts";
 
@@ -27,16 +27,51 @@ const ALLOWED_UNAUTHENTICATED_PATHS = [
     'my-tickets',
 ];
 
+export const AUTH_TOKEN_KEY = 'token';
+
+/**
+ * Attach the stored auth token to a request. Shared by the authenticated client and the
+ * public client: public endpoints treat an authenticated request as the owner, which is
+ * how a designer preview renders a draft event — relying on the auth cookie alone breaks
+ * that as soon as the cookie expires, even though the token still works everywhere else.
+ */
+export const applyAuthToken = <T extends InternalAxiosRequestConfig>(config: T): T => {
+    if (typeof window !== 'undefined') {
+        const token = window.localStorage?.getItem(AUTH_TOKEN_KEY);
+        if (token && !config.headers['Authorization']) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+    }
+    return config;
+};
+
 export const api = axios.create({
     baseURL: BASE_URL,
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
     },
     withCredentials: true,
 });
 
+if (typeof window !== 'undefined') {
+    const existingToken = window.localStorage?.getItem(AUTH_TOKEN_KEY);
+    if (existingToken) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${existingToken}`;
+    }
+}
+
+api.interceptors.request.use((config) => applyAuthToken(config));
+
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const token = response.headers?.['x-auth-token'] || response.data?.token;
+        if (token && typeof window !== 'undefined') {
+            window.localStorage?.setItem(AUTH_TOKEN_KEY, token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+        return response;
+    },
     (error) => {
         if (!error.response) {
             return Promise.reject(error);
@@ -55,9 +90,11 @@ api.interceptors.response.use(
         }
 
         if (isAuthError && (!isAllowedUnauthenticatedPath || isManageEventPath)) {
-            // Store the current URL before redirecting to the login page
+            if (typeof window !== 'undefined') {
+                window.localStorage?.removeItem(AUTH_TOKEN_KEY);
+                delete api.defaults.headers.common['Authorization'];
+            }
             window?.localStorage?.setItem(PREVIOUS_URL_KEY, window?.location.href);
-            // Preserve query params (UTM tracking) during redirect
             const searchParams = window?.location?.search || '';
             window?.location?.replace(LOGIN_PATH + searchParams);
         }
@@ -67,6 +104,13 @@ api.interceptors.response.use(
 );
 
 axios.defaults.withCredentials = true;
+
+export const clearAuthToken = () => {
+    if (typeof window !== 'undefined') {
+        window.localStorage?.removeItem(AUTH_TOKEN_KEY);
+        delete api.defaults.headers.common['Authorization'];
+    }
+};
 
 export const redirectToPreviousUrl = () => {
     const previousUrl = window?.localStorage?.getItem(PREVIOUS_URL_KEY) || '/manage/events';

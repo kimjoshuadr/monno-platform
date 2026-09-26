@@ -27,6 +27,7 @@ export const clientBuildEnv: { [K in ConfigKeys]: string } = {
     'VITE_COOKIE_CONSENT_DOMAIN': import.meta.env.VITE_COOKIE_CONSENT_DOMAIN,
     'VITE_GOOGLE_ADS_CONVERSION_ID': import.meta.env.VITE_GOOGLE_ADS_CONVERSION_ID,
     'VITE_GOOGLE_ADS_CONVERSION_LABELS': import.meta.env.VITE_GOOGLE_ADS_CONVERSION_LABELS,
+    'VITE_MONNO_SITE_URL': import.meta.env.VITE_MONNO_SITE_URL,
 }
 
 export const getConfig = (key: ConfigKeys, fallback?: string): string | undefined => {

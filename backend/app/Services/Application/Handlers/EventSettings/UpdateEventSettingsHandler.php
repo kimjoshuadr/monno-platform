@@ -36,6 +36,7 @@ class UpdateEventSettingsHandler
                     'post_checkout_message' => $this->purifier->purify($settings->post_checkout_message),
                     'pre_checkout_message' => $this->purifier->purify($settings->pre_checkout_message),
                     'email_footer_message' => $this->purifier->purify($settings->email_footer_message),
+                    'product_page_message' => $this->purifier->purify($settings->product_page_message),
                     'support_email' => $settings->support_email,
                     'require_attendee_details' => $settings->require_attendee_details,
                     'attendee_details_collection_method' => $settings->attendee_details_collection_method->name,
@@ -94,6 +95,7 @@ class UpdateEventSettingsHandler
 
                     // Homepage theme settings
                     'homepage_theme_settings' => $settings->homepage_theme_settings,
+                    'homepage_blocks' => $settings->homepage_blocks,
 
                     // Self-service settings
                     'allow_attendee_self_edit' => $settings->allow_attendee_self_edit,

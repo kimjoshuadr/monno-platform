@@ -7,17 +7,24 @@
     border-radius: 5px;
     margin-top: 30px;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 0 12px;
     color: var(--checkout-text-secondary, #6B7280);
 
     .logo {
         width: 20px;
         height: 20px;
-        margin-right: 5px;
+        flex-shrink: 0;
+        display: block;
     }
 
     .poweredByText {
         font-size: 0.9rem;
+        min-width: 0;
     }
 
     .copyRight {

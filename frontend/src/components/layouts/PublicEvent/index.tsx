@@ -1,5 +1,6 @@
 import {useLoaderData} from "react-router";
-import EventHomepage from "../EventHomepage";
+import {EventRoomShell} from "../EventRoom/EventRoomShell.tsx";
+import {EventNotAvailable} from "../EventHomepage/EventNotAvailable";
 import {Event} from "../../../types";
 
 export const PublicEvent = () => {
@@ -12,11 +13,16 @@ export const PublicEvent = () => {
         occurrenceId?: number | null;
     };
 
+    if (!event) {
+        return <EventNotAvailable/>;
+    }
+
+    // The shell owns the theme, head, fonts and tracking pixels; the room is monno's design.
     return (
-        <EventHomepage
+        <EventRoomShell
             event={event}
-            promoCodeValid={promoCodeValid}
             promoCode={promoCode}
+            promoCodeValid={promoCodeValid}
             initialOccurrenceId={occurrenceId}
         />
     );

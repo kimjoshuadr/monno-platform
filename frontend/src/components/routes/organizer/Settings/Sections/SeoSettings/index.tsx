@@ -7,7 +7,7 @@ import {showSuccess} from "../../../../../../utilites/notifications.tsx";
 import {t} from "@lingui/macro";
 import {Card} from "../../../../../common/Card";
 import {HeadingWithDescription} from "../../../../../common/Card/CardHeading";
-import {Button, Switch, TextInput} from "@mantine/core";
+import {Button, Select, Switch, TextInput} from "@mantine/core";
 import {useGetOrganizerSettings} from "../../../../../../queries/useGetOrganizerSettings.ts";
 import {useUpdateOrganizerSettings} from "../../../../../../mutations/useUpdateOrganizerSettings.ts";
 
@@ -21,6 +21,8 @@ export const SeoSettings = () => {
             seo_title: '',
             seo_description: '',
             seo_keywords: '',
+            homepage_visibility: 'PUBLIC' as 'PUBLIC' | 'PRIVATE' | 'PASSWORD_PROTECTED',
+            homepage_password: '',
         }
     });
     const formErrorHandle = useFormErrorResponseHandler();
@@ -32,6 +34,8 @@ export const SeoSettings = () => {
                 seo_title: organizerSettingsQuery.data.seo_title,
                 seo_description: organizerSettingsQuery.data.seo_description,
                 seo_keywords: organizerSettingsQuery.data.seo_keywords,
+                homepage_visibility: organizerSettingsQuery.data.homepage_visibility || 'PUBLIC',
+                homepage_password: organizerSettingsQuery.data.homepage_password || '',
             });
         }
     }, [organizerSettingsQuery.isFetched]);
@@ -81,6 +85,26 @@ export const SeoSettings = () => {
                         description={t`Allow search engines to index this event`}
                         label={t`Allow search engine indexing`}
                     />
+                    <Select
+                        {...form.getInputProps('homepage_visibility')}
+                        label={t`Homepage visibility`}
+                        description={t`Who can view your public organizer page`}
+                        allowDeselect={false}
+                        data={[
+                            {value: 'PUBLIC', label: t`Public — anyone with the link`},
+                            {value: 'PRIVATE', label: t`Private — only your team`},
+                            {value: 'PASSWORD_PROTECTED', label: t`Password protected`},
+                        ]}
+                    />
+                    {form.values.homepage_visibility === 'PASSWORD_PROTECTED' && (
+                        <TextInput
+                            {...form.getInputProps('homepage_password')}
+                            type={'password'}
+                            label={t`Homepage password`}
+                            description={t`Visitors must enter this to open your organizer page.`}
+                            required
+                        />
+                    )}
                     <Button loading={updateMutation.isPending} type={'submit'}>
                         {t`Save`}
                     </Button>

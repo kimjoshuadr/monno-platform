@@ -33,6 +33,10 @@ class ProductPriceResourcePublic extends BaseResource
             /** @var 'OCCURRENCE'|'EVENT' */
             'quantity_applies_to' => $this->getQuantityAppliesTo(),
             'is_locked_behind_earlier_tier' => $this->isLockedBehindEarlierTier(),
+            // A count of tickets sold, never of buyers: the public site shows it as
+            // "N going" and derives capacity from it. Remaining stock stays gated
+            // behind the organizer's show-quantity setting.
+            'quantity_sold' => $this->getQuantitySold(),
             $this->mergeWhen($this->getAdditionalDataByKey(self::SHOW_QUANTITY_AVAILABLE), fn () => [
                 'quantity_remaining' => $this->getQuantityAvailable(),
             ]),

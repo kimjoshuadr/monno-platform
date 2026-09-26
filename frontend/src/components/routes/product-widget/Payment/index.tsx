@@ -18,6 +18,7 @@ import {Card} from "../../../common/Card";
 import {InlineOrderSummary} from "../../../common/InlineOrderSummary";
 import {showError} from "../../../../utilites/notifications.tsx";
 import {getConfig} from "../../../../utilites/config.ts";
+import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 import classes from "./Payment.module.scss";
 import {trackEvent, AnalyticsEvents} from "../../../../utilites/analytics.ts";
 
@@ -33,8 +34,9 @@ const Payment = () => {
     const [submitHandler, setSubmitHandler] = useState<(() => Promise<void>) | null>(null);
     const transitionOrderToOfflinePaymentMutation = useTransitionOrderToOfflinePaymentPublic();
 
-    const isStripeEnabled = event?.settings?.payment_providers?.includes('STRIPE');
-    const isOfflineEnabled = event?.settings?.payment_providers?.includes('OFFLINE');
+    const paymentProviders = resolvePaymentProviders(event?.settings?.payment_providers);
+    const isStripeEnabled = STRIPE_ENABLED && paymentProviders.includes('STRIPE');
+    const isOfflineEnabled = paymentProviders.includes('OFFLINE');
 
     React.useEffect(() => {
         // Automatically set the first available payment method
@@ -161,7 +163,7 @@ const Payment = () => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    {getConfig('VITE_APP_NAME', 'Hi.Events')} Terms of Service
+                                    {getConfig('VITE_APP_NAME', 'monno')} Terms of Service
                                 </a>
                             </Trans>
                         </p>

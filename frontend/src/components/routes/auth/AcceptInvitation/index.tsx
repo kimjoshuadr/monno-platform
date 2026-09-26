@@ -154,7 +154,7 @@ const AcceptInvitation = () => {
                         <Checkbox
                             mb="md"
                             {...form.getInputProps('marketing_opt_in', {type: 'checkbox'})}
-                            label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "Hi.Events")}.</Trans>}
+                            label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "monno")}.</Trans>}
                         />
 
                         <Button

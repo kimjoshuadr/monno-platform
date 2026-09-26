@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
-    'name' => env('APP_NAME', 'Hi.Events'),
+    'name' => env('APP_NAME', 'monno'),
 
     'reset_password_token_expiry_in_min' => 15,
     'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost'),
     'api_url' => env('APP_URL', 'https://localhost:8443'),
     'cnd_url' => env('APP_CDN_URL', '/storage'),
     'default_timezone' => 'America/Vancouver',
-    'default_currency_code' => 'USD',
+    'default_currency_code' => env('APP_DEFAULT_CURRENCY_CODE', 'PHP'),
     'saas_mode_enabled' => env('APP_SAAS_MODE_ENABLED', false),
     'saas_stripe_application_fee_percent' => env('APP_SAAS_STRIPE_APPLICATION_FEE_PERCENT', 1.5),
     'saas_stripe_application_fee_fixed' => env('APP_SAAS_STRIPE_APPLICATION_FEE_FIXED', 0),

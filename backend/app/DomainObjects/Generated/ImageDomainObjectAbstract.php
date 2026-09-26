@@ -27,6 +27,8 @@ abstract class ImageDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     final public const HEIGHT = 'height';
     final public const AVG_COLOUR = 'avg_colour';
     final public const LQIP_BASE64 = 'lqip_base64';
+    final public const STATE = 'state';
+    final public const STATE_REASON = 'state_reason';
 
     protected int $id;
     protected ?int $account_id = null;
@@ -45,6 +47,8 @@ abstract class ImageDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     protected ?int $height = null;
     protected ?string $avg_colour = null;
     protected ?string $lqip_base64 = null;
+    protected ?string $state = null;
+    protected ?string $state_reason = null;
 
     public function toArray(): array
     {
@@ -66,6 +70,8 @@ abstract class ImageDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
                     'height' => $this->height ?? null,
                     'avg_colour' => $this->avg_colour ?? null,
                     'lqip_base64' => $this->lqip_base64 ?? null,
+                    'state' => $this->state ?? null,
+                    'state_reason' => $this->state_reason ?? null,
                 ];
     }
 
@@ -254,5 +260,27 @@ abstract class ImageDomainObjectAbstract extends \HiEvents\DomainObjects\Abstrac
     public function getLqipBase64(): ?string
     {
         return $this->lqip_base64;
+    }
+
+    public function setState(?string $state): self
+    {
+        $this->state = $state;
+        return $this;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function setStateReason(?string $state_reason): self
+    {
+        $this->state_reason = $state_reason;
+        return $this;
+    }
+
+    public function getStateReason(): ?string
+    {
+        return $this->state_reason;
     }
 }

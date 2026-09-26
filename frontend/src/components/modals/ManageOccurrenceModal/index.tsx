@@ -21,7 +21,7 @@ import {confirmationDialog} from "../../../utilites/confirmationDialog.tsx";
 import {useCancelOccurrence} from "../../../mutations/useCancelOccurrence.ts";
 import {useDeleteEventOccurrence} from "../../../mutations/useDeleteEventOccurrence.ts";
 import {useReactivateOccurrence} from "../../../mutations/useReactivateOccurrence.ts";
-import {eventHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {monnoEventUrl} from "../../layouts/EventRoom/EventRoomChrome";
 import {openCancelOccurrenceDialog} from "../../routes/event/OccurrencesTab/cancelOccurrenceDialog";
 import {useOccurrenceCheckIn} from "../../../hooks/useOccurrenceCheckIn.tsx";
 import classes from './ManageOccurrenceModal.module.scss';
@@ -221,7 +221,7 @@ export const ManageOccurrenceModal = ({onClose, occurrenceId}: GenericModalProps
                 <ShareModal
                     opened={!!showShareOccurrence}
                     onClose={() => setShowShareOccurrence(undefined)}
-                    url={`${eventHomepageUrl(event)}?occurrence_id=${showShareOccurrence.id}`}
+                    url={monnoEventUrl(event.id)!}
                     title={event.title}
                     shareText={`${event.title} — ${formatDateWithLocale(showShareOccurrence.start_date, 'shortDateTime', event.timezone)}`}
                 />

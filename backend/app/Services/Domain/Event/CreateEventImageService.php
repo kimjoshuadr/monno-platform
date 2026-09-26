@@ -32,11 +32,11 @@ class CreateEventImageService
         ImageType $imageType,
     ): ImageDomainObject {
         return $this->databaseManager->transaction(function () use ($accountId, $image, $eventId, $imageType) {
-            if ($imageType === ImageType::EVENT_COVER) {
+            if (in_array($imageType, [ImageType::EVENT_COVER, ImageType::EVENT_IMAGE], true)) {
                 $this->imageRepository->deleteWhere([
                     'entity_id' => $eventId,
                     'entity_type' => EventDomainObject::class,
-                    'type' => ImageType::EVENT_COVER->name,
+                    'type' => $imageType->name,
                 ]);
             }
 

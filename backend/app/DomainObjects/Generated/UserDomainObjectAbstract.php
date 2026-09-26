@@ -24,6 +24,9 @@ abstract class UserDomainObjectAbstract extends \HiEvents\DomainObjects\Abstract
     final public const TIMEZONE = 'timezone';
     final public const LOCALE = 'locale';
     final public const MARKETING_OPTED_IN_AT = 'marketing_opted_in_at';
+    final public const HEADLINE = 'headline';
+    final public const BIO = 'bio';
+    final public const LOCATION = 'location';
 
     protected int $id;
     protected string $email;
@@ -39,6 +42,9 @@ abstract class UserDomainObjectAbstract extends \HiEvents\DomainObjects\Abstract
     protected string $timezone;
     protected string $locale = 'en';
     protected ?string $marketing_opted_in_at = null;
+    protected ?string $headline = null;
+    protected ?string $bio = null;
+    protected ?string $location = null;
 
     public function toArray(): array
     {
@@ -57,6 +63,9 @@ abstract class UserDomainObjectAbstract extends \HiEvents\DomainObjects\Abstract
                     'timezone' => $this->timezone ?? null,
                     'locale' => $this->locale ?? null,
                     'marketing_opted_in_at' => $this->marketing_opted_in_at ?? null,
+                    'headline' => $this->headline ?? null,
+                    'bio' => $this->bio ?? null,
+                    'location' => $this->location ?? null,
                 ];
     }
 
@@ -212,5 +221,38 @@ abstract class UserDomainObjectAbstract extends \HiEvents\DomainObjects\Abstract
     public function getMarketingOptedInAt(): ?string
     {
         return $this->marketing_opted_in_at;
+    }
+
+    public function setHeadline(?string $headline): self
+    {
+        $this->headline = $headline;
+        return $this;
+    }
+
+    public function getHeadline(): ?string
+    {
+        return $this->headline;
+    }
+
+    public function setBio(?string $bio): self
+    {
+        $this->bio = $bio;
+        return $this;
+    }
+
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
     }
 }

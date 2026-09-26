@@ -28,6 +28,7 @@ const Settings = () => {
             description: '',
             currency: '',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            slug: '',
         }
     });
 
@@ -54,6 +55,7 @@ const Settings = () => {
             phone: String(organizer?.phone || ''),
             website: String(organizer?.website || ''),
             description: String(organizer?.description || ''),
+            slug: String(organizer?.slug || ''),
         })
     }, [organizer]);
 
@@ -104,6 +106,24 @@ const Settings = () => {
                             placeholder={t`https://awesome-events.com`}
                         />
                     </InputGroup>
+                    <InputGroup>
+                        <TextInput
+                            {...form.getInputProps('slug')}
+                            label={t`Handle`}
+                            description={t`Your public room address. Leave blank to derive it from the name.`}
+                            placeholder={t`qa-check-rooms`}
+                            maxLength={80}
+                            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                            onChange={(e) => form.setFieldValue('slug', e.currentTarget.value.toLowerCase().trim())}
+                        />
+                        <TextInput
+                            label={t`Public URL`}
+                            description={t`Read-only preview of where your room lives.`}
+                            value={`example.com/o/${form.values.slug || 'your-handle'}`}
+                            readOnly
+                        />
+                    </InputGroup>
+
                     <InputGroup>
                         <Select
                             {...form.getInputProps('currency')}

@@ -30,17 +30,25 @@ class EditOrganizerHandler
 
     private function editOrganizer(EditOrganizerDTO $organizerData): OrganizerDomainObject
     {
+        $attributes = [
+            'name' => $organizerData->name,
+            'email' => $organizerData->email,
+            'phone' => $organizerData->phone,
+            'website' => $organizerData->website,
+            'description' => $this->htmlPurifierService->purify($organizerData->description),
+            'account_id' => $organizerData->account_id,
+            'timezone' => $organizerData->timezone,
+            'currency' => $organizerData->currency,
+        ];
+
+        // Only write the handle when one was sent; a form that doesn't expose
+        // a handle (or clears it) leaves the stored value alone.
+        if ($organizerData->slug !== null) {
+            $attributes['slug'] = $organizerData->slug;
+        }
+
         $this->organizerRepository->updateWhere(
-            attributes: [
-                'name' => $organizerData->name,
-                'email' => $organizerData->email,
-                'phone' => $organizerData->phone,
-                'website' => $organizerData->website,
-                'description' => $this->htmlPurifierService->purify($organizerData->description),
-                'account_id' => $organizerData->account_id,
-                'timezone' => $organizerData->timezone,
-                'currency' => $organizerData->currency,
-            ],
+            attributes: $attributes,
             where: [
                 'id' => $organizerData->id,
                 'account_id' => $organizerData->account_id,

@@ -60,4 +60,38 @@ class ImageStorageService
             mime_type: $image->getMimeType()
         );
     }
+
+    public function replace(string $disk, string $path, string $localFilePath): int
+    {
+        if (! is_file($localFilePath)) {
+            throw new CouldNotUploadImageException(__('Could not upload image'));
+        }
+
+        $stream = fopen($localFilePath, 'rb');
+
+        try {
+            $stored = $this->filesystemManager->disk($disk)->put(
+                $path,
+                $stream,
+                ['visibility' => 'public'],
+            );
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+
+        if ($stored === false) {
+            $this->logger->error(__('Could not replace :path on :disk. Check :disk is configured correctly', ['path' => $path, 'disk' => $disk]));
+
+            throw new CouldNotUploadImageException(__('Could not upload image'));
+        }
+
+        return (int) filesize($localFilePath);
+    }
+
+    public function delete(string $disk, string $path): bool
+    {
+        return $this->filesystemManager->disk($disk)->delete($path);
+    }
 }

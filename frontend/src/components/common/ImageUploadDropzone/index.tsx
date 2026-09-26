@@ -7,7 +7,7 @@ import {confirmationDialog} from "../../../utilites/confirmationDialog.tsx";
 import {ActionIcon, Button, Group, Loader, Text} from "@mantine/core";
 import {IconReplace, IconTrash, IconUpload} from "@tabler/icons-react";
 import {t} from "@lingui/macro";
-import {IdParam, ImageType} from "../../../types.ts";
+import {GenericDataResponse, IdParam, Image, ImageType} from "../../../types.ts";
 import {
     extractImageUploadErrors,
     IMAGE_MAX_UPLOAD_SIZE,
@@ -20,13 +20,22 @@ interface ImageUploadDropzoneProps {
     helpText?: string;
     imageType: ImageType;
     entityId: IdParam;
-    onUploadSuccess?: () => void;
+    onUploadSuccess?: (image: Image) => void;
     onDeleteSuccess?: () => void;
     existingImageData?: {
         url?: string;
         id?: IdParam;
     };
     displayMode?: 'normal' | 'compact';
+    accept?: string[];
+    maxSize?: number;
+    validateFile?: (file: File) => string | null;
+    extractErrors?: (error: unknown) => string[];
+    upload?: (file: File) => Promise<GenericDataResponse<Image>>;
+    previewKind?: 'image' | 'video';
+    hintText?: string;
+    successMessage?: string;
+    dataTestId?: string;
 }
 
 export const ImageUploadDropzone = ({
@@ -37,7 +46,16 @@ export const ImageUploadDropzone = ({
                                         existingImageData,
                                         onUploadSuccess,
                                         onDeleteSuccess,
-                                        displayMode = 'normal'
+                                        displayMode = 'normal',
+                                        accept = IMAGE_MIME_TYPE,
+                                        maxSize = IMAGE_MAX_UPLOAD_SIZE,
+                                        validateFile = validateImageFile,
+                                        extractErrors,
+                                        upload,
+                                        previewKind = 'image',
+                                        hintText,
+                                        successMessage,
+                                        dataTestId,
                                     }: ImageUploadDropzoneProps) => {
     const [loading, setLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState(existingImageData?.url || null);
@@ -70,11 +88,11 @@ export const ImageUploadDropzone = ({
         setErrors(errorMessages);
     };
 
-    const handleDrop = (files: File[]) => {
+    const handleDrop = async (files: File[]) => {
         const [file] = files;
         if (!file) return;
 
-        const validationError = validateImageFile(file);
+        const validationError = validateFile(file);
         if (validationError) {
             setErrors([validationError]);
             return;
@@ -83,29 +101,27 @@ export const ImageUploadDropzone = ({
         setErrors([]);
         setLoading(true);
 
-        uploadImage.mutate(
-            {image: file, imageType, entityId},
-            {
-                onSuccess: (response) => {
-                    const uploadedUrl = response?.data?.url;
-                    const uploadedId = response?.data?.id;
+        try {
+            const response = upload
+                ? await upload(file)
+                : await uploadImage.mutateAsync({image: file, imageType, entityId});
 
-                    if (uploadedUrl && uploadedId) {
-                        setPreviewImage(uploadedUrl);
-                        setImageId(uploadedId);
-                        showSuccess(t`Image uploaded successfully`);
-                        onUploadSuccess?.();
-                    }
-                    setLoading(false);
-                    setErrors([]);
-                },
-                onError: (error: any) => {
-                    console.error(error);
-                    setLoading(false);
-                    setErrors(extractImageUploadErrors(error));
-                },
+            const uploadedUrl = response?.data?.url;
+            const uploadedId = response?.data?.id;
+
+            if (uploadedUrl && uploadedId) {
+                setPreviewImage(uploadedUrl);
+                setImageId(uploadedId);
+                showSuccess(successMessage ?? t`Image uploaded successfully`);
+                onUploadSuccess?.(response.data);
             }
-        );
+            setErrors([]);
+        } catch (error) {
+            console.error(error);
+            setErrors(extractErrors ? extractErrors(error) : extractImageUploadErrors(error));
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = () => {
@@ -146,7 +162,7 @@ export const ImageUploadDropzone = ({
                     <Loader size={displayMode === 'compact' ? 'sm' : 'md'}/>
                     {displayMode !== 'compact' && (
                         <Text size="sm" mt="xs" c="dimmed">
-                            Processing image...
+                            {t`Processing upload...`}
                         </Text>
                     )}
                 </div>
@@ -156,7 +172,11 @@ export const ImageUploadDropzone = ({
         if (previewImage) {
             return (
                 <div className={classes.previewContainer}>
-                    <img src={previewImage} alt="Uploaded preview" className={classes.previewImage}/>
+                    {previewKind === 'video' ? (
+                        <video src={previewImage} className={classes.previewImage} controls muted/>
+                    ) : (
+                        <img src={previewImage} alt={t`Uploaded preview`} className={classes.previewImage}/>
+                    )}
                     <Button
                         variant="light"
                         color="blue"
@@ -165,7 +185,7 @@ export const ImageUploadDropzone = ({
                         onClick={handleReplace}
                         className={classes.replaceButton}
                     >
-                        Replace Image
+                        {previewKind === 'video' ? t`Replace Video` : t`Replace Image`}
                     </Button>
                 </div>
             );
@@ -177,7 +197,7 @@ export const ImageUploadDropzone = ({
                     <Group justify="center" gap="xs">
                         <IconUpload size={20} stroke={1.5}/>
                         <Text size="sm" fw={500}>
-                            Click to upload
+                            {t`Click to upload`}
                         </Text>
                     </Group>
                     {helpText && (
@@ -197,7 +217,7 @@ export const ImageUploadDropzone = ({
                     </div>
                 </Group>
                 <Text ta="center" fw={600} size="md" mt="md">
-                    Drag & drop or click to upload
+                    {t`Drag & drop or click to upload`}
                 </Text>
                 {helpText && (
                     <Text ta="center" c="dimmed" size="sm" mt="xs">
@@ -205,7 +225,7 @@ export const ImageUploadDropzone = ({
                     </Text>
                 )}
                 <Text ta="center" c="dimmed" size="xs" mt="xs">
-                    Images only · Max 5MB
+                    {hintText ?? t`Images only · Max 5MB`}
                 </Text>
             </div>
         );
@@ -217,10 +237,11 @@ export const ImageUploadDropzone = ({
                 <Dropzone
                     onDrop={handleDrop}
                     onReject={handleReject}
-                    accept={IMAGE_MIME_TYPE}
-                    maxSize={IMAGE_MAX_UPLOAD_SIZE}
+                    accept={accept}
+                    maxSize={maxSize}
                     disabled={disabled || loading}
                     className={classes.dropzone}
+                    data-testid={dataTestId}
                     classNames={{
                         root: `${classes.dropzoneRoot} ${errors.length > 0 ? classes.dropzoneError : ''}`,
                         inner: classes.dropzoneInner
@@ -229,9 +250,10 @@ export const ImageUploadDropzone = ({
                     {renderDropzoneContent()}
                     <input
                         type="file"
-                        accept={IMAGE_MIME_TYPE.join(",")}
+                        accept={accept.join(",")}
                         style={{display: "none"}}
                         ref={fileInputRef}
+                        data-testid={dataTestId ? `${dataTestId}-input` : undefined}
                         onChange={(e) => {
                             if (e.target.files?.length) handleDrop(Array.from(e.target.files));
                         }}
@@ -240,7 +262,7 @@ export const ImageUploadDropzone = ({
             </div>
 
             {errors.length > 0 && (
-                <div className={classes.errorContainer}>
+                <div className={classes.errorContainer} data-testid={dataTestId ? `${dataTestId}-errors` : undefined}>
                     {errors.map((error, index) => (
                         <Text key={index} size="xs" c="red">
                             {error}
@@ -264,4 +286,4 @@ export const ImageUploadDropzone = ({
             )}
         </div>
     );
-};
+}

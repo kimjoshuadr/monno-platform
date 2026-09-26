@@ -18,6 +18,18 @@ export const imageClient = {
         });
         return response.data;
     },
+    uploadBackgroundVideo: async (video: File, imageType: ImageType, entityId: IdParam) => {
+        const formData = new FormData();
+        formData.append('video', video);
+        formData.append('image_type', imageType);
+        formData.append('entity_id', entityId as string);
+        const response = await api.post<GenericDataResponse<Image>>('images/background-video', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
     delete: async (imageId: IdParam) => {
         const response = await api.delete(`images/${imageId}`);
         return response.data;

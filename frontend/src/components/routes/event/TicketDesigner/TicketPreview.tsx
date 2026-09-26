@@ -1,7 +1,7 @@
 import {useGetEvent} from "../../../../queries/useGetEvent.ts";
 import {useGetMe} from "../../../../queries/useGetMe.ts";
 import {t} from "@lingui/macro";
-import {IdParam, LocationType} from "../../../../types.ts";
+import {Attendee, EventSettings, IdParam, LocationType, ProductPriceType, ProductType} from "../../../../types.ts";
 import {AttendeeTicket} from "../../../common/AttendeeTicket";
 import {resolveEventLocation} from "../../../../utilites/effectiveLocation.ts";
 import classes from './TicketPreview.module.scss';
@@ -39,12 +39,13 @@ export const TicketPreview = ({settings, eventId, logoUrl}: TicketPreviewProps) 
         id: 1,
         title: t`General Admission`,
         price: 2500,
-        type: "TICKET" as const,
-        sale_start_date: null,
-        sale_end_date: null,
-        max_per_order: null,
-        min_per_order: null,
-        quantity_available: null,
+        type: ProductPriceType.Paid,
+        product_type: ProductType.Ticket,
+        sale_start_date: undefined,
+        sale_end_date: undefined,
+        max_per_order: undefined,
+        min_per_order: undefined,
+        quantity_available: undefined,
         is_hidden: false,
         sort_order: 1,
         description: "",
@@ -71,7 +72,7 @@ export const TicketPreview = ({settings, eventId, logoUrl}: TicketPreviewProps) 
             total_gross: 2500,
             currency: event.currency || "USD",
         }
-    };
+    } as unknown as Attendee;
 
     const fallbackLocationDetails = {
         venue_name: t`Sample Venue`,
@@ -89,11 +90,11 @@ export const TicketPreview = ({settings, eventId, logoUrl}: TicketPreviewProps) 
         ...event,
         event_location: resolvedEventLocation,
         settings: {
-            ...event.settings,
+            ...(event.settings as EventSettings),
             ticket_design_settings: {
                 accent_color: settings.accent_color,
-                logo_image_id: settings.logo_image_id,
-                footer_text: settings.footer_text,
+                logo_image_id: settings.logo_image_id ?? undefined,
+                footer_text: settings.footer_text ?? undefined,
                 date_display_mode: settings.date_display_mode,
                 enabled: settings.enabled
             },
@@ -102,10 +103,11 @@ export const TicketPreview = ({settings, eventId, logoUrl}: TicketPreviewProps) 
             ...((event.images || []).filter(img => img.type !== 'TICKET_LOGO')),
             {
                 id: settings.logo_image_id,
+                file_name: '',
                 type: 'TICKET_LOGO' as const,
                 url: logoUrl,
-                size_bytes: 0,
-                filename: ''
+                size: 0,
+                mime_type: '',
             }
         ] : (event.images || []).filter(img => img.type !== 'TICKET_LOGO')
     };

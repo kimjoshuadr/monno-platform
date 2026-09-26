@@ -72,7 +72,7 @@ const PlatformFeesReport = () => {
         },
         {
             key: 'fee_amount' as const,
-            label: t`Hi.Events Fee`,
+            label: t`monno Fee`,
             sortable: true,
             render: (value: number, row: any) => formatCurrency(value, row.currency)
         },
@@ -110,7 +110,7 @@ const PlatformFeesReport = () => {
     return (
         <>
             <Callout variant="tip" title={t`Important Notice`} style={{marginBottom: 24}}>
-                {t`This report is for informational purposes only. Always consult with a tax professional before using this data for accounting or tax purposes. Please cross-reference with your Stripe dashboard as Hi.Events may be missing historical data.`}
+                {t`This report is for informational purposes only. Always consult with a tax professional before using this data for accounting or tax purposes. Please cross-reference with your Stripe dashboard as monno may be missing historical data.`}
             </Callout>
 
             <div className={classes.eventFilter}>

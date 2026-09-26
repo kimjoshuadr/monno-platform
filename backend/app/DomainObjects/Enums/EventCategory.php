@@ -40,6 +40,18 @@ enum EventCategory: string
     // Catch-all
     case OTHER = 'OTHER';
 
+    public function group(): string
+    {
+        return match ($this) {
+            self::SOCIAL, self::FAMILY, self::HOBBIES, self::FOOD_DRINK, self::WELLNESS,
+            self::SPIRITUALITY, self::OUTDOORS, self::TOURS, self::CHARITY => 'Community',
+            self::MUSIC, self::ART, self::COMEDY, self::THEATER, self::FILM, self::DANCE => 'Creative & Culture',
+            self::BUSINESS, self::TECH, self::EDUCATION, self::WORKSHOP => 'Professional & Learning',
+            self::SPORTS, self::FESTIVAL, self::SEASONAL, self::NIGHTLIFE => 'Leisure & Nightlife',
+            self::OTHER => 'Other',
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

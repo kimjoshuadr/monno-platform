@@ -9,6 +9,7 @@ import {AttributionGroupBy} from "../../../../api/admin.client";
 import {useMemo, useState} from "react";
 import {formatCurrency} from "../../../../utilites/currency";
 import tableStyles from "../../../../styles/admin-table.module.scss";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 
 dayjs.extend(utc);
 
@@ -194,7 +195,7 @@ const Attribution = () => {
                                                 <Table.Th>{t`Accounts`}</Table.Th>
                                                 <Table.Th>{t`Events`}</Table.Th>
                                                 <Table.Th>{t`Live Events`}</Table.Th>
-                                                <Table.Th>{t`Stripe Connected`}</Table.Th>
+                                                {STRIPE_ENABLED && <Table.Th>{t`Stripe Connected`}</Table.Th>}
                                                 <Table.Th>{t`Verified`}</Table.Th>
                                                 <Table.Th>{t`Revenue`}</Table.Th>
                                                 <Table.Th>{t`Orders`}</Table.Th>
@@ -217,9 +218,11 @@ const Attribution = () => {
                                                     <Table.Td>
                                                         <Text size="sm">{stat.live_events.toLocaleString()}</Text>
                                                     </Table.Td>
-                                                    <Table.Td>
-                                                        <Text size="sm">{stat.stripe_connected.toLocaleString()}</Text>
-                                                    </Table.Td>
+                                                    {STRIPE_ENABLED && (
+                                                        <Table.Td>
+                                                            <Text size="sm">{stat.stripe_connected.toLocaleString()}</Text>
+                                                        </Table.Td>
+                                                    )}
                                                     <Table.Td>
                                                         <Text size="sm">{stat.verified_accounts.toLocaleString()}</Text>
                                                     </Table.Td>

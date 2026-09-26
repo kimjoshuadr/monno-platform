@@ -6,6 +6,7 @@ import {BouncingEmoji} from "../../../common/BouncingEmoji";
 import {useResendEmailConfirmation} from "../../../../mutations/useResendEmailConfirmation.ts";
 import {showError, showSuccess} from "../../../../utilites/notifications.tsx";
 import classes from "./SetupChecklist.module.scss";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 
 interface SetupChecklistProps {
     event: Event;
@@ -21,7 +22,7 @@ interface SetupChecklistProps {
     onAddTickets: () => void;
     onEditDetails: () => void;
     onSetupSchedule: () => void;
-    onCustomizePage: () => void;
+    onAddCover: () => void;
     onDismiss: () => void;
     isDismissed: boolean;
     showCongratsHeader?: boolean;
@@ -61,7 +62,7 @@ export const SetupChecklist = ({
                                    onAddTickets,
                                    onEditDetails,
                                    onSetupSchedule,
-                                   onCustomizePage,
+                                   onAddCover,
                                    onDismiss,
                                    isDismissed,
                                    showCongratsHeader = false,
@@ -79,7 +80,7 @@ export const SetupChecklist = ({
         });
     };
 
-    const hasCoverImage = (eventImages?.length ?? 0) > 0;
+    const hasCoverImage = (eventImages ?? []).some((image) => image.type === 'EVENT_COVER');
     const isEmailVerified = !!account?.is_account_email_confirmed;
     const isRecurring = event.type === EventType.RECURRING;
     const isSaasMode = !!account?.is_saas_mode_enabled;
@@ -121,7 +122,8 @@ export const SetupChecklist = ({
                     : (!hasTickets ? 'secondary' : 'primary'),
             onAction: onPublish,
         },
-        ...(isSaasMode ? [{
+        // Payouts are a Stripe Connect feature.
+        ...(isSaasMode && STRIPE_ENABLED ? [{
             key: 'payouts',
             title: t`Set up payouts`,
             helperIncomplete: t`Connect your bank to receive ticket sales straight to your account`,
@@ -143,13 +145,13 @@ export const SetupChecklist = ({
         },
         {
             key: 'customize',
-            title: t`Customize your event page`,
-            helperIncomplete: t`Add a cover image and theme to match your brand`,
+            title: t`Add a cover image`,
+            helperIncomplete: t`Set a cover image in settings for link previews and listings`,
             helperComplete: t`Cover image added`,
             complete: hasCoverImage,
-            actionLabel: t`Customize page`,
+            actionLabel: t`Add cover image`,
             actionStyle: 'secondary',
-            onAction: onCustomizePage,
+            onAction: onAddCover,
         },
         ...(isSaasMode && me ? [{
             key: 'verify_email',

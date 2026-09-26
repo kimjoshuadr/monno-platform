@@ -40,6 +40,9 @@ class PartialUpdateEventSettingsHandler
                     ? $eventSettingsDTO->settings['pre_checkout_message']
                     : $existingSettings->getPreCheckoutMessage(),
                 'email_footer_message' => $eventSettingsDTO->settings['email_footer_message'] ?? $existingSettings->getEmailFooterMessage(),
+                'product_page_message' => array_key_exists('product_page_message', $eventSettingsDTO->settings)
+                    ? $eventSettingsDTO->settings['product_page_message']
+                    : $existingSettings->getProductPageMessage(),
                 'support_email' => $eventSettingsDTO->settings['support_email'] ?? $existingSettings->getSupportEmail(),
                 'require_attendee_details' => $eventSettingsDTO->settings['require_attendee_details'] ?? $existingSettings->getRequireAttendeeDetails(),
                 'attendee_details_collection_method' => $eventSettingsDTO->settings['attendee_details_collection_method'] ?? $existingSettings->getAttendeeDetailsCollectionMethod(),
@@ -124,6 +127,9 @@ class PartialUpdateEventSettingsHandler
                 'homepage_theme_settings' => array_key_exists('homepage_theme_settings', $eventSettingsDTO->settings)
                     ? $eventSettingsDTO->settings['homepage_theme_settings']
                     : $existingSettings->getHomepageThemeSettings(),
+                'homepage_blocks' => array_key_exists('homepage_blocks', $eventSettingsDTO->settings)
+                    ? $eventSettingsDTO->settings['homepage_blocks']
+                    : $existingSettings->getHomepageBlocks(),
 
                 // Self-service settings
                 'allow_attendee_self_edit' => $eventSettingsDTO->settings['allow_attendee_self_edit'] ?? $existingSettings->getAllowAttendeeSelfEdit(),

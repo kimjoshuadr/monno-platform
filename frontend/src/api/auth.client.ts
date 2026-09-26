@@ -6,7 +6,7 @@ import {
     ResetPasswordRequest,
     User
 } from "../types.ts";
-import {api} from './client.ts';
+import {api, clearAuthToken} from './client.ts';
 
 export const authClient = {
     refreshAccessTokenFn: async () => {
@@ -25,6 +25,7 @@ export const authClient = {
     },
 
     logout: async () => {
+        clearAuthToken();
         const response = await api.post('auth/logout');
         return response.data;
     },

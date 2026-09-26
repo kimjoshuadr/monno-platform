@@ -12,6 +12,7 @@ import {useGetEventProductCategories} from "../../../queries/useGetProductCatego
 import {useGetEventOccurrences} from "../../../queries/useGetEventOccurrences.ts";
 import {useUpdateEventStatus} from "../../../mutations/useUpdateEventStatus.ts";
 import {showError} from "../../../utilites/notifications.tsx";
+import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../utilites/paymentProviders.ts";
 import classes from './PublishEventModal.module.scss';
 
 interface PublishEventModalProps {
@@ -61,7 +62,7 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const hasProducts = products.length > 0;
     const hasPaidProducts = products.some(productRequiresPayment);
     const isSaasMode = !!account?.is_saas_mode_enabled;
-    const isStripeEnabled = !!eventSettings?.payment_providers?.includes('STRIPE');
+    const isStripeEnabled = STRIPE_ENABLED && resolvePaymentProviders(eventSettings?.payment_providers).includes('STRIPE');
     const isStripeConnected = !!organizer?.stripe_connect_setup_complete;
     const hasOccurrences = (occurrencesQuery.data?.data?.length ?? 0) > 0;
 
@@ -73,7 +74,9 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
 
     const checks: PublishCheck[] = [];
 
-    if (isSaasMode && hasPaidProducts && isStripeEnabled && !isStripeConnected) {
+    // Stripe is disabled in this deployment (see STRIPE_ENABLED), so connecting it is
+    // never a publish requirement — paid events publish with offline payments.
+    if (STRIPE_ENABLED && isSaasMode && hasPaidProducts && isStripeEnabled && !isStripeConnected) {
         checks.push({
             key: 'stripe',
             blocking: true,

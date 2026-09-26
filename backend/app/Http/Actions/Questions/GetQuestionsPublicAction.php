@@ -4,23 +4,29 @@ namespace HiEvents\Http\Actions\Questions;
 
 use HiEvents\DomainObjects\Generated\QuestionDomainObjectAbstract;
 use HiEvents\DomainObjects\ProductDomainObject;
-use HiEvents\Http\Actions\BaseAction;
+use HiEvents\Http\Actions\Events\BasePublicEventAction;
+use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\QuestionRepositoryInterface;
 use HiEvents\Resources\Question\QuestionResourcePublic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class GetQuestionsPublicAction extends BaseAction
+class GetQuestionsPublicAction extends BasePublicEventAction
 {
-    private QuestionRepositoryInterface $questionRepository;
+    public function __construct(
+        private readonly QuestionRepositoryInterface $questionRepository,
+        private readonly EventRepositoryInterface $eventRepository,
+    ) {}
 
-    public function __construct(QuestionRepositoryInterface $questionRepository)
+    public function __invoke(Request $request, int $eventId): Response|JsonResponse
     {
-        $this->questionRepository = $questionRepository;
-    }
+        $event = $this->eventRepository->findById($eventId);
 
-    public function __invoke(Request $request, int $eventId): JsonResponse
-    {
+        if (! $this->canUserViewEvent($event)) {
+            return $this->notFoundResponse();
+        }
+
         $questions = $this->questionRepository
             ->loadRelation(ProductDomainObject::class)
             ->findWhere([

@@ -5,9 +5,9 @@
   --hi-primary: var(--mantine-color-primary-9);
   --hi-secondary:  var(--mantine-color-secondary-1);
   --hi-secondary-text: var(--mantine-color-primary-8);
-  --hi-color-gray: #f7f6f8;
-  --hi-color-gray-2: #e2e2e2;
-  --hi-color-gray-dark: #838383;
+  --hi-color-gray: #F5F6F8;
+  --hi-color-gray-2: #E4E6EA;
+  --hi-color-gray-dark: #6E7178;
   --hi-color-money-green: #00b894;
   --hi-color-blue: var(--mantine-color-primary-4);
   --hi-link-color: var(--hi-primary);
@@ -36,13 +36,34 @@
   --hi-color-success-soft: rgba(21, 128, 61, 0.1);
   --hi-color-warning: #d97706;
   --hi-color-danger: #b91c1c;
-  --hi-color-text-muted: #6b7280;
-  --hi-color-text-tertiary: #9ca3af;
+  --hi-color-text-muted: #5F6269;
+  --hi-color-text-tertiary: #6E7178;
   --hi-accent-brand-soft: rgba(228, 70, 137, 0.12);
   --hi-accent-brand-soft: color-mix(in srgb, var(--mantine-color-primary-5) 12%, transparent);
   --hi-radius-card: 12px;
   --hi-ink: color-mix(in srgb, var(--mantine-color-primary-9) 88%, black);
   --hi-ink-deep: color-mix(in srgb, var(--mantine-color-primary-9) 70%, black);
+
+  /* ---------------------------------------------------------------
+     monno brand tokens
+     Ink + light neutral surfaces carry the interface; the spectrum
+     ring from the logo is the single colour flourish.
+     --------------------------------------------------------------- */
+  --monno-ink: #0B0B0C;
+  --monno-canvas: #F5F6F8;
+  --monno-surface: #FFFFFF;
+  --monno-muted: #6E7178;
+  --monno-border: #E4E6EA;
+  --monno-cyan: #0FCFF6;
+  --monno-green: #2BE09D;
+  --monno-lime: #B2D64A;
+  --monno-yellow: #F6D52C;
+  --monno-amber: #FEB52A;
+  --monno-orange: #FD7E2B;
+  --monno-red: #FD5A3C;
+  --monno-spectrum: linear-gradient(135deg, #0FCFF6 0%, #2BE09D 22%, #B2D64A 40%, #F6D52C 56%, #FEB52A 74%, #FD7E2B 88%, #FD5A3C 100%);
+  /* Accessible focus colour derived from the spectrum cyan (>=3:1 on light & dark) */
+  --monno-focus: #1478C9;
 }
 
 * {
@@ -74,6 +95,17 @@ fieldset {
 a {
   text-decoration: none;
   color: var(--hi-link-color);
+}
+
+// monno: pill geometry for the primary action, matching the mark's rounded pills
+.mantine-Button-root {
+  border-radius: 999px;
+}
+
+// monno: a clear, colour-safe focus ring on every focusable element
+:focus-visible {
+  outline: 2px solid var(--monno-focus);
+  outline-offset: 2px;
 }
 
 // Mantine overrides

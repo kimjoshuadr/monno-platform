@@ -7,6 +7,7 @@ import {Card} from "../../../common/Card";
 import {Avatar, UnstyledButton} from "@mantine/core";
 import {Link, useParams} from "react-router";
 import {OrganizerReportTypes} from "../../../../types.ts";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 
 const OrganizerReports = () => {
     const {organizerId} = useParams();
@@ -39,10 +40,10 @@ const OrganizerReports = () => {
         {
             id: OrganizerReportTypes.PlatformFees,
             title: t`Platform Fees`,
-            description: t`Hi.Events platform fees and VAT breakdown by transaction`,
+            description: t`monno platform fees and VAT breakdown by transaction`,
             icon: <Avatar size={40} color={'#E67C63'}><IconReceipt/></Avatar>
         }
-    ];
+    ].filter((report) => STRIPE_ENABLED || report.id !== OrganizerReportTypes.PlatformFees);
 
     return (
         <PageBody>

@@ -8,9 +8,10 @@ import {useForm} from "@mantine/form";
 import {useDebouncedValue, useMediaQuery} from "@mantine/hooks";
 import {Event, EventType, IdParam} from "../../../types.ts";
 import {useCreateEvent} from "../../../mutations/useCreateEvent.ts";
-import {NavLink, useNavigate} from "react-router";
+import {NavLink, Navigate, useNavigate} from "react-router";
 import {useEffect, useRef, useState} from "react";
 import {useGetEvents} from "../../../queries/useGetEvents.ts";
+import {LoadingMask} from "../../common/LoadingMask";
 import {LoadingContainer} from "../../common/LoadingContainer";
 import {OrganizerCreateForm} from "../../forms/OrganizerForm";
 import {useConfirmEmailWithCode} from "../../../mutations/useConfirmEmailWithCode.ts";
@@ -506,7 +507,15 @@ const Welcome = () => {
     const organizersQuery = useGetOrganizers();
     const organizers = organizersQuery?.data?.data;
     const organizerExists = organizersQuery.isFetched && Number(organizers?.length) > 0;
+    const firstOrganizerId = organizers?.[0]?.id;
     const hasTrackedSignup = useRef(false);
+
+    // Tells "first time" apart from "already set up": an account that already
+    // has an organizer AND events has nothing to set up on this screen.
+    // Same query/args as CreateEvent below, so React Query dedupes it.
+    const eventsQuery = useGetEvents({pageNumber: 1});
+    const events = eventsQuery?.data?.data;
+    const hasEvents = eventsQuery.isFetched && Number(events?.length) > 0;
 
     const requiresVerification = !!(userData
         && userData.enforce_email_confirmation_during_registration
@@ -524,16 +533,31 @@ const Welcome = () => {
         }
     }, [userData]);
 
+    // Already set up — onboarding is only for the first time. Leave for the
+    // dashboard instead of bouncing /manage/events -> /welcome -> /manage/events.
+    if (!requiresVerification && organizerExists && hasEvents) {
+        return <Navigate
+            replace
+            to={firstOrganizerId ? `/manage/organizer/${firstOrganizerId}` : '/manage/events'}
+        />;
+    }
+
+    // Still resolving whether this is a first-time setup: don't flash
+    // "Set up your organization" at an account that already has one.
+    if (!requiresVerification && (!organizersQuery.isFetched || (organizerExists && !eventsQuery.isFetched))) {
+        return <LoadingMask/>;
+    }
+
     return (
         <div className={classes.welcomeContainer}>
             <Container size="sm" className={classes.welcomeContent}>
                 <div className={classes.welcomeHeader}>
                     <div className={classes.logo}>
-                        <img src={getConfig("VITE_APP_LOGO_LIGHT", "/logos/hi-events-text-dark.svg")} alt={`${getConfig("VITE_APP_NAME", "Hi.Events")} logo`} className={classes.logo}/>
+                        <img src={getConfig("VITE_APP_LOGO_LIGHT", "/logos/monno-text-dark.svg")} alt={`${getConfig("VITE_APP_NAME", "monno")} logo`} className={classes.logo}/>
                     </div>
                     <h1 className={classes.welcomeTitle}>
                         <Trans>
-                            Welcome to {getConfig("VITE_APP_NAME", "Hi.Events")}, {userData?.first_name} 👋
+                            Welcome to {getConfig("VITE_APP_NAME", "monno")}, {userData?.first_name} 👋
                         </Trans>
                     </h1>
                 </div>

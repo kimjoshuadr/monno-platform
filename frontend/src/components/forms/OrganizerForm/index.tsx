@@ -65,7 +65,7 @@ export const OrganizerForm = ({form}: { form: UseFormReturnType<Partial<Organize
     )
 }
 
-export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) => {
+export const OrganizerCreateForm = ({onSuccess}: OrganizerFormProps) => {
     const organizerMutation = useCreateOrganizer();
     const {data: account, isFetched: accountFetched} = useGetAccount();
     const {data: me, isFetched: meFetched} = useGetMe();
@@ -73,7 +73,7 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
         initialValues: {
             name: '',
             email: '',
-            currency: '',
+            currency: 'PHP',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }
     });
@@ -95,20 +95,20 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
     }
 
     useEffect(() => {
-        if (!accountFetched) {
+        if (!accountFetched || !account) {
             return;
         }
-        form.setFieldValue('currency', account?.currency_code ?? '');
-        form.setFieldValue('name', account?.name ?? '');
-    }, [accountFetched]);
+        form.setFieldValue('currency', (account.currency_code && account.currency_code !== 'USD') ? account.currency_code : 'PHP');
+        form.setFieldValue('name', account.name ?? '');
+    }, [accountFetched, account]);
 
     useEffect(() => {
-        if (!meFetched) {
+        if (!meFetched || !me) {
             return;
         }
-        form.setFieldValue('email', me?.email ?? '');
-        form.setFieldValue('timezone', me?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
-    }, [meFetched]);
+        form.setFieldValue('email', me.email ?? '');
+        form.setFieldValue('timezone', me.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    }, [meFetched, me]);
 
     return (
         <LoadingContainer>

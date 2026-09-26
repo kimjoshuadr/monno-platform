@@ -1,15 +1,16 @@
 import {useEffect, useState} from "react";
 import {useParams} from "react-router";
 import {LoadingOverlay} from "@mantine/core";
-import {Event, HomepageThemeSettings} from "../../../types.ts";
+import {Event, HomepageBlock, HomepageThemeSettings} from "../../../types.ts";
 import {useGetEventPublic} from "../../../queries/useGetEventPublic.ts";
 import {EventNotAvailable} from "../EventHomepage/EventNotAvailable";
-import EventHomepage from "../EventHomepage";
+import {EventRoomShell} from "../EventRoom/EventRoomShell.tsx";
 
 interface PreviewSettings {
     homepage_theme_settings?: Partial<HomepageThemeSettings>;
     continue_button_text?: string;
     get_tickets_button_text?: string;
+    homepage_blocks?: HomepageBlock[];
 }
 
 const EventHomepagePreview = () => {
@@ -47,16 +48,14 @@ const EventHomepagePreview = () => {
                 homepage_theme_settings: previewSettings.homepage_theme_settings as HomepageThemeSettings || event.settings.homepage_theme_settings,
                 continue_button_text: previewSettings.continue_button_text ?? event.settings.continue_button_text,
                 get_tickets_button_text: previewSettings.get_tickets_button_text ?? event.settings.get_tickets_button_text,
+                homepage_blocks: previewSettings.homepage_blocks ?? event.settings.homepage_blocks,
             }
         };
     }
 
+    // The preview renders the same room the public page does (system 1:1 by construction).
     return (
-        <EventHomepage
-            event={previewEvent}
-            promoCodeValid={undefined}
-            promoCode={undefined}
-        />
+        <EventRoomShell event={previewEvent as Event}/>
     );
 };
 

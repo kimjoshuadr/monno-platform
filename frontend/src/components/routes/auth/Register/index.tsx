@@ -8,7 +8,6 @@ import {t, Trans} from "@lingui/macro";
 import classes from "./Register.module.scss";
 import {getClientLocale} from "../../../../locales.ts";
 import {useEffect} from "react";
-import {getUserCurrency} from "../../../../utilites/currency.ts";
 import {getConfig} from "../../../../utilites/config.ts";
 import {getStoredUtmData, clearStoredUtmData} from "../../../../utilites/utm.ts";
 
@@ -29,7 +28,7 @@ export const Register = () => {
                 : 'UTC',
             locale: getClientLocale(),
             invite_token: '',
-            currency_code: getUserCurrency(),
+            currency_code: 'PHP',
             marketing_opt_in: false,
         },
         validate: {
@@ -128,7 +127,7 @@ export const Register = () => {
                     <Checkbox
                         mb="md"
                         {...form.getInputProps('marketing_opt_in', {type: 'checkbox'})}
-                        label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "Hi.Events")}.</Trans>}
+                        label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "monno")}.</Trans>}
                     />
 
                     <Button color="secondary.5" type="submit" fullWidth disabled={mutate.isPending}>

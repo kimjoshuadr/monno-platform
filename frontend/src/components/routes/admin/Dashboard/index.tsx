@@ -17,6 +17,7 @@ import {useGetAdminStats} from "../../../../queries/useGetAdminStats";
 import {useGetUpcomingEvents} from "../../../../queries/useGetUpcomingEvents";
 import {useGetAdminDashboardData} from "../../../../queries/useGetAdminDashboardData";
 import {eventHomepageUrl} from "../../../../utilites/urlHelper";
+import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -420,7 +421,7 @@ const AdminDashboard = () => {
                                                     {account.account_verified_at && (
                                                         <Badge size="xs" color="green" variant="light">{t`Verified`}</Badge>
                                                     )}
-                                                    {account.stripe_connect_setup_complete && (
+                                                    {STRIPE_ENABLED && account.stripe_connect_setup_complete && (
                                                         <Badge size="xs" color="blue" variant="light">{t`Stripe`}</Badge>
                                                     )}
                                                 </Group>

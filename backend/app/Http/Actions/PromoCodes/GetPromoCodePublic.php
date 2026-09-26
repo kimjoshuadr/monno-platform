@@ -3,21 +3,30 @@
 namespace HiEvents\Http\Actions\PromoCodes;
 
 use HiEvents\DomainObjects\Generated\PromoCodeDomainObjectAbstract;
-use HiEvents\Http\Actions\BaseAction;
+use HiEvents\Http\Actions\Events\BasePublicEventAction;
+use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\PromoCodeRepositoryInterface;
 use HiEvents\Services\Domain\PromoCode\PromoCodeUsageValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class GetPromoCodePublic extends BaseAction
+class GetPromoCodePublic extends BasePublicEventAction
 {
     public function __construct(
         private readonly PromoCodeRepositoryInterface $promoCodeRepository,
         private readonly PromoCodeUsageValidationService $promoCodeUsageValidationService,
+        private readonly EventRepositoryInterface $eventRepository,
     ) {}
 
-    public function __invoke(int $eventId, string $promoCode, Request $request): JsonResponse
+    public function __invoke(int $eventId, string $promoCode, Request $request): Response|JsonResponse
     {
+        $event = $this->eventRepository->findById($eventId);
+
+        if (! $this->canUserViewEvent($event)) {
+            return $this->notFoundResponse();
+        }
+
         $promoCode = $this->promoCodeRepository->findFirstWhere([
             PromoCodeDomainObjectAbstract::CODE => strtolower(trim($promoCode)),
             PromoCodeDomainObjectAbstract::EVENT_ID => $eventId,

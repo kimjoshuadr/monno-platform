@@ -1,9 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-    <rect width="48" height="48" rx="8" fill="#18181b"/>
-    <text x="24" y="33"
-          font-family="system-ui, -apple-system, sans-serif"
-          font-size="26"
-          font-weight="700"
-          fill="#ffffff"
-          text-anchor="middle">HI<tspan fill="#cd58dd">.</tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="monno">
+  <title>monno</title>
+  <defs>
+    <linearGradient id="monno-spectrum-fav" x1="12%" y1="8%" x2="88%" y2="96%">
+      <stop offset="0%" stop-color="#0FCFF6"/>
+      <stop offset="22%" stop-color="#2BE09D"/>
+      <stop offset="40%" stop-color="#B2D64A"/>
+      <stop offset="56%" stop-color="#F6D52C"/>
+      <stop offset="74%" stop-color="#FEB52A"/>
+      <stop offset="88%" stop-color="#FD7E2B"/>
+      <stop offset="100%" stop-color="#FD5A3C"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="384" height="384" rx="108" fill="none" stroke="url(#monno-spectrum-fav)" stroke-width="56"/>
+  <rect x="108" y="108" width="296" height="296" rx="70" fill="#FFFFFF"/>
+  <rect x="156" y="156" width="88" height="200" rx="44" fill="#0B0B0C"/>
+  <rect x="268" y="156" width="88" height="200" rx="44" fill="#0B0B0C"/>
 </svg>

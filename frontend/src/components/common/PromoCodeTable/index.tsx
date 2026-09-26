@@ -25,7 +25,7 @@ export const PromoCodeTable = ({event, promoCodes, openCreateModal}: PromoCodeTa
     const [editModalOpen, {open: openEditModal, close: closeEditModal}] = useDisclosure(false);
     const deleteMutation = useDeletePromoCode();
     const clipboard = useClipboard({ timeout: 500 });
-    const eventProducts = event.product_categories?.flatMap(category => category.products);
+    const eventProducts = event.product_categories?.flatMap(category => category.products ?? []);
 
     const handleEditModal = (promoCodeId: number | undefined) => {
         setPromoCodeId(promoCodeId);

@@ -1,8 +1,9 @@
-import {Navigate, Outlet} from "react-router";
+import {Outlet} from "react-router";
 import classes from "./Auth.module.scss";
 import {t} from "@lingui/macro";
 import {useGetMe} from "../../../queries/useGetMe.ts";
 import {PoweredByFooter} from "../../common/PoweredByFooter";
+import {PostAuthRedirect, accountIdOf} from "../../common/PostAuthRedirect";
 import {LanguageSwitcher} from "../../common/LanguageSwitcher";
 import {useCallback, useEffect, useRef} from "react";
 import {getConfig} from "../../../utilites/config.ts";
@@ -143,8 +144,12 @@ const AuthLayout = () => {
         }
     }, []);
 
-    if (me.isSuccess) {
-        return <Navigate to={'/manage/events'} />
+    // Bounce only sessions that actually have an organizer account. A buyer
+    // has none, so /organizers and /events 403 for them and the axios
+    // interceptor redirects to /auth/login — redirecting them back out from
+    // here would loop between the two pages until the API throttles.
+    if (me.isSuccess && accountIdOf(me.data)) {
+        return <PostAuthRedirect />;
     }
 
     return (
@@ -154,8 +159,8 @@ const AuthLayout = () => {
                     <main className={classes.container}>
                         <div className={classes.logo} onClick={handleLogoClick} style={{cursor: 'pointer'}}>
                             <img
-                                src={getConfig("VITE_APP_LOGO_DARK", "/logos/hi-events-horizontal-light.svg")}
-                                alt={t`${getConfig("VITE_APP_NAME", "Hi.Events")} logo`}
+                                src={getConfig("VITE_APP_LOGO_DARK", "/logos/monno-horizontal-light.svg")}
+                                alt={t`${getConfig("VITE_APP_NAME", "monno")} logo`}
                             />
                         </div>
                         <div className={classes.formArea}>

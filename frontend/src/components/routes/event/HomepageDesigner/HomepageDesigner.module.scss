@@ -1,6 +1,6 @@
 @use "../../../../styles/mixins.scss";
 
-@include mixins.respond-below(sm) {
+@include mixins.respond-below(xl) {
   :global(#event-manage-main) {
     overflow: auto;
   }
@@ -15,7 +15,10 @@
     margin-bottom: 0;
   }
 
-  @include mixins.respond-below(sm) {
+  // Side-by-side panel + live preview needs nav (278px) + panel (380px) +
+  // preview min-width (400px) ≈ 1058px; stack below xl so tablets and narrow
+  // windows get a full-width preview instead of a squeezed sliver.
+  @include mixins.respond-below(xl) {
     flex-direction: column;
   }
 
@@ -30,7 +33,7 @@
     top: 0;
     border-right: 1px solid var(--mantine-color-gray-2);
 
-    @include mixins.respond-below(sm) {
+    @include mixins.respond-below(xl) {
       width: 100%;
       min-width: unset;
       max-width: unset;
@@ -134,7 +137,7 @@
     overflow: hidden;
     min-width: 400px;
 
-    @include mixins.respond-below(sm) {
+    @include mixins.respond-below(xl) {
       padding: 20px;
     }
 
@@ -166,7 +169,7 @@
       display: none;
     }
 
-    @include mixins.respond-below(sm) {
+    @include mixins.respond-below(xl) {
       > h2 {
         display: block;
       }

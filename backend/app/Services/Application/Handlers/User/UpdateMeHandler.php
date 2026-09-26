@@ -4,6 +4,7 @@ namespace HiEvents\Services\Application\Handlers\User;
 
 use HiEvents\DomainObjects\UserDomainObject;
 use HiEvents\Exceptions\PasswordInvalidException;
+use HiEvents\Exceptions\ResourceNotFoundException;
 use HiEvents\Mail\User\ConfirmEmailChangeMail;
 use HiEvents\Repository\Interfaces\UserRepositoryInterface;
 use HiEvents\Services\Application\Handlers\User\DTO\UpdateMeDTO;
@@ -60,7 +61,24 @@ readonly class UpdateMeHandler
             ]
         );
 
-        return $this->userRepository->findByIdAndAccountId($updateUserData->id, $updateUserData->account_id);
+        return $this->findUser($updateUserData);
+    }
+
+    /**
+     * Team members are scoped through their account membership; a ticket buyer
+     * has none, so they are looked up directly.
+     */
+    private function findUser(UpdateMeDTO $updateUserData): UserDomainObject
+    {
+        $user = $updateUserData->account_id === null
+            ? $this->userRepository->findById($updateUserData->id)
+            : $this->userRepository->findByIdAndAccountId($updateUserData->id, $updateUserData->account_id);
+
+        if (! $user instanceof UserDomainObject) {
+            throw new ResourceNotFoundException(__('User not found'));
+        }
+
+        return $user;
     }
 
     private function isChangingPassword(UpdateMeDTO $updateUserData): bool
@@ -85,10 +103,7 @@ readonly class UpdateMeHandler
 
     private function getExistingUser(UpdateMeDTO $updateUserData): UserDomainObject
     {
-        return $this->userRepository->findByIdAndAccountId(
-            $updateUserData->id,
-            $updateUserData->account_id
-        );
+        return $this->findUser($updateUserData);
     }
 
     private function sendEmailChangeConfirmation(UserDomainObject $existingUser): void

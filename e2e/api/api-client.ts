@@ -128,8 +128,37 @@ export class ApiClient {
     return check(this.request.put(`organizers/${organizerId}/status`, { headers: jsonHeaders, data: { status } }));
   }
 
+  updateOrganizer(
+    organizerId: number,
+    payload: { name: string; email: string; timezone: string; currency?: string; description?: string },
+  ): Promise<Organizer> {
+    return unwrap<Organizer>(
+      this.request.post(`organizers/${organizerId}`, {
+        headers: jsonHeaders,
+        data: { currency: 'USD', ...payload },
+      }),
+    );
+  }
+
+  /** Entity images (organizer logos included) go through the shared `images` endpoint. */
+  uploadImage(
+    image: { name: string; mimeType: string; buffer: Buffer },
+    imageType: 'ORGANIZER_LOGO' | 'ORGANIZER_COVER' | 'EVENT_IMAGE' | 'EVENT_COVER',
+    entityId: number,
+  ): Promise<ImageRecord> {
+    return unwrap<ImageRecord>(
+      this.request.post('images', {
+        multipart: { image, image_type: imageType, entity_id: String(entityId) },
+      }),
+    );
+  }
+
   createEvent(payload: CreateEventPayload): Promise<EventRecord> {
     return unwrap<EventRecord>(this.request.post('events', { headers: jsonHeaders, data: payload }));
+  }
+
+  updateEvent(eventId: number, payload: Partial<CreateEventPayload>): Promise<EventRecord> {
+    return unwrap<EventRecord>(this.request.put(`events/${eventId}`, { headers: jsonHeaders, data: payload }));
   }
 
   uploadEventImage(

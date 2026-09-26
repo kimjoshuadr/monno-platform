@@ -1,14 +1,62 @@
+/* eslint-disable lingui/no-unlocalized-strings -- identifiers, format strings and ICS
+   protocol tokens only; every user-facing string goes through `t`. */
 import {LoaderFunctionArgs, redirect} from "react-router";
 import {getQueryClient} from "../utilites/ssrQueryClient.ts";
 import {getOrganizerPublicQuery} from "../queries/useGetOrganizerPublic.ts";
 import {getOrganizerPublicEventsQuery} from "../queries/useGetOrganizerEventsPublic.ts";
+import {Event, Organizer} from "../types.ts";
+
+/** What the organizer room needs: the profile plus both sides of its calendar. */
+export interface OrganizerRoomLoaderData {
+    organizer: Organizer | null;
+    upcoming: Event[];
+    past: Event[];
+    totals: { upcoming: number; past: number };
+    isPastEvents: boolean;
+}
+
+/** Both event sets are fetched up front — the room's When control needs both counts. */
+export const loadOrganizerRoom = async (organizerId: string): Promise<OrganizerRoomLoaderData> => {
+    const queryClient = getQueryClient();
+
+    const organizer = await queryClient.fetchQuery(getOrganizerPublicQuery(organizerId));
+
+    const [upcoming, past] = await Promise.all([
+        queryClient.fetchQuery(getOrganizerPublicEventsQuery(organizerId, {
+            pageNumber: 1,
+            perPage: 100,
+            sortBy: 'start_date',
+            sortDirection: 'asc',
+            additionalParams: {eventsStatus: 'upcoming'},
+            filterFields: {},
+        })),
+        queryClient.fetchQuery(getOrganizerPublicEventsQuery(organizerId, {
+            pageNumber: 1,
+            perPage: 100,
+            sortBy: 'start_date',
+            sortDirection: 'desc',
+            additionalParams: {eventsStatus: 'ended'},
+            filterFields: {},
+        })),
+    ]);
+
+    return {
+        organizer,
+        upcoming: upcoming?.data ?? [],
+        past: past?.data ?? [],
+        totals: {
+            upcoming: upcoming?.meta?.total ?? upcoming?.data?.length ?? 0,
+            past: past?.meta?.total ?? past?.data?.length ?? 0,
+        },
+        isPastEvents: false,
+    };
+};
 
 export const publicOrganizerRouteLoader = async ({params, request}: LoaderFunctionArgs) => {
     const {organizerId, organizerSlug} = params;
     const url = new URL(request.url);
     const queryParams = new URLSearchParams(url.search);
     const isPastEvents = url.pathname.endsWith('/past-events');
-    const pageNumber = url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!) : 1;
 
     if (!organizerId) {
         throw new Error('Organizer ID is required');
@@ -25,38 +73,9 @@ export const publicOrganizerRouteLoader = async ({params, request}: LoaderFuncti
             );
         }
 
-        let filter = {};
-        if (!isPastEvents) {
-            filter = {
-                additionalParams: {
-                    eventsStatus: 'upcoming',
-                },
-                filterFields: {}
-            };
-        } else {
-            filter = {
-                additionalParams: {
-                    eventsStatus: 'ended',
-                },
-                filterFields: {}
-            };
-        }
+        const room = await loadOrganizerRoom(organizerId);
 
-        const eventsData = await getQueryClient().fetchQuery(
-            getOrganizerPublicEventsQuery(organizerId, {
-                pageNumber: pageNumber,
-                perPage: 30,
-                sortBy: 'start_date',
-                sortDirection: isPastEvents ? 'desc' : 'asc',
-                ...filter
-            })
-        );
-
-        return {
-            organizer,
-            eventsData,
-            isPastEvents
-        };
+        return {...room, isPastEvents};
     } catch (error: any) {
         // Re-throw redirect responses so React Router can handle them
         if (error instanceof Response) {
@@ -64,8 +83,8 @@ export const publicOrganizerRouteLoader = async ({params, request}: LoaderFuncti
         }
 
         if (error?.response?.status === 404) {
-            return {organizer: null, eventsData: null, isPastEvents};
+            return {organizer: null, upcoming: [], past: [], totals: {upcoming: 0, past: 0}, isPastEvents};
         }
         throw error;
     }
-}
+};

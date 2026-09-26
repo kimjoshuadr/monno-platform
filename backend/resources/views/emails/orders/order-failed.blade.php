@@ -16,7 +16,7 @@
 </x-mail::button>
 
 {{ __('If you have any questions or need assistance, feel free to reach out to our support team') }}
-{{ __('at') }} {{ $supportEmail ?? 'hello@hi.events' }}.
+{{ __('at') }} {{ $supportEmail ?? 'hello@example.com' }}.
 
 {{ __('Best regards') }},<br>
 {{ $organizer->getName() ?: config('app.name') }}

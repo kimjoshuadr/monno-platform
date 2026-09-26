@@ -78,6 +78,9 @@ class UpdateEventSettingsDTO extends BaseDTO
         // Homepage theme settings
         public readonly ?array $homepage_theme_settings = null,
 
+        // Section list the homepage is assembled from
+        public readonly ?array $homepage_blocks = null,
+
         // Self-service settings
         public readonly bool $allow_attendee_self_edit = false,
 
@@ -90,6 +93,8 @@ class UpdateEventSettingsDTO extends BaseDTO
         public readonly ?int $waitlist_offer_timeout_minutes = null,
 
         public readonly ?string $get_tickets_button_text = null,
+
+        public readonly ?string $product_page_message = null,
     ) {}
 
     public static function createWithDefaults(
@@ -161,14 +166,16 @@ class UpdateEventSettingsDTO extends BaseDTO
 
             // Homepage theme defaults (simplified 2-color + mode system)
             homepage_theme_settings: [
-                'accent' => '#8b5cf6',
-                'background' => '#f5f3ff',
+                'accent' => '#0B0B0C',
+                'background' => '#F5F6F8',
                 'mode' => 'light',
                 'background_type' => 'COLOR',
             ],
 
             // Self-service defaults
             allow_attendee_self_edit: false,
+
+            product_page_message: null,
         );
     }
 }

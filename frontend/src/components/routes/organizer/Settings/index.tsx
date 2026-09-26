@@ -8,16 +8,18 @@ import { PayoutsSettings } from "./Sections/PayoutsSettings";
 import { PlatformFeesSettings } from "./Sections/PlatformFeesSettings";
 import { DangerZoneSettings } from "./Sections/DangerZoneSettings";
 import { TrackingPixelSettings } from "./Sections/TrackingPixelSettings";
+import ImageAssetSettings from "./Sections/ImageAssetSettings";
 import { PageBody } from "../../../common/PageBody";
 import { PageTitle } from "../../../common/PageTitle";
 import { t } from "@lingui/macro";
 import { Box, Group, NavLink as MantineNavLink, Stack } from "@mantine/core";
-import { IconAlertTriangle, IconBrandGoogleAnalytics, IconBrandStripe, IconInfoCircle, IconMapPin, IconShare, IconMail, IconCalendarEvent, IconPercentage, IconChartBar } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBrandGoogleAnalytics, IconBrandStripe, IconInfoCircle, IconMapPin, IconShare, IconMail, IconCalendarEvent, IconPercentage, IconChartBar, IconPhoto } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "../../../common/Card";
 import { useLocation, useParams } from "react-router";
 import { useGetAccount } from "../../../../queries/useGetAccount.ts";
+import { STRIPE_ENABLED } from "../../../../utilites/paymentProviders.ts";
 
 const Settings = () => {
     const { organizerId } = useParams();
@@ -44,12 +46,12 @@ const Settings = () => {
                 icon: IconMapPin,
                 component: AddressSettings
             },
-            // {
-            //     id: 'image-assets',
-            //     label: t`Images & Branding`,
-            //     icon: IconPhoto,
-            //     component: ImageAssetSettings
-            // },
+            {
+                id: 'image-assets',
+                label: t`Images & Branding`,
+                icon: IconPhoto,
+                component: ImageAssetSettings
+            },
             {
                 id: 'social-links',
                 label: t`Social Links`,
@@ -83,7 +85,8 @@ const Settings = () => {
             },
         ];
 
-        if (isSaasMode) {
+        // Payouts and platform fees are Stripe Connect features.
+        if (isSaasMode && STRIPE_ENABLED) {
             baseSections.splice(2, 0,
                 {
                     id: 'payouts',

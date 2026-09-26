@@ -61,6 +61,7 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     final public const ATTENDEE_DETAILS_COLLECTION_METHOD = 'attendee_details_collection_method';
     final public const SHOW_MARKETING_OPT_IN = 'show_marketing_opt_in';
     final public const HOMEPAGE_THEME_SETTINGS = 'homepage_theme_settings';
+    final public const HOMEPAGE_BLOCKS = 'homepage_blocks';
     final public const PASS_PLATFORM_FEE_TO_BUYER = 'pass_platform_fee_to_buyer';
     final public const ALLOW_ATTENDEE_SELF_EDIT = 'allow_attendee_self_edit';
     final public const WAITLIST_ENABLED = 'waitlist_enabled';
@@ -122,6 +123,7 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     protected string $attendee_details_collection_method = 'PER_TICKET';
     protected bool $show_marketing_opt_in = true;
     protected array|string|null $homepage_theme_settings = null;
+    protected array|string|null $homepage_blocks = null;
     protected bool $pass_platform_fee_to_buyer = false;
     protected bool $allow_attendee_self_edit = true;
     protected bool $waitlist_enabled = false;
@@ -186,6 +188,7 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
                     'attendee_details_collection_method' => $this->attendee_details_collection_method ?? null,
                     'show_marketing_opt_in' => $this->show_marketing_opt_in ?? null,
                     'homepage_theme_settings' => $this->homepage_theme_settings ?? null,
+                    'homepage_blocks' => $this->homepage_blocks ?? null,
                     'pass_platform_fee_to_buyer' => $this->pass_platform_fee_to_buyer ?? null,
                     'allow_attendee_self_edit' => $this->allow_attendee_self_edit ?? null,
                     'waitlist_enabled' => $this->waitlist_enabled ?? null,
@@ -758,6 +761,17 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     public function getHomepageThemeSettings(): array|string|null
     {
         return $this->homepage_theme_settings;
+    }
+
+    public function setHomepageBlocks(array|string|null $homepage_blocks): self
+    {
+        $this->homepage_blocks = $homepage_blocks;
+        return $this;
+    }
+
+    public function getHomepageBlocks(): array|string|null
+    {
+        return $this->homepage_blocks;
     }
 
     public function setPassPlatformFeeToBuyer(bool $pass_platform_fee_to_buyer): self

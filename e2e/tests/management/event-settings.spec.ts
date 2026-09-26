@@ -24,14 +24,17 @@ test.describe('event settings', () => {
     await expect(settings.detailsDescriptionEditor).toContainText(newDescription);
   });
 
-  test('an organizer enables offline payments with instructions', async ({ authedPage, api, account }) => {
+  test('an organizer saves offline payment instructions', async ({ authedPage, api, account }) => {
     const event = await createDraftEvent(api, account.organizerId);
     const instructions = uniqueName('Wire the funds to account');
 
     const settings = new EventSettingsPage(authedPage);
     await settings.goto(event.eventId);
 
-    await settings.offlinePaymentsCheckbox.check();
+    // Offline payment is the only method available in this deployment and is locked on.
+    await expect(settings.offlinePaymentsCheckbox).toBeChecked();
+    await expect(settings.offlinePaymentsCheckbox).toBeDisabled();
+
     await settings.offlineInstructionsEditor.fill(instructions);
     await settings.saveSection('payment-settings');
     await expect(authedPage.getByText('Successfully Updated Payment & Invoicing Settings')).toBeVisible();

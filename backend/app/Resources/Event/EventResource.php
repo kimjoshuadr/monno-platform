@@ -22,8 +22,15 @@ class EventResource extends BaseResource
         return [
             'id' => $this->getId(),
             'title' => $this->getTitle(),
+            'tagline' => $this->getTagline(),
+            'featured' => $this->isFeatured(),
             'category' => $this->getCategory(),
             'description' => $this->getDescription(),
+            'image_alt' => $this->getImageAlt(),
+            'agenda' => $this->when(
+                condition: ! is_null($this->getAgenda()),
+                value: fn () => $this->getAgenda(),
+            ),
             'start_date' => $this->getStartDate(),
             'end_date' => $this->getEndDate(),
             'next_occurrence_start_date' => $this->getNextOccurrenceStartDate(),

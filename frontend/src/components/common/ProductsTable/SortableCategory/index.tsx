@@ -81,7 +81,7 @@ export const SortableCategory: React.FC<SortableCategoryProps> = ({
                 product_category_id: cat.id as number,
                 sorted_products: (cat.products || []).map((product, index) => ({
                     id: product.id as number,
-                    sort_order: index
+                    order: index
                 }))
             }));
 

@@ -3,6 +3,7 @@ import { BASE_URL, cookieDomain } from '../utils/env';
 import { grantedConsentCookie } from '../utils/consent';
 
 export function buildStorageState(token: string): BrowserContextOptions['storageState'] {
+  const isSecure = BASE_URL.startsWith('https://');
   return {
     cookies: [
       {
@@ -12,12 +13,22 @@ export function buildStorageState(token: string): BrowserContextOptions['storage
         path: '/',
         expires: -1,
         httpOnly: true,
-        secure: true,
-        sameSite: 'None',
+        secure: isSecure,
+        sameSite: isSecure ? 'None' : 'Lax',
       },
       grantedConsentCookie(),
     ],
-    origins: [],
+    origins: [
+      {
+        origin: BASE_URL,
+        localStorage: [
+          {
+            name: 'token',
+            value: token,
+          },
+        ],
+      },
+    ],
   };
 }
 

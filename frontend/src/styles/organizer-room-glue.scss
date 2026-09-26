@@ -1,0 +1,212 @@
+/*
+ * Organizer room — platform glue.
+ *
+ * The ported stylesheet (`organizer-room.scss`) is generated from monno's CSS and kept
+ * faithful. Everything here is what the platform needs on top of it: the publish banner,
+ * the footer, the touch-ups for data the platform has that the website's seed data did
+ * not, and the reveal animation monno does with GSAP.
+ */
+
+.organizer-room {
+  min-height: 100vh;
+}
+
+/* The owner-only publish affordance, in the room's own language. */
+.organizer-room .room-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px clamp(20px, 4vw, 48px);
+  background: var(--fg);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.organizer-room .room-banner button,
+.organizer-room .room-banner a {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.organizer-room .room-banner button:hover,
+.organizer-room .room-banner a:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Cover / avatar / card fallbacks when nothing has been uploaded yet. */
+.organizer-room .cal-cover-empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(135deg, var(--surface-2), var(--surface)),
+    var(--surface-2);
+}
+
+.organizer-room .cal-id-mark-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--muted-strong);
+  background: var(--surface-2);
+}
+
+.organizer-room .cal-card-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+/* The category dot the cards carry (monno shows the host avatar here instead). */
+.organizer-room .cal-card-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+/* monno's card foot separates the badges from the save control. */
+.organizer-room .cal-card-save {
+  margin-left: auto;
+}
+
+/* GSAP's Reveal, without the dependency: a short fade-up that respects reduced motion. */
+.organizer-room .room-reveal {
+  animation: room-reveal 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes room-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .organizer-room .room-reveal {
+    animation: none;
+  }
+}
+
+/* Authored blocks (the builder's "Write your own" sections). */
+.organizer-room .block-cta {
+  padding-top: 24px;
+}
+
+.organizer-room .block-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.organizer-room .block-faq-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.organizer-room .block-faq-item dt {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.organizer-room .block-faq-item dd {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.organizer-room .block-lineup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.organizer-room .block-lineup li {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.organizer-room .block-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.organizer-room .block-gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.organizer-room .block-embed iframe {
+  width: 100%;
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Footer: the platform's own links, in the room's rhythm. */
+.organizer-room .cal-foot {
+  margin-top: clamp(40px, 6vw, 72px);
+  padding: 28px 0 48px;
+  border-top: 1px solid var(--border);
+}
+
+.organizer-room .cal-foot-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+
+.organizer-room .cal-foot-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.organizer-room .cal-foot-links a {
+  color: var(--muted-strong);
+}
+
+.organizer-room .cal-foot-links a:hover {
+  color: var(--fg);
+}

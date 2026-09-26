@@ -44,7 +44,7 @@ export interface EventRecord {
   status: EventStatus;
 }
 
-export type EventImageType = 'EVENT_COVER' | 'TICKET_LOGO';
+export type EventImageType = 'EVENT_COVER' | 'EVENT_IMAGE' | 'TICKET_LOGO';
 
 export interface ImageRecord {
   id: number;
@@ -82,6 +82,12 @@ export interface CreateEventPayload {
   category: string;
   currency?: string;
   timezone?: string;
+  description?: string;
+  tagline?: string;
+  image_alt?: string;
+  featured?: boolean;
+  agenda?: { time?: string; title: string; detail?: string }[];
+  event_location?: { type: 'IN_PERSON' | 'ONLINE'; location_id?: number; online_event_connection_details?: string };
 }
 
 export interface CreateProductPricePayload {

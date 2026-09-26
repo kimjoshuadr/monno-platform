@@ -108,6 +108,7 @@ class Event extends BaseModel
         return [
             EventDomainObjectAbstract::ATTRIBUTES => 'array',
             EventDomainObjectAbstract::RECURRENCE_RULE => 'array',
+            EventDomainObjectAbstract::AGENDA => 'array',
         ];
     }
 }

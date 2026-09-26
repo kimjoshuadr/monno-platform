@@ -8,7 +8,7 @@ import {PoweredByFooter} from '../../../common/PoweredByFooter';
 import {t} from '@lingui/macro';
 import {useEffect} from "react";
 import {resolveEventLocation} from "../../../../utilites/effectiveLocation.ts";
-import {LocationType} from "../../../../types.ts";
+import {Attendee, EventSettings, LocationType, ProductPriceType, ProductType} from "../../../../types.ts";
 import classes from '../../../routes/product-widget/PrintOrder/PrintOrder.module.scss';
 
 const TicketDesignerPrint = () => {
@@ -37,12 +37,13 @@ const TicketDesignerPrint = () => {
         id: 1,
         title: t`General Admission`,
         price: 2500,
-        type: "TICKET" as const,
-        sale_start_date: null,
-        sale_end_date: null,
-        max_per_order: null,
-        min_per_order: null,
-        quantity_available: null,
+        type: ProductPriceType.Paid,
+        product_type: ProductType.Ticket,
+        sale_start_date: undefined,
+        sale_end_date: undefined,
+        max_per_order: undefined,
+        min_per_order: undefined,
+        quantity_available: undefined,
         is_hidden: false,
         sort_order: 1,
         description: "",
@@ -70,7 +71,7 @@ const TicketDesignerPrint = () => {
             total_gross: 2500,
             currency: event.currency || "USD",
         }
-    };
+    } as unknown as Attendee;
 
     const fallbackLocationDetails = {
         venue_name: t`Sample Venue`,
@@ -88,7 +89,7 @@ const TicketDesignerPrint = () => {
         ...event,
         event_location: resolvedEventLocation,
         settings: {
-            ...event.settings,
+            ...(event.settings as EventSettings),
             ticket_design_settings: settings.ticket_design_settings,
         },
         images: images || []

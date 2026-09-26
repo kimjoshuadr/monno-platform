@@ -11,7 +11,12 @@ export const getEventQueryFiltersWithParams = (
     eventsState?: string, 
     organizerId?: string
 ) => {
-    let filter = {};
+    interface EventQueryFilter {
+        additionalParams?: { eventsStatus: string };
+        filterFields?: Record<string, { operator: QueryFilterOperator; value: unknown }>;
+    }
+
+    let filter: EventQueryFilter = {};
     if (eventsState === 'upcoming' || !eventsState) {
         filter = {
             additionalParams: {

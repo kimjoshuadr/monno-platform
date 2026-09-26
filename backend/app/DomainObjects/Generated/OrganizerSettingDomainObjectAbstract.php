@@ -15,6 +15,7 @@ abstract class OrganizerSettingDomainObjectAbstract extends \HiEvents\DomainObje
     final public const SOCIAL_MEDIA_HANDLES = 'social_media_handles';
     final public const WEBSITE_URL = 'website_url';
     final public const HOMEPAGE_THEME_SETTINGS = 'homepage_theme_settings';
+    final public const HOMEPAGE_BLOCKS = 'homepage_blocks';
     final public const HOMEPAGE_VISIBILITY = 'homepage_visibility';
     final public const HOMEPAGE_PASSWORD = 'homepage_password';
     final public const SEO_KEYWORDS = 'seo_keywords';
@@ -37,6 +38,7 @@ abstract class OrganizerSettingDomainObjectAbstract extends \HiEvents\DomainObje
     protected array|string|null $social_media_handles = null;
     protected ?string $website_url = null;
     protected array|string|null $homepage_theme_settings = null;
+    protected array|string|null $homepage_blocks = null;
     protected string $homepage_visibility = 'PUBLIC';
     protected ?string $homepage_password = null;
     protected ?string $seo_keywords = null;
@@ -62,6 +64,7 @@ abstract class OrganizerSettingDomainObjectAbstract extends \HiEvents\DomainObje
                     'social_media_handles' => $this->social_media_handles ?? null,
                     'website_url' => $this->website_url ?? null,
                     'homepage_theme_settings' => $this->homepage_theme_settings ?? null,
+                    'homepage_blocks' => $this->homepage_blocks ?? null,
                     'homepage_visibility' => $this->homepage_visibility ?? null,
                     'homepage_password' => $this->homepage_password ?? null,
                     'seo_keywords' => $this->seo_keywords ?? null,
@@ -134,6 +137,17 @@ abstract class OrganizerSettingDomainObjectAbstract extends \HiEvents\DomainObje
     public function getHomepageThemeSettings(): array|string|null
     {
         return $this->homepage_theme_settings;
+    }
+
+    public function setHomepageBlocks(array|string|null $homepage_blocks): self
+    {
+        $this->homepage_blocks = $homepage_blocks;
+        return $this;
+    }
+
+    public function getHomepageBlocks(): array|string|null
+    {
+        return $this->homepage_blocks;
     }
 
     public function setHomepageVisibility(string $homepage_visibility): self

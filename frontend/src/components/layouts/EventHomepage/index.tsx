@@ -3,7 +3,8 @@ import SelectProducts from "../../routes/product-widget/SelectProducts";
 import "../../../styles/widget/default.scss";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {EventDocumentHead} from "../../common/EventDocumentHead";
-import {eventCoverImage, eventHomepageUrl, imageUrl, organizerHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {eventCoverImage, imageUrl, organizerHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {monnoEventUrl} from "../EventRoom/EventRoomChrome";
 import {Event, EventLifecycleStatus, EventOccurrence, EventType, OrganizerStatus} from "../../../types.ts";
 import {EventNotAvailable} from "./EventNotAvailable";
 import {
@@ -343,7 +344,7 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                             <ShareComponent
                                                 title={t`Check out this event: ${event.title}`}
                                                 text={t`Check out this event: ${event.title}`}
-                                                url={eventHomepageUrl(event)}
+                                                url={monnoEventUrl(event.id)!}
                                                 imageUrl={coverImage || undefined}
                                             >
                                                 <button className={classes.actionButton} title={t`Share`}>

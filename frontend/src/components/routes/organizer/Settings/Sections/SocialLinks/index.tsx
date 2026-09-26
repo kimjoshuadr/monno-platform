@@ -29,6 +29,7 @@ import {
     IconBrandYoutube,
     IconChevronDown,
     IconChevronUp,
+    IconWorld,
 } from '@tabler/icons-react';
 import {InputGroup} from "../../../../../common/InputGroup";
 
@@ -41,6 +42,15 @@ interface SocialPlatform {
 }
 
 const socialPlatforms: SocialPlatform[] = [
+    // Website lives here rather than in social_media_handles — it is its own
+    // settings key (website_url), and it previously had no input at all.
+    {
+        name: t`Website`,
+        field: 'website_url',
+        icon: IconWorld,
+        placeholder: 'https://example.com',
+        priority: 'primary',
+    },
     // Primary platforms (always visible)
     {
         name: t`Facebook`,
@@ -132,12 +142,14 @@ export const SocialLinks = () => {
             }
 
             // Handle social media handles
-            if (organizerSettingsQuery.data.social_media_handles) {
+            const socialHandles = organizerSettingsQuery.data.social_media_handles;
+            if (socialHandles) {
                 socialPlatforms.forEach(platform => {
                     if (platform.field !== 'website_url') {
-                        const handle = platform.field.replace('_handle', '');
-                        if (organizerSettingsQuery.data.social_media_handles[handle]) {
-                            formValues[platform.field] = organizerSettingsQuery.data.social_media_handles[handle];
+                        const handle = platform.field.replace('_handle', '') as keyof typeof socialHandles;
+                        const handleValue = socialHandles[handle];
+                        if (handleValue) {
+                            formValues[platform.field] = handleValue;
                         }
                     }
                 });

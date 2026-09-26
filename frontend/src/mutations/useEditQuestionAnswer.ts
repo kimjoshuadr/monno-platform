@@ -10,7 +10,7 @@ export const useEditQuestionAnswer = () => {
             answerId: IdParam,
             answer: string | string[]
         }) => questionClient.updateAnswerQuestion(eventId, questionId, answerId, answer),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             return;
         }
     });

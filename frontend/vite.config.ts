@@ -28,6 +28,13 @@ export default defineConfig({
             port: 24678,
             protocol: "ws",
         },
+        proxy: {
+            '/api': {
+                target: process.env.VITE_API_URL_CLIENT || 'http://localhost:8080',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
     },
     plugins: [
         react({

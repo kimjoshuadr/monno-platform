@@ -19,6 +19,16 @@ trait EventRules
             'organizer_id' => ['required', 'integer'],
             'currency' => [Rule::in(array_values($currencies))],
             'category' => ['nullable', Rule::in(EventCategory::valuesArray())],
+
+            // Public-site display fields
+            'tagline' => ['nullable', 'string', 'max:200'],
+            'featured' => ['boolean'],
+            'image_alt' => ['nullable', 'string', 'max:255'],
+            'agenda' => ['nullable', 'array', 'max:50'],
+            'agenda.*.time' => ['nullable', 'string', 'max:20'],
+            'agenda.*.title' => ['required', 'string', 'max:120'],
+            'agenda.*.detail' => ['nullable', 'string', 'max:500'],
+
             // todo - Revisit the 50k character limit
             'attributes.*.name' => ['string', 'min:1', 'max:50', 'required'],
             'attributes.*.value' => ['min:1', 'max:1000', 'required'],
@@ -59,6 +69,7 @@ trait EventRules
             'attributes.*.name.required' => __('The attribute name is required'),
             'attributes.*.value.required' => __('The attribute value is required'),
             'attributes.*.is_public.required' => __('The attribute is_public fields is required'),
+            'agenda.*.title.required' => __('Each agenda item needs a title'),
             'event_location.location_id.required_if' => __('A saved location must be selected for in-person events'),
         ];
     }

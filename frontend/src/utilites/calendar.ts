@@ -83,7 +83,7 @@ export const createICSContent = (event: Event, occurrence?: EventOccurrence): st
     return [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Hi.Events//NONSGML Event Calendar//EN',
+        'PRODID:-//monno//NONSGML Event Calendar//EN',
         'CALSCALE:GREGORIAN',
         'BEGIN:VEVENT',
         `DTSTART:${formatICSDate(startDate)}`,

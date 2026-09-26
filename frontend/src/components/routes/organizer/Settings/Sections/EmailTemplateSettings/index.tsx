@@ -27,7 +27,7 @@ const EmailTemplateSettings = ({organizerId}: EmailTemplateSettingsProps) => {
 
     const templates = templatesData?.data || [];
 
-    const handleCreateTemplate = (type: EmailTemplateType) => {
+    const handleCreateTemplate = (_type: EmailTemplateType) => {
         // Enable fetching default templates if not already fetched
         if (!defaultTemplatesData) {
             setShouldFetchDefaults(true);

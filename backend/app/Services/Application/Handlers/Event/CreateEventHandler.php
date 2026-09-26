@@ -63,6 +63,10 @@ class CreateEventHandler
             ->setCategory($eventData->category?->value ?? EventCategory::OTHER->value)
             ->setStatus($eventData->status)
             ->setType($eventData->type?->name)
+            ->setTagline($eventData->tagline)
+            ->setFeatured($eventData->featured ?? false)
+            ->setImageAlt($eventData->image_alt)
+            ->setAgenda($eventData->agenda)
             ->setEventSettings($eventData->event_settings);
 
         $newEvent = $this->createEventService->createEvent(

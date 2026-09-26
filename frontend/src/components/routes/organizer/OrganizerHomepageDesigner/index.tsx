@@ -9,16 +9,15 @@ import {showSuccess} from "../../../../utilites/notifications.tsx";
 import {t} from "@lingui/macro";
 import {useForm} from "@mantine/form";
 import {Accordion, Button, Group, Stack, Text} from "@mantine/core";
-import {IconColorPicker, IconHelp, IconPalette, IconPhoto, IconTypography} from "@tabler/icons-react";
+import {IconHelp, IconPalette, IconPhoto, IconTypography} from "@tabler/icons-react";
 import {Tooltip} from "../../../common/Tooltip";
 import {LoadingMask} from "../../../common/LoadingMask";
-import {CustomSelect} from "../../../common/CustomSelect";
 import {GET_ORGANIZER_QUERY_KEY, useGetOrganizer} from "../../../../queries/useGetOrganizer.ts";
 import {ImageUploadDropzone} from "../../../common/ImageUploadDropzone";
 import {organizerPreviewPath} from "../../../../utilites/urlHelper.ts";
 import {queryClient} from "../../../../utilites/queryClient.ts";
 import {GET_ORGANIZER_PUBLIC_QUERY_KEY} from "../../../../queries/useGetOrganizerPublic.ts";
-import {ThemeColorControls} from "../../../common/ThemeColorControls";
+import {BackgroundControls} from "../../../common/BackgroundControls";
 import {ThemeFontControl} from "../../../common/ThemeFontControl";
 import {computeThemeVariables, validateThemeSettings} from "../../../../utilites/themeUtils.ts";
 import {DEFAULT_HOMEPAGE_FONT} from "../../../../constants/homepageFonts.ts";
@@ -50,8 +49,8 @@ const OrganizerHomepageDesigner = () => {
     const form = useForm<FormValues>({
         initialValues: {
             homepage_theme_settings: {
-                accent: '#8b5cf6',
-                background: '#f5f3ff',
+                accent: '#0B0B0C',
+                background: '#F5F6F8',
                 mode: 'light',
                 background_type: 'COLOR',
                 font_family: DEFAULT_HOMEPAGE_FONT,
@@ -101,8 +100,15 @@ const OrganizerHomepageDesigner = () => {
         );
     };
 
+    const sendSettingsToIframeRef = useRef<() => void>(() => undefined);
+
     const sendSettingsToIframe = () => {
-        if (iframeRef.current?.contentWindow && iframeLoaded) {
+        // Send whenever there is a frame to send to. Gating this on `iframeLoaded` (set by the
+        // iframe's onLoad) meant nothing was posted for the organizer preview at all — its
+        // loader awaits two queries, so the flag was not set while edits were being made — and
+        // section edits never reached the preview. The PREVIEW_READY handshake covers the case
+        // where the frame exists before the preview's own listener mounts.
+        if (iframeRef.current?.contentWindow) {
             const themeSettings = validateThemeSettings(form.values.homepage_theme_settings);
             const cssVars = computeThemeVariables(themeSettings);
 
@@ -131,6 +137,22 @@ const OrganizerHomepageDesigner = () => {
         }
     };
 
+    sendSettingsToIframeRef.current = sendSettingsToIframe;
+
+    useEffect(() => {
+        // The preview announces itself once it is listening; resend even if the payload is
+        // unchanged, because the first send may have raced its mount.
+        const handleReady = (event: MessageEvent) => {
+            if (event.data?.type === "PREVIEW_READY") {
+                lastSentSettings.current = '';
+                sendSettingsToIframeRef.current();
+            }
+        };
+
+        window.addEventListener("message", handleReady);
+        return () => window.removeEventListener("message", handleReady);
+    }, [iframeLoaded]);
+
     useEffect(() => {
         sendSettingsToIframe();
     }, [iframeLoaded, form.values, existingLogo?.url, existingCover?.url]);
@@ -155,14 +177,6 @@ const OrganizerHomepageDesigner = () => {
 
     const handleThemeChange = (themeSettings: Partial<HomepageThemeSettings>) => {
         form.setFieldValue('homepage_theme_settings', themeSettings);
-    };
-
-    const handleBackgroundTypeChange = (backgroundType: string | string[]) => {
-        const value = Array.isArray(backgroundType) ? backgroundType[0] : backgroundType;
-        form.setFieldValue('homepage_theme_settings', {
-            ...form.values.homepage_theme_settings,
-            background_type: value as 'COLOR' | 'MIRROR_COVER_IMAGE',
-        });
     };
 
     return (
@@ -242,32 +256,13 @@ const OrganizerHomepageDesigner = () => {
                                     <fieldset disabled={organizerSettingsQuery.isLoading || updateMutation.isPending}
                                               className={classes.fieldset}>
                                         <Stack gap="md">
-                                            <CustomSelect
-                                                optionList={[
-                                                    {
-                                                        icon: <IconColorPicker/>,
-                                                        label: t`Color`,
-                                                        value: 'COLOR',
-                                                        description: t`Choose a color for your background`,
-                                                    },
-                                                    {
-                                                        icon: <IconPhoto/>,
-                                                        label: t`Use cover image`,
-                                                        value: 'MIRROR_COVER_IMAGE',
-                                                        description: t`Use a blurred version of the cover image as the background`,
-                                                        disabled: !existingCover,
-                                                    },
-                                                ]}
-                                                label={t`Background Type`}
-                                                name={'homepage_theme_settings.background_type'}
-                                                value={form.values.homepage_theme_settings.background_type || 'COLOR'}
-                                                onChange={handleBackgroundTypeChange}
-                                            />
-
-                                            <ThemeColorControls
+                                            <BackgroundControls
                                                 values={form.values.homepage_theme_settings}
                                                 onChange={handleThemeChange}
+                                                imageType="ORGANIZER_BACKGROUND"
+                                                entityId={organizerId}
                                                 disabled={organizerSettingsQuery.isLoading || updateMutation.isPending}
+                                                refetchImages={async () => (await organizerQuery.refetch()).data?.images}
                                             />
                                         </Stack>
                                     </fieldset>
@@ -315,7 +310,14 @@ const OrganizerHomepageDesigner = () => {
                             ref={iframeRef}
                             src={iframeSrc}
                             title="Organizer Homepage Preview"
-                            onLoad={() => setIframeLoaded(true)}
+                            onLoad={() => {
+                                // A freshly loaded document starts with no settings; clear the
+                                // send-once cache so the resend below actually posts. Without
+                                // this the organizer preview never received anything, because
+                                // its loader keeps the frame blank while the first sends happen.
+                                lastSentSettings.current = '';
+                                setIframeLoaded(true);
+                            }}
                         />
                     ) : (
                         <LoadingMask/>

@@ -51,7 +51,7 @@ export const ThemeColorControls = ({
                 label={t`Accent Color`}
                 description={t`The primary brand color used for buttons and highlights`}
                 size="sm"
-                value={values.accent || '#8b5cf6'}
+                value={values.accent || '#0B0B0C'}
                 onChange={handleAccentChange}
                 disabled={disabled}
             />
@@ -61,7 +61,7 @@ export const ThemeColorControls = ({
                 label={t`Background Color`}
                 description={t`The background color of the page. When using cover image, this is applied as an overlay.`}
                 size="sm"
-                value={values.background || '#f5f3ff'}
+                value={values.background || '#F5F6F8'}
                 onChange={handleBackgroundChange}
                 disabled={disabled}
             />

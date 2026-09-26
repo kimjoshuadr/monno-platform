@@ -100,26 +100,26 @@ export function getDerivedColors(mode: 'light' | 'dark'): Omit<DerivedThemeColor
     if (mode === 'light') {
         return {
             surface: '#ffffff',
-            textPrimary: '#1a1a1a',
-            textSecondary: '#525252',
-            textTertiary: '#737373',
-            border: 'rgba(0, 0, 0, 0.1)',
+            textPrimary: '#0B0B0C',
+            textSecondary: '#5A5D63',
+            textTertiary: '#6E7178',
+            border: 'rgba(11, 11, 12, 0.1)',
         };
     }
 
     return {
-        surface: '#1f1f1f',
-        textPrimary: '#ffffff',
-        textSecondary: '#a3a3a3',
-        textTertiary: '#737373',
-        border: 'rgba(255, 255, 255, 0.1)',
+        surface: '#1A1B1E',
+        textPrimary: '#F7F8F9',
+        textSecondary: '#A9ADB4',
+        textTertiary: '#8A8E96',
+        border: 'rgba(255, 255, 255, 0.12)',
     };
 }
 
 export function getAccentSoft(accent: string, mode: 'light' | 'dark'): string {
     const rgb = hexToRgb(accent);
     if (!rgb) {
-        return mode === 'light' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.15)';
+        return mode === 'light' ? 'rgba(11, 11, 12, 0.08)' : 'rgba(11, 11, 12, 0.15)';
     }
     const opacity = mode === 'light' ? 0.08 : 0.15;
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
@@ -128,7 +128,7 @@ export function getAccentSoft(accent: string, mode: 'light' | 'dark'): string {
 export function getAccentMuted(accent: string, mode: 'light' | 'dark'): string {
     const rgb = hexToRgb(accent);
     if (!rgb) {
-        return mode === 'light' ? 'rgba(139, 92, 246, 0.6)' : 'rgba(139, 92, 246, 0.7)';
+        return mode === 'light' ? 'rgba(11, 11, 12, 0.6)' : 'rgba(255, 255, 255, 0.7)';
     }
     const opacity = mode === 'light' ? 0.6 : 0.7;
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
@@ -160,8 +160,8 @@ export function computeThemeVariables(settings: HomepageThemeSettings): ThemeCSS
 
 export function getDefaultThemeSettings(): HomepageThemeSettings {
     return {
-        accent: '#8b5cf6',
-        background: '#f5f3ff',
+        accent: '#0B0B0C',
+        background: '#F5F6F8',
         mode: 'light',
         background_type: 'COLOR',
         font_family: DEFAULT_HOMEPAGE_FONT,
@@ -183,6 +183,14 @@ export function validateThemeSettings(
         mode: settings.mode || detectMode(settings.background || defaults.background),
         background_type: settings.background_type || defaults.background_type,
         font_family: settings.font_family || defaults.font_family,
+        // Media background. Carried through explicitly — this function builds a fresh object,
+        // so anything not listed here is silently dropped before it reaches the pages.
+        background_placement: settings.background_placement || 'PAGE',
+        background_image_url: settings.background_image_url ?? null,
+        background_video_url: settings.background_video_url ?? null,
+        background_poster_url: settings.background_poster_url ?? null,
+        background_overlay_opacity: settings.background_overlay_opacity ?? 0.35,
+        background_blur: settings.background_blur ?? 0,
     };
 }
 

@@ -1,5 +1,5 @@
 import {t} from "@lingui/macro";
-import {Button, Select, TextInput} from "@mantine/core";
+import {Button, Select, Switch, TextInput} from "@mantine/core";
 import {IconCalendarRepeat} from "@tabler/icons-react";
 import {useForm} from "@mantine/form";
 import {NavLink, useParams} from "react-router";
@@ -33,6 +33,9 @@ export const EventDetailsForm = () => {
             timezone: '',
             currency: '',
             category: '',
+            tagline: '',
+            featured: false,
+            image_alt: '',
         }
     });
     const formErrorHandle = useFormErrorResponseHandler();
@@ -47,6 +50,9 @@ export const EventDetailsForm = () => {
                 timezone: eventQuery.data.timezone,
                 currency: eventQuery.data.currency,
                 category: eventQuery.data.category,
+                tagline: eventQuery.data.tagline || '',
+                featured: !!eventQuery.data.featured,
+                image_alt: eventQuery.data.image_alt || '',
             });
         }
     }, [eventQuery.isFetched]);
@@ -81,7 +87,29 @@ export const EventDetailsForm = () => {
                         placeholder={t`Summer Music Festival ${new Date().getFullYear()}`}
                         required
                     />
-                    
+
+                    <TextInput
+                        {...form.getInputProps('tagline')}
+                        label={t`Tagline`}
+                        description={t`One short line shown under the title on the public event page.`}
+                        placeholder={t`Three rooms, one long night`}
+                        maxLength={200}
+                    />
+
+                    <TextInput
+                        {...form.getInputProps('image_alt')}
+                        label={t`Cover image alt text`}
+                        description={t`Describes the cover image for screen readers and search engines.`}
+                        placeholder={t`Crowd under red light`}
+                        maxLength={255}
+                    />
+
+                    <Switch
+                        {...form.getInputProps('featured', {type: 'checkbox'})}
+                        label={t`Featured event`}
+                        description={t`Featured events are highlighted in rails and on the home page.`}
+                    />
+
                     <Select
                         {...form.getInputProps('category')}
                         label={t`Category`}
