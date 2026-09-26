@@ -1108,12 +1108,12 @@
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
 
-"@remix-run/node@^2.16.8":
-  version "2.17.1"
-  resolved "https://registry.npmjs.org/@remix-run/node/-/node-2.17.1.tgz"
-  integrity sha512-pHmHTuLE1Lwazulx3gjrHobgBCsa+Xiq8WUO0ruLeDfEw2DU0c0SNSiyNkugu3rIZautroBwRaOoy7CWJL9xhQ==
+"@remix-run/node@^2.17.5":
+  version "2.17.5"
+  resolved "https://registry.yarnpkg.com/@remix-run/node/-/node-2.17.5.tgz#a144d717ed979f105872d70c29f44fe2dbcd626d"
+  integrity sha512-CwOUCDJqh9o8r/n5N1l+vz4Jh7DFU52/jo7MN56+OL9gM+14aQKdq1aLAh+4V6GuI/qtki9PPk02GmULimmDkw==
   dependencies:
-    "@remix-run/server-runtime" "2.17.1"
+    "@remix-run/server-runtime" "2.17.5"
     "@remix-run/web-fetch" "^4.4.2"
     "@web3-storage/multipart-parser" "^1.0.0"
     cookie-signature "^1.1.0"
@@ -1121,17 +1121,17 @@
     stream-slice "^0.1.2"
     undici "^6.21.2"
 
-"@remix-run/router@1.23.0":
-  version "1.23.0"
-  resolved "https://registry.npmjs.org/@remix-run/router/-/router-1.23.0.tgz"
-  integrity sha512-O3rHJzAQKamUz1fvE0Qaw0xSFqsA/yafi2iqeE0pvdFtCO1viYx8QL6f3Ln/aCCTLxs68SLf0KPM9eSeM8yBnA==
+"@remix-run/router@1.23.3":
+  version "1.23.3"
+  resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.23.3.tgz#957c098d4393d301a8aa7dccf3ef28ea5430e36a"
+  integrity sha512-4An71tdz9X8+3sI4Qqqd2LWd9vS39J7sqd9EU4Scw7TJE/qB10Flv/UuqbPVgfQV9XoK8Np6jNquZitnZq5i+Q==
 
-"@remix-run/server-runtime@2.17.1":
-  version "2.17.1"
-  resolved "https://registry.npmjs.org/@remix-run/server-runtime/-/server-runtime-2.17.1.tgz"
-  integrity sha512-d1Vp9FxX4KafB111vP2E5C1fmWzPI+gHZ674L1drq+N8Bp9U6FBspi7GAZSU5K5Kxa4T6UF+aE1gK6pVi9R8sw==
+"@remix-run/server-runtime@2.17.5":
+  version "2.17.5"
+  resolved "https://registry.yarnpkg.com/@remix-run/server-runtime/-/server-runtime-2.17.5.tgz#59dbea8d62bdcdc06108f53ac5b8e955c7848c5d"
+  integrity sha512-SyJ5n2pQyo4ERGvjjLvL2PpRWBzlC2qzO5KkkOE2ygOiNcgOu9WQnnom9GI8KgsTRCO8JnIeLHFRcmxZnVBjfw==
   dependencies:
-    "@remix-run/router" "1.23.0"
+    "@remix-run/router" "1.23.3"
     "@types/cookie" "^0.6.0"
     "@web3-storage/multipart-parser" "^1.0.0"
     cookie "^0.7.2"
