@@ -69,8 +69,8 @@ class SeedMonnoCommand extends Command
         CreateEventImageHandler $createEventImage,
         DatabaseManager $db,
     ): int {
-        if (app()->environment('production')) {
-            $this->error('Refusing to seed in production.');
+        if (app()->environment('production') && ! $this->option('force')) {
+            $this->error('Refusing to seed in production without --force.');
 
             return self::FAILURE;
         }
