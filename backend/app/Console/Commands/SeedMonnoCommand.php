@@ -308,13 +308,21 @@ class SeedMonnoCommand extends Command
         }
     }
 
-    /** Where the site's event photography lives (the seed reuses it). */
+    /** Where the curated cover photography lives. */
     private function imagesPath(): string
     {
         $configured = env('MONNO_IMAGES_PATH');
 
         if (is_string($configured) && $configured !== '') {
             return rtrim($configured, '/');
+        }
+
+        // The cover set ships with the app, so the seed works anywhere — including
+        // a container that has no checkout of the website repo next to it.
+        $bundled = resource_path('demo/monno');
+
+        if (is_dir($bundled)) {
+            return $bundled;
         }
 
         return dirname(base_path(), 2).'/monno/public/images';
