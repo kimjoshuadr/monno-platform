@@ -127,6 +127,7 @@ use HiEvents\Http\Actions\Events\DuplicateEventAction;
 use HiEvents\Http\Actions\Events\GetEventAction;
 use HiEvents\Http\Actions\Events\GetEventDeletionStatusAction;
 use HiEvents\Http\Actions\Events\GetEventPublicAction;
+use HiEvents\Http\Actions\Events\GetEventOgImagePublicAction;
 use HiEvents\Http\Actions\Events\GetEventsAction;
 use HiEvents\Http\Actions\Events\GetEventsListPublicAction;
 use HiEvents\Http\Actions\Events\GetOrganizerEventsPublicAction;
@@ -182,6 +183,7 @@ use HiEvents\Http\Actions\Organizers\GetOrganizerDeletionStatusAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerEventsAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
+use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
@@ -648,6 +650,12 @@ $router->prefix('/public')->group(
         $router->get('/events/{event_id}', GetEventPublicAction::class);
         $router->get('/events/{event_id}/occurrences', GetEventOccurrencesPublicAction::class)
             ->middleware('throttle:60,1');
+
+        // Open Graph images — monno-branded, used by both the website and the app.
+        $router->get('/og/event/{event_id}', GetEventOgImagePublicAction::class)
+            ->where('event_id', '[0-9]+');
+        $router->get('/og/organizer/{organizer_id}', GetOrganizerOgImagePublicAction::class)
+            ->where('organizer_id', '[0-9]+');
 
         // Organizers
         $router->get('/organizers/{organizer_id}', GetPublicOrganizerAction::class);

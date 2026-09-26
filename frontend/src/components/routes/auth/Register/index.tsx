@@ -136,11 +136,12 @@ export const Register = () => {
                 </form>
                 <footer>
                     <Trans>
-                        By registering you agree to our <NavLink target={'_blank'}
-                                                                 to={getConfig("VITE_TOS_URL", "https://hi.events/terms-of-service?utm_source=app-register-footer") as string}>Terms
-                        of Service</NavLink> and <NavLink
+                        By registering you agree to our <a target={'_blank'} rel="noreferrer"
+                                                                  href={getConfig("VITE_TOS_URL", "https://hi.events/terms-of-service") as string}>Terms
+                        of Service</a> and <a
                         target={'_blank'}
-                        to={getConfig("VITE_PRIVACY_URL", 'https://hi.events/privacy-policy?utm_source=app-register-footer') as string}>Privacy Policy</NavLink>.
+                        rel="noreferrer"
+                        href={getConfig("VITE_PRIVACY_URL", 'https://hi.events/privacy-policy') as string}>Privacy Policy</a>.
                     </Trans>
                 </footer>
             </div>

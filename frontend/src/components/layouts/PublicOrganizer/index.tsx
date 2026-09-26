@@ -1,6 +1,7 @@
 import {useLoaderData} from "react-router";
 import {OrganizerRoom} from "../OrganizerRoom";
 import {OrganizerRoomFooter} from "../OrganizerRoom/OrganizerRoomFooter.tsx";
+import {OrganizerDocumentHead} from "../../common/OrganizerDocumentHead";
 import {StatusToggle} from "../../common/StatusToggle";
 import {OrganizerRoomLoaderData} from "../../../routeLoaders/publicOrganizerRouteLoader.ts";
 import {OrganizerNotFound} from "./OrganizerNotFound";
@@ -22,7 +23,9 @@ export const PublicOrganizer = () => {
             totals={totals}
             mode={theme?.mode === 'dark' ? 'dark' : 'light'}
             theme={theme}
-            banner={organizer.id && organizer.status ? (
+            banner={<>
+                <OrganizerDocumentHead organizer={organizer}/>
+                {organizer.id && organizer.status ? (
                 <div className="room-banner">
                     <StatusToggle
                         entityType="organizer"
@@ -32,7 +35,8 @@ export const PublicOrganizer = () => {
                         onSuccess={() => window.location.reload()}
                     />
                 </div>
-            ) : null}
+                ) : null}
+            </>}
             footer={<OrganizerRoomFooter/>}
         />
     );

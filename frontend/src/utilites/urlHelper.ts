@@ -52,3 +52,11 @@ export const imageUrl = (imageType: ImageType, images?: Image[], fallbackUrl?: s
 export const organizerPreviewPath = (organizerId: IdParam) => {
     return `/organizer/${organizerId}/preview`;
 }
+
+/**
+ * The monno-branded Open Graph card for an event or organizer, rendered by the
+ * public API (see the backend's `OgImageService`) and used as `og:image`.
+ */
+export const ogImageUrl = (kind: 'event' | 'organizer', id: IdParam) => {
+    return `${getConfig('VITE_API_URL_CLIENT', '')}/public/og/${kind}/${id}`;
+}
