@@ -62,20 +62,29 @@ trait RendersOgImages
     }
 
     /**
-     * LIVE events with the images and location a card needs, newest first.
+     * LIVE events with the images and location a card needs.
+     *
+     * A generous window, oldest first: the card only needs one representative
+     * event, and on a database full of freshly created test events the seeded,
+     * long-lived ones sort to the end under the default (newest first).
      *
      * @return array<int, \HiEvents\DomainObjects\EventDomainObject>
      */
     protected function liveEvents(): array
     {
         return $this->eventRepository
+            ->setMaxPerPage(1000)
             ->loadRelation(new Relationship(ImageDomainObject::class))
             ->loadRelation(new Relationship(EventLocationDomainObject::class, name: 'event_location', nested: [
                 new Relationship(LocationDomainObject::class, name: 'location'),
             ]))
             ->findEvents(
                 where: ['status' => EventStatus::LIVE->name],
-                params: QueryParamsDTO::fromArray(['per_page' => 100]),
+                params: QueryParamsDTO::fromArray([
+                    'per_page' => 1000,
+                    'sort_by' => 'created_at',
+                    'sort_direction' => 'asc',
+                ]),
             )
             ->items();
     }
