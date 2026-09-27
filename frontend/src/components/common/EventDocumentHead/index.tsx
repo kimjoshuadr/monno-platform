@@ -1,7 +1,7 @@
 /* eslint-disable lingui/no-unlocalized-strings */
 import {Helmet} from "react-helmet-async";
 import {Event, LocationType} from "../../../types";
-import {eventHomepageUrl, ogImageUrl} from "../../../utilites/urlHelper.ts";
+import {ogImageUrl, websiteEventUrl} from "../../../utilites/urlHelper.ts";
 import {utcToTz} from "../../../utilites/dates.ts";
 import {summariseEventLocations} from "../../../utilites/effectiveLocation.ts";
 import {formatAddress} from "../../../utilites/addressUtilities.ts";
@@ -18,7 +18,7 @@ export const EventDocumentHead = ({event}: EventDocumentHeadProps) => {
     const description = eventSettings?.seo_description ?? event.description_preview;
     const keywords = eventSettings?.seo_keywords;
     const image = ogImageUrl('event', event.id);
-    const url = eventHomepageUrl(event);
+    const url = websiteEventUrl(event);
     const seriesStartDate = event.next_occurrence_start_date || event.start_date;
     const seriesEndDate = event.last_occurrence_date || event.end_date;
     const startDate = utcToTz(new Date(seriesStartDate), event.timezone);
@@ -124,7 +124,7 @@ export const EventDocumentHead = ({event}: EventDocumentHeadProps) => {
             {image && <meta name="twitter:image" content={image}/>}
             <meta name="twitter:card" content="summary_large_image"/>
 
-            <meta name="robots" content="index, follow"/>
+            <meta name="robots" content="noindex, follow"/>
 
             <link rel="canonical" href={url}/>
 

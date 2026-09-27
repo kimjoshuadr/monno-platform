@@ -1,2 +1,5 @@
+# This app is the organizer and ticketing surface. The public, canonical website
+# is https://monno.io (its own robots.txt and sitemap live there), so nothing on
+# this domain should be indexed.
 User-agent: *
-Disallow:
+Disallow: /

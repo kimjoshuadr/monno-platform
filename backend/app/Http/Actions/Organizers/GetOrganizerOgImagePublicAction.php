@@ -7,11 +7,11 @@ namespace HiEvents\Http\Actions\Organizers;
 use HiEvents\DomainObjects\ImageDomainObject;
 use HiEvents\DomainObjects\OrganizerDomainObject;
 use HiEvents\DomainObjects\Status\OrganizerStatus;
+use HiEvents\Http\Actions\Og\RendersOgImages;
 use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Services\Infrastructure\OgImage\OgImageService;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * `GET /public/og/organizer/{organizer_id}` — the monno-branded Open Graph card
@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class GetOrganizerOgImagePublicAction
 {
+    use RendersOgImages;
+
     public function __construct(
         private readonly OrganizerRepositoryInterface $organizerRepository,
         private readonly OgImageService $og,
@@ -34,32 +36,8 @@ class GetOrganizerOgImagePublicAction
             return response('', 404);
         }
 
-        $logo = null;
-        foreach ($organizer->getImages()?->all() ?? [] as $image) {
-            if ($image->getType() === 'ORGANIZER_LOGO') {
-                $logo = $image;
-                break;
-            }
-        }
+        $logo = $this->ogFirstImage($organizer->getImages()?->all() ?? [], ['ORGANIZER_LOGO']);
 
-        $png = $this->og->render((string) $organizer->getName(), 'Organizer', $this->bytes($logo), false);
-
-        return response($png, 200, [
-            'Content-Type' => 'image/png',
-            'Cache-Control' => 'public, max-age=3600',
-        ]);
-    }
-
-    private function bytes(?ImageDomainObject $image): ?string
-    {
-        if ($image === null || $image->getPath() === null) {
-            return null;
-        }
-
-        try {
-            return Storage::disk($image->getDisk() ?: config('filesystems.public'))->get($image->getPath());
-        } catch (\Throwable) {
-            return null;
-        }
+        return $this->ogPng($this->og->render((string) $organizer->getName(), 'Organizer', $this->ogBytes($logo), false));
     }
 }

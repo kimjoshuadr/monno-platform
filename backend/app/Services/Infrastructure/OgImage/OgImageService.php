@@ -39,7 +39,7 @@ class OgImageService
         $this->markPath = resource_path('og/monno-mark.png');
     }
 
-    public function render(string $title, ?string $kicker = null, ?string $imageBytes = null, bool $photoWash = true): string
+    public function render(string $title, ?string $kicker = null, ?string $imageBytes = null, bool $photoWash = true, bool $withTile = true): string
     {
         $canvas = imagecreatetruecolor(self::WIDTH, self::HEIGHT);
         imagealphablending($canvas, true);
@@ -55,6 +55,9 @@ class OgImageService
                 // its colour instead and build a tinted ground from that.
                 $this->drawTint($canvas, $imageBytes);
             }
+        } elseif (! $withTile) {
+            // A generic card with no imagery still gets some colour to sit on.
+            $this->drawTintColor($canvas, [16, 110, 150]);
         }
 
         // Mascot + wordmark.
@@ -68,20 +71,24 @@ class OgImageService
             $this->drawText($canvas, $this->truncate($kicker, 52), self::PAD, 296, 26, '#C9CCD3');
         }
 
-        $lines = $this->wrap($title, 46, 620, 4);
+        $lines = $this->wrap($title, 46, $withTile ? 620 : 1000, 4);
         $y = 362;
         foreach ($lines as $line) {
             $this->drawText($canvas, $line, self::PAD, $y, 46, '#FFFFFF', true);
             $y += 62;
         }
 
-        $this->drawTile(
-            $canvas,
-            self::WIDTH - self::PAD - self::TILE,
-            (int) ((self::HEIGHT - self::TILE) / 2),
-            $imageBytes,
-            ! $photoWash
-        );
+        if (! $withTile) {
+            $this->drawSpectrumRule($canvas, self::PAD, self::HEIGHT - 96, 7, 26, 6);
+        } else {
+            $this->drawTile(
+                $canvas,
+                self::WIDTH - self::PAD - self::TILE,
+                (int) ((self::HEIGHT - self::TILE) / 2),
+                $imageBytes,
+                ! $photoWash
+            );
+        }
 
         ob_start();
         imagepng($canvas);
@@ -146,7 +153,15 @@ class OgImageService
      */
     private function drawTint(GdImage $canvas, string $bytes): void
     {
-        $tint = $this->averageColor($bytes);
+        $this->drawTintColor($canvas, $this->averageColor($bytes));
+    }
+
+    /**
+     * A designed ground built from a single colour: a soft vertical gradient plus
+     * a glow behind where the tile sits.
+     */
+    private function drawTintColor(GdImage $canvas, array $tint): void
+    {
         $ink = [0x0B, 0x0B, 0x0C];
 
         $bands = 72;

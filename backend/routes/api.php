@@ -184,6 +184,9 @@ use HiEvents\Http\Actions\Organizers\GetOrganizerEventsAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetCategoryOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetCityOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetSiteOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
@@ -652,6 +655,11 @@ $router->prefix('/public')->group(
             ->middleware('throttle:60,1');
 
         // Open Graph images — monno-branded, used by both the website and the app.
+        $router->get('/og/site', GetSiteOgImagePublicAction::class);
+        $router->get('/og/city/{city}', GetCityOgImagePublicAction::class)
+            ->where('city', '[A-Za-z0-9-]+');
+        $router->get('/og/category/{category}', GetCategoryOgImagePublicAction::class)
+            ->where('category', '[A-Za-z_-]+');
         $router->get('/og/event/{event_id}', GetEventOgImagePublicAction::class)
             ->where('event_id', '[0-9]+');
         $router->get('/og/organizer/{organizer_id}', GetOrganizerOgImagePublicAction::class)

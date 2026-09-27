@@ -60,3 +60,16 @@ export const organizerPreviewPath = (organizerId: IdParam) => {
 export const ogImageUrl = (kind: 'event' | 'organizer', id: IdParam) => {
     return `${getConfig('VITE_API_URL_CLIENT', '')}/public/og/${kind}/${id}`;
 }
+
+/**
+ * The main website's canonical page for an event. This app is the ticket
+ * surface; the website is the public, indexable copy, so the app's own event and
+ * organizer pages are `noindex` and point their canonical here.
+ */
+export const websiteEventUrl = (event: Event) => {
+    return `${getConfig('VITE_MONNO_SITE_URL', '')}/event/${event.id}/`;
+}
+
+export const websiteOrganizerUrl = (organizer: Organizer) => {
+    return `${getConfig('VITE_MONNO_SITE_URL', '')}/o/${organizer.id}/`;
+}

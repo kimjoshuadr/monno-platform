@@ -1,7 +1,7 @@
 /* eslint-disable lingui/no-unlocalized-strings */
 import {Helmet} from "react-helmet-async";
 import {Organizer} from "../../../types";
-import {organizerHomepageUrl, ogImageUrl} from "../../../utilites/urlHelper.ts";
+import {ogImageUrl, websiteOrganizerUrl} from "../../../utilites/urlHelper.ts";
 
 interface OrganizerDocumentHeadProps {
     organizer: Organizer;
@@ -14,7 +14,7 @@ export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) =
     const keywords = organizerSettings?.seo_keywords || `${organizer.name}, events, tickets, concerts, sell tickets online`;
     const logoImage = organizer.images?.find(img => img.type === 'ORGANIZER_LOGO')?.url;
     const image = ogImageUrl('organizer', organizer.id);
-    const url = organizerHomepageUrl(organizer);
+    const url = websiteOrganizerUrl(organizer);
 
     const structuredAddress = organizer.location?.structured_address;
     const address = structuredAddress ? {
@@ -79,8 +79,8 @@ export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) =
         }
     });
 
-    const allowIndexing = organizerSettings?.allow_search_engine_indexing !== false;
-
+    // This app is the ticket surface; the website is the canonical, indexable
+    // copy, so nothing here is indexed even when the organizer allows indexing.
     return (
         <Helmet>
             <title>{title}</title>
@@ -98,7 +98,7 @@ export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) =
             {image && <meta name="twitter:image" content={image}/>}
             <meta name="twitter:card" content="summary_large_image"/>
 
-            <meta name="robots" content={allowIndexing ? "index, follow" : "noindex, nofollow"}/>
+            <meta name="robots" content="noindex, follow"/>
 
             <link rel="canonical" href={url}/>
 

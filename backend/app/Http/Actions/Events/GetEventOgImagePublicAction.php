@@ -8,11 +8,11 @@ use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\ImageDomainObject;
 use HiEvents\DomainObjects\OrganizerDomainObject;
 use HiEvents\DomainObjects\Status\EventStatus;
+use HiEvents\Http\Actions\Og\RendersOgImages;
 use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Services\Infrastructure\OgImage\OgImageService;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * `GET /public/og/event/{event_id}` — the monno-branded Open Graph card for an
@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class GetEventOgImagePublicAction extends BasePublicEventAction
 {
+    use RendersOgImages;
+
     public function __construct(
         private readonly EventRepositoryInterface $eventRepository,
         private readonly OgImageService $og,
@@ -39,44 +41,9 @@ class GetEventOgImagePublicAction extends BasePublicEventAction
             return response('', 404);
         }
 
-        $image = $this->firstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
+        $image = $this->ogFirstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
         $kicker = $event->getOrganizer()?->getName();
 
-        $png = $this->og->render((string) $event->getTitle(), $kicker, $this->bytes($image), true);
-
-        return response($png, 200, [
-            'Content-Type' => 'image/png',
-            'Cache-Control' => 'public, max-age=3600',
-        ]);
-    }
-
-    /**
-     * @param  ImageDomainObject[]  $images
-     * @param  string[]  $types
-     */
-    private function firstImage(array $images, array $types): ?ImageDomainObject
-    {
-        foreach ($types as $type) {
-            foreach ($images as $image) {
-                if ($image->getType() === $type) {
-                    return $image;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private function bytes(?ImageDomainObject $image): ?string
-    {
-        if ($image === null || $image->getPath() === null) {
-            return null;
-        }
-
-        try {
-            return Storage::disk($image->getDisk() ?: config('filesystems.public'))->get($image->getPath());
-        } catch (\Throwable) {
-            return null;
-        }
+        return $this->ogPng($this->og->render((string) $event->getTitle(), $kicker, $this->ogBytes($image), true));
     }
 }
