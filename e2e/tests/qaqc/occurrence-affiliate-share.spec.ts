@@ -1,7 +1,8 @@
 import { test, expect } from '../../fixtures';
-import { createRecurringLiveEvent } from '../../api/factory';
+import { createLiveEventWithProduct, createRecurringLiveEvent } from '../../api/factory';
 import { OccurrencePage } from '../../pages/occurrence.page';
 import { monnoSiteUrl } from '../../utils/parity';
+import { uniqueCode } from '../../utils/unique';
 
 const MONNO_URL = process.env.MONNO_URL ?? 'http://localhost:3000';
 
@@ -62,5 +63,40 @@ test.describe('website share links: occurrence and affiliate', () => {
     await expect(authedPage.getByLabel('Page URL')).toHaveValue(
       new RegExp(`^${monnoSiteUrl()}/event/${event.eventId}/\\?occurrence_id=\\d+$`),
     );
+  });
+
+  test('a shared promo code is applied on the website and rides into the order', async ({
+    api,
+    account,
+    page,
+  }) => {
+    test.setTimeout(120_000);
+
+    const event = await createLiveEventWithProduct(api, {
+      organizerId: account.organizerId,
+      price: 25,
+      quantityAvailable: 50,
+    });
+    const code = uniqueCode('PROMO').slice(0, 20);
+    await api.createPromoCode(event.eventId, { code, discount_type: 'PERCENTAGE', discount: 10 });
+
+    await page.goto(`${MONNO_URL}/event/${event.eventId}/?promo_code=${code}`);
+
+    // The rail reads the code straight off the link and shows it applied.
+    const applied = page.locator('.hi-promo-code-applied');
+    await expect(applied).toBeVisible({ timeout: 20_000 });
+    await expect(applied).toContainText(code);
+
+    const firstRow = page.locator('.register-rail [data-testid="event-ticket-row"]').first();
+    await expect(firstRow).toBeVisible({ timeout: 20_000 });
+    await firstRow.getByRole('button', { name: /Increase/ }).first().click();
+
+    const orderRequest = page.waitForRequest(
+      (request) =>
+        request.url().includes(`/public/events/${event.eventId}/order`) && request.method() === 'POST',
+    );
+    await page.getByTestId('checkout-continue-button').click();
+    const body = JSON.parse((await orderRequest).postData() ?? '{}');
+    expect(body.promo_code).toBe(code);
   });
 });
