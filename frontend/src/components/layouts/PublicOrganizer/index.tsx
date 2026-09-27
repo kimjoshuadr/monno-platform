@@ -15,6 +15,10 @@ export const PublicOrganizer = () => {
 
     const {organizer, upcoming, past, totals} = loaderData;
     const theme = organizer.settings?.homepage_theme_settings;
+    // The website lists an organizer as soon as it has a LIVE event, so that is
+    // exactly when the website becomes the canonical copy of this page. The route
+    // loader returns drafts too when the owner is signed in, so count only LIVE.
+    const hasPublicPage = [...upcoming, ...past].some((event) => event.status === 'LIVE');
 
     return (
         <OrganizerRoom
@@ -24,7 +28,7 @@ export const PublicOrganizer = () => {
             mode={theme?.mode === 'dark' ? 'dark' : 'light'}
             theme={theme}
             banner={<>
-                <OrganizerDocumentHead organizer={organizer}/>
+                <OrganizerDocumentHead organizer={organizer} hasPublicPage={hasPublicPage}/>
                 {organizer.id && organizer.status ? (
                 <div className="room-banner">
                     <StatusToggle

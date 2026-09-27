@@ -28,7 +28,7 @@ import {periodPresetToDateRange} from "../../../../utilites/periodPreset.ts";
 import {hasEventDetails, SetupChecklist} from "./SetupChecklist";
 import {PublishEventModal} from "../../../modals/PublishEventModal";
 import {EventLiveCelebrationModal} from "../../../modals/EventLiveCelebrationModal";
-import {eventHomepageUrl} from "../../../../utilites/urlHelper.ts";
+import {websiteEventUrl} from "../../../../utilites/urlHelper.ts";
 
 export const DashBoardSkeleton = () => {
     return (
@@ -228,7 +228,7 @@ export const EventDashboard = () => {
                 <EventLiveCelebrationModal
                     opened={celebrationOpened}
                     onClose={closeCelebration}
-                    url={eventHomepageUrl(event)}
+                    url={websiteEventUrl(event)}
                     eventTitle={event.title}
                     eventId={String(event.id)}
                 />
