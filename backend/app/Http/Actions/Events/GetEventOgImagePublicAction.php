@@ -42,7 +42,7 @@ class GetEventOgImagePublicAction extends BasePublicEventAction
         $image = $this->firstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
         $kicker = $event->getOrganizer()?->getName();
 
-        $png = $this->og->render((string) $event->getTitle(), $kicker, $this->bytes($image));
+        $png = $this->og->render((string) $event->getTitle(), $kicker, $this->bytes($image), true);
 
         return response($png, 200, [
             'Content-Type' => 'image/png',

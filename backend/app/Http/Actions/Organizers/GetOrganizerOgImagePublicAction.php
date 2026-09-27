@@ -42,7 +42,7 @@ class GetOrganizerOgImagePublicAction
             }
         }
 
-        $png = $this->og->render((string) $organizer->getName(), 'Organizer', $this->bytes($logo));
+        $png = $this->og->render((string) $organizer->getName(), 'Organizer', $this->bytes($logo), false);
 
         return response($png, 200, [
             'Content-Type' => 'image/png',
