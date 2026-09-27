@@ -259,7 +259,6 @@ class OgImageService
             // A logo filling the tile edge to edge would melt into the tinted
             // ground, so it sits on a dark plate instead.
             $plate = $this->solidRounded($size, self::TILE_RADIUS, '#141418');
-            $this->drawTileEdge($plate, $size, self::TILE_RADIUS);
 
             if ($imageBytes !== null) {
                 $box = (int) round($size * 0.62);
@@ -281,7 +280,6 @@ class OgImageService
 
         $tile = $this->roundedFromBytes($imageBytes, $size, self::TILE_RADIUS, true)
             ?? $this->solidRounded($size, self::TILE_RADIUS, '#1A1A1F');
-        $this->drawTileEdge($tile, $size, self::TILE_RADIUS);
 
         imagealphablending($canvas, true);
         imagecopy($canvas, $tile, $x, $y, 0, 0, $size, $size);
@@ -362,25 +360,6 @@ class OgImageService
         }
 
         imagealphablending($tile, true);
-    }
-
-    /** A hairline so the tile separates from the wash. */
-    private function drawTileEdge(GdImage $tile, int $size, int $radius): void
-    {
-        $edge = imagecolorallocatealpha($tile, 255, 255, 255, 96);
-        imagesetthickness($tile, 2);
-
-        $d = $radius * 2;
-        imagearc($tile, $radius, $radius, $d, $d, 180, 270, $edge);
-        imagearc($tile, $size - $radius - 1, $radius, $d, $d, 270, 360, $edge);
-        imagearc($tile, $radius, $size - $radius - 1, $d, $d, 90, 180, $edge);
-        imagearc($tile, $size - $radius - 1, $size - $radius - 1, $d, $d, 0, 90, $edge);
-        imageline($tile, $radius, 0, $size - $radius, 0, $edge);
-        imageline($tile, $radius, $size - 1, $size - $radius, $size - 1, $edge);
-        imageline($tile, 0, $radius, 0, $size - $radius, $edge);
-        imageline($tile, $size - 1, $radius, $size - 1, $size - $radius, $edge);
-
-        imagesetthickness($tile, 1);
     }
 
     private function drawSpectrumRule(GdImage $canvas, int $x, int $y, int $segments, int $segW, int $segH): void
