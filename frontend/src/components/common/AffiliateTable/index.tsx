@@ -15,7 +15,7 @@ import {Affiliate} from "../../../api/affiliate.client.ts";
 import classes from "./AffiliateTable.module.scss";
 import {Table, TableHead} from "../Table";
 import {ActionMenu} from "../ActionMenu";
-import {eventHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {websiteEventUrl} from "../../../utilites/urlHelper.ts";
 import {useGetEvent} from "../../../queries/useGetEvent.ts";
 
 interface AffiliateTableProps {
@@ -100,7 +100,7 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
                                             variant="subtle"
                                             color="gray"
                                             leftSection={<IconCopy size={12}/>}
-                                            onClick={() => copyToClipboard(eventHomepageUrl(event!) + `?aff=${affiliate.code}`)}
+                                            onClick={() => copyToClipboard(websiteEventUrl(event!) + `?aff=${affiliate.code}`)}
                                             className={classes.copyButton}
                                         >
                                             {t`Copy URL`}
@@ -183,7 +183,7 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
                                                     label: t`Copy Affiliate Link`,
                                                     icon: <IconCopy size={14}/>,
                                                     onClick: () => copyToClipboard(
-                                                        eventHomepageUrl(event!) + `?aff=${affiliate.code}`
+                                                        websiteEventUrl(event!) + `?aff=${affiliate.code}`
                                                     )
                                                 },
                                                 {
@@ -224,7 +224,7 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
                 <ShareModal
                     opened={shareModalOpen}
                     onClose={closeShareModal}
-                    url={eventHomepageUrl(event) + `?aff=${selectedAffiliate.code}`}
+                    url={websiteEventUrl(event) + `?aff=${selectedAffiliate.code}`}
                     title={event.title}
                     modalTitle={t`Share Affiliate Link`}
                     shareText={t`Here is your affiliate link`}

@@ -24,7 +24,7 @@ import {formatDateWithLocale} from "../../../../utilites/dates.ts";
 import {EventOccurrence, MessageType} from "../../../../types.ts";
 import {showError, showSuccess} from "../../../../utilites/notifications.tsx";
 import {confirmationDialog} from "../../../../utilites/confirmationDialog.tsx";
-import {eventHomepageUrl} from "../../../../utilites/urlHelper.ts";
+import {websiteEventUrl} from "../../../../utilites/urlHelper.ts";
 import classes from "./OccurrenceDetail.module.scss";
 
 const OccurrenceDetail = () => {
@@ -197,7 +197,7 @@ const OccurrenceDetail = () => {
                 <ShareModal
                     opened={!!showShareOccurrence}
                     onClose={() => setShowShareOccurrence(undefined)}
-                    url={`${eventHomepageUrl(event)}?occurrence_id=${showShareOccurrence.id}`}
+                    url={`${websiteEventUrl(event)}?occurrence_id=${showShareOccurrence.id}`}
                     title={event.title}
                     shareText={`${event.title} — ${formatDateWithLocale(showShareOccurrence.start_date, 'shortDateTime', event.timezone)}`}
                 />

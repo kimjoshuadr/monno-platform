@@ -47,7 +47,7 @@ import {useOccurrenceGenerationPolling} from "../../../../hooks/useOccurrenceGen
 import {ManageOccurrenceModal} from "../../../modals/ManageOccurrenceModal";
 import {SendMessageModal} from "../../../modals/SendMessageModal";
 import {ShareModal} from "../../../modals/ShareModal";
-import {eventHomepageUrl} from "../../../../utilites/urlHelper.ts";
+import {websiteEventUrl} from "../../../../utilites/urlHelper.ts";
 import classes from './OccurrencesTab.module.scss';
 
 dayjs.extend(utc);
@@ -732,7 +732,7 @@ const OccurrencesTab = () => {
                 <ShareModal
                     opened={!!shareOccurrence}
                     onClose={() => setShareOccurrence(undefined)}
-                    url={`${eventHomepageUrl(event)}?occurrence_id=${shareOccurrence.id}`}
+                    url={`${websiteEventUrl(event)}?occurrence_id=${shareOccurrence.id}`}
                     title={event.title}
                     shareText={`${event.title} — ${formatDateWithLocale(shareOccurrence.start_date, 'shortDateTime', event.timezone)}`}
                 />
