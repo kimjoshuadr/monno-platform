@@ -30,6 +30,7 @@ test.describe('website live events', () => {
 
     // The page's own share hands out the website URL.
     await page.locator('[data-od-id="event-share"]').click();
+    await page.getByRole('tab', { name: 'Copy link' }).click();
     await expect(page.locator('.share-url')).toHaveValue(`${monnoSiteUrl()}/event/${event.eventId}/`);
   });
 

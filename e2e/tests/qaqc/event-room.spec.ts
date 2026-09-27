@@ -46,12 +46,12 @@ test.describe('event room', () => {
         await expect(page.locator('[data-od-id="event-save"]')).toBeVisible();
         await expect(page.locator('[data-od-id="event-calendar"]')).toBeVisible();
         await page.locator('[data-od-id="event-share"]').click();
-        await expect(page.locator('[data-od-id="share-dialog"] .share-url')).toHaveValue(
-            websiteEventUrl(event.eventId),
-        );
+        // The share sheet is the platform's modal; the link lives in its Copy Link tab.
+        await page.getByRole('tab', {name: 'Copy Link'}).click();
+        await expect(page.getByLabel('Page URL')).toHaveValue(websiteEventUrl(event.eventId));
         await page.screenshot({path: path.join(OUT, 'share-dialog-platform.png'), animations: 'disabled'});
-        await page.locator('[data-od-id="share-dialog"] .icon-btn').click();
-        await expect(page.locator('[data-od-id="share-dialog"]')).toHaveCount(0);
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('dialog')).toHaveCount(0);
 
         // Who's coming: counts, never names.
         await expect(page.locator('[data-od-id="event-who-coming"]')).toBeVisible();
@@ -96,9 +96,8 @@ test.describe('event room', () => {
         // The preview hands out the website's page too, never its own auth-gated
         // `/event/{id}/preview` address.
         await frame.locator('[data-od-id="event-share"]').click();
-        await expect(frame.locator('[data-od-id="share-dialog"] .share-url')).toHaveValue(
-            websiteEventUrl(event.eventId),
-        );
+        await frame.getByRole('tab', {name: 'Copy Link'}).click();
+        await expect(frame.getByLabel('Page URL')).toHaveValue(websiteEventUrl(event.eventId));
         await page.screenshot({path: path.join(OUT, 'share-dialog-preview.png'), animations: 'disabled'});
         await page.screenshot({path: path.join(OUT, 'event-room-designer-preview.png')});
         await context.close();

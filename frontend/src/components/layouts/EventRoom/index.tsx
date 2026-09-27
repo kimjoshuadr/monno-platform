@@ -31,7 +31,7 @@ import {PageBackground} from "../../common/PageBackground";
 import {roomAttendance, roomCategoryColour, roomThemeStyle} from "../../../utilites/roomData.ts";
 import {downloadICSFile} from "../../../utilites/calendar.ts";
 import SelectProducts from "../../routes/product-widget/SelectProducts";
-import {EventRoomShare} from "./EventRoomShare.tsx";
+import {ShareModal} from "../../modals/ShareModal";
 import {EventRoomHeader, monnoEventUrl, monnoSiteUrl} from "./EventRoomChrome.tsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -621,9 +621,13 @@ export const EventRoom = ({
 
             {footer}
 
-            {shareOpen && shareUrl ? (
-                <EventRoomShare title={event.title} url={shareUrl} onClose={() => setShareOpen(false)}/>
-            ) : null}
+            <ShareModal
+                opened={shareOpen && !!shareUrl}
+                onClose={() => setShareOpen(false)}
+                url={shareUrl ?? ''}
+                title={event.title}
+                modalTitle={t`Share Event`}
+            />
         </div>
     );
 };

@@ -55,7 +55,9 @@ test.describe('website ticketing', () => {
     await expect(page.locator('[data-od-id="event-save"]')).toHaveText(/Saved/);
 
     await page.locator('[data-od-id="event-share"]').click();
-    // The link is the site's own page, not the address bar.
+    // The link is the site's own page, not the address bar. It lives in the
+    // modal's Copy link tab.
+    await page.getByRole('tab', { name: 'Copy link' }).click();
     await expect(page.locator('.share-url')).toHaveValue(websiteUrl);
     await page.screenshot({ path: path.join(OUT, 'share-dialog-website.png'), animations: 'disabled' });
     await page.locator('[data-od-id="share-copy"]').click();
@@ -92,6 +94,7 @@ test.describe('website ticketing', () => {
     await expect(share).toBeVisible({ timeout: 20_000 });
 
     await share.click();
+    await page.getByRole('tab', { name: 'Copy link' }).click();
     await expect(page.locator('.share-url')).toHaveValue(websiteUrl);
   });
 
