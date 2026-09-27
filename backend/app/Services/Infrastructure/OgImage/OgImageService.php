@@ -293,7 +293,7 @@ class OgImageService
             return;
         }
 
-        $tile = $this->roundedFromBytes($imageBytes, $size, self::TILE_RADIUS, true)
+        $tile = ($imageBytes !== null ? $this->roundedFromBytes($imageBytes, $size, self::TILE_RADIUS, true) : null)
             ?? $this->solidRounded($size, self::TILE_RADIUS, '#1A1A1F');
 
         imagealphablending($canvas, true);

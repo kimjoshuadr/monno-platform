@@ -26,20 +26,32 @@ class GetCityOgImagePublicAction extends BaseAction
     public function __invoke(string $city): Response
     {
         $wanted = Str::slug($city);
+        $name = null;
+        $fallback = null;
 
         foreach ($this->liveEvents() as $event) {
             $address = $event->getEventLocation()?->getLocation()?->getStructuredAddress();
-            $name = is_array($address) ? ($address['city'] ?? null) : null;
+            $candidate = is_array($address) ? ($address['city'] ?? null) : null;
 
-            if ($name === null || Str::slug($name) !== $wanted) {
+            if ($candidate === null || Str::slug($candidate) !== $wanted) {
                 continue;
             }
 
+            $name = $candidate;
             $image = $this->ogFirstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
 
-            return $this->ogPng($this->og->render($name, 'Events in', $this->ogBytes($image), true));
+            // Prefer a matching event that actually has a cover to show.
+            if ($image !== null) {
+                return $this->ogPng($this->og->render($name, 'Events in', $this->ogBytes($image), true));
+            }
+
+            $fallback ??= $name;
         }
 
-        return response('', 404);
+        if ($fallback === null) {
+            return response('', 404);
+        }
+
+        return $this->ogPng($this->og->render($fallback, 'Events in', null, true));
     }
 }

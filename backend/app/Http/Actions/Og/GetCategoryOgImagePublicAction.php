@@ -34,8 +34,15 @@ class GetCategoryOgImagePublicAction extends BaseAction
         $image = null;
 
         foreach ($this->liveEvents() as $event) {
-            if ($event->getCategory() === $enum->value) {
-                $image = $this->ogFirstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
+            if ($event->getCategory() !== $enum->value) {
+                continue;
+            }
+
+            $candidate = $this->ogFirstImage($event->getImages()?->all() ?? [], ['EVENT_IMAGE', 'EVENT_COVER']);
+
+            // Prefer an event in this category that has a cover to show.
+            if ($candidate !== null) {
+                $image = $candidate;
                 break;
             }
         }

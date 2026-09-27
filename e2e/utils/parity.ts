@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { APIRequestContext } from '@playwright/test';
+import { API_BASE_URL } from './env';
 
 /**
  * Shared handles for the website specs.
@@ -44,8 +45,11 @@ export async function findSeededEvent(
   publicApi: APIRequestContext,
   title: string = SEEDED_EVENT_TITLE,
 ): Promise<SeededEvent> {
+  // An absolute URL, so this works whether the API is a bare origin or behind the
+  // all-in-one's `/api` path (a leading-slash path would drop that base).
+  const api = API_BASE_URL.replace(/\/+$/, '');
   const res = await publicApi.get(
-    '/public/events?view=card&per_page=250&sort_by=created_at&sort_direction=asc',
+    `${api}/public/events?view=card&per_page=250&sort_by=created_at&sort_direction=asc`,
   );
 
   if (!res.ok()) {
