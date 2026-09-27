@@ -626,7 +626,8 @@ export const EventRoom = ({
                 onClose={() => setShareOpen(false)}
                 url={shareUrl ?? ''}
                 title={event.title}
-                modalTitle={t`Share Event`}
+                modalTitle={t`Share this event`}
+                subtitle={t`Send it to someone who'd come with you.`}
             />
         </div>
     );

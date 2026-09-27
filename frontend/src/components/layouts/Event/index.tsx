@@ -244,7 +244,8 @@ const EventLayout = () => {
                             <ShareModal
                                 url={monnoEventUrl(event.id)!}
                                 title={event.title}
-                                modalTitle={t`Share Event`}
+                                modalTitle={t`Share this event`}
+                                subtitle={t`Send it to someone who'd come with you.`}
                                 opened={opened}
                                 onClose={close}
                             />

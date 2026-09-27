@@ -227,6 +227,7 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
                     url={websiteEventUrl(event) + `?aff=${selectedAffiliate.code}`}
                     title={event.title}
                     modalTitle={t`Share Affiliate Link`}
+                    subtitle={t`Pass this on and earn on every ticket.`}
                     shareText={t`Here is your affiliate link`}
                 />
             )}

@@ -734,6 +734,8 @@ const OccurrencesTab = () => {
                     onClose={() => setShareOccurrence(undefined)}
                     url={`${websiteEventUrl(event)}?occurrence_id=${shareOccurrence.id}`}
                     title={event.title}
+                    modalTitle={t`Share this date`}
+                    subtitle={t`Send it to someone who'd come.`}
                     shareText={`${event.title} — ${formatDateWithLocale(shareOccurrence.start_date, 'shortDateTime', event.timezone)}`}
                 />
             )}

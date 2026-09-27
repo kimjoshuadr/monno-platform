@@ -299,6 +299,7 @@ const OrganizerLayout = () => {
                     url={organizerShareUrl}
                     title={organizer.name}
                     modalTitle={t`Share Organizer Page`}
+                    subtitle={t`Send it to someone who'd follow along.`}
                     opened={shareModalOpen}
                     onClose={closeShareModal}
                 />

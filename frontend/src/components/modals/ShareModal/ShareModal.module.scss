@@ -2,6 +2,23 @@
     --share-modal-gap: 1rem;
 }
 
+.head {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.title {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--mantine-color-dimmed);
+}
+
 .tabsContent {
     min-height: 200px;
 }

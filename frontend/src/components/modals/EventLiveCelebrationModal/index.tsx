@@ -128,7 +128,8 @@ export const EventLiveCelebrationModal = ({
             <ShareModal
                 url={url}
                 title={eventTitle}
-                modalTitle={t`Share Event`}
+                modalTitle={t`Share this event`}
+                subtitle={t`Send it to someone who'd come with you.`}
                 opened={shareModalOpened}
                 onClose={closeShareModal}
             />

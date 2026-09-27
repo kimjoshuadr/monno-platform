@@ -26,6 +26,8 @@ interface ShareModalProps {
     url: string;
     title: string;
     modalTitle?: string;
+    /** A short line under the title, the way the website's share sheet reads. */
+    subtitle?: string;
     shareText?: string;
 }
 
@@ -35,6 +37,7 @@ export const ShareModal = ({
     url,
     title,
     modalTitle = t`Share`,
+    subtitle,
     shareText
 }: ShareModalProps) => {
     const [activeTab, setActiveTab] = useState<string | null>('share');
@@ -154,7 +157,12 @@ export const ShareModal = ({
         <Modal
             opened={opened}
             onClose={onClose}
-            title={modalTitle}
+            title={(
+                <div className={classes.head}>
+                    <div className={classes.title}>{modalTitle}</div>
+                    {subtitle ? <div className={classes.subtitle}>{subtitle}</div> : null}
+                </div>
+            )}
             centered
             size="lg"
             className={classes.modal}
@@ -168,7 +176,7 @@ export const ShareModal = ({
                         {t`QR Code`}
                     </Tabs.Tab>
                     <Tabs.Tab value="url" leftSection={<IconLink size={16}/>}>
-                        {t`Copy Link`}
+                        {t`Copy link`}
                     </Tabs.Tab>
                 </Tabs.List>
 
