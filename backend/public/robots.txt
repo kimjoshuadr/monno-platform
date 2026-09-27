@@ -1,5 +1,10 @@
-# This app is the organizer and ticketing surface. The public, canonical website
-# is https://monno.io (its own robots.txt and sitemap live there), so nothing on
-# this domain should be indexed.
+# This app is the organizer and ticketing surface. The canonical, indexable home
+# for events and organizers is the website (its own robots.txt and sitemap live
+# there); every page here is `noindex` with a canonical pointing at the website.
+#
+# Crawlers are allowed to fetch the public event and organizer routes so a shared
+# link unfurls into a card, and are kept out of everything else.
 User-agent: *
+Allow: /event/
+Allow: /events/
 Disallow: /

@@ -28,10 +28,15 @@ const jsonLdTypes = (page: Page) =>
  * Open Graph endpoints — including the edge cases (unknown slugs, unknown images).
  */
 test.describe('technical SEO', () => {
-  test('staging: robots.txt disallows everything and the sitemap is empty', async ({ request }) => {
+  test('staging: pages are noindex and the sitemap is empty, but crawlers may fetch for previews', async ({ request }) => {
     const robots = await request.get(`${MONNO_URL}/robots.txt`);
     expect(robots.ok()).toBeTruthy();
-    expect((await robots.text()).replace(/\s+/g, ' ')).toContain('Disallow: /');
+    const body = (await robots.text()).replace(/\s+/g, ' ');
+    // Staging is not walled off: the link unfurlers that honour robots.txt have to
+    // be able to fetch a shared page. The `noindex` meta on every page is what
+    // keeps search engines from listing it.
+    expect(body).toContain('Allow: /');
+    expect(body).not.toMatch(/Disallow: \/(\s|$)/);
 
     const sitemap = await request.get(`${MONNO_URL}/sitemap.xml`);
     expect(sitemap.ok()).toBeTruthy();
@@ -115,9 +120,11 @@ test.describe('technical SEO', () => {
     expect(organizerHtml).toMatch(/<meta[^>]+name="robots"[^>]+content="noindex[^"]*"/);
     expect(organizerHtml).toMatch(new RegExp(`<link[^>]+rel="canonical"[^>]+href="${ORIGIN}/o/${event.organizerId}/"`));
 
-    const robots = await request.get(`${APP_URL}/robots.txt`);
-    expect(robots.ok()).toBeTruthy();
-    expect((await robots.text()).replace(/\s+/g, ' ')).toContain('Disallow: /');
+    const robots = (await (await request.get(`${APP_URL}/robots.txt`)).text()).replace(/\s+/g, ' ');
+    expect(robots).toContain('Disallow: /');
+    // The public routes stay fetchable so a shared link unfurls into a card.
+    expect(robots).toContain('Allow: /event/');
+    expect(robots).toContain('Allow: /events/');
   });
 
   test('the Open Graph endpoints return PNGs, and 404 for unknown subjects', async ({ request, publicApi }) => {
