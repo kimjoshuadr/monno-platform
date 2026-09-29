@@ -32,7 +32,8 @@
         "lng": 121.0402,
         "runtime": "Central Park, Filinvest Alabang, Muntinlupa City"
       },
-      "banner": "irunph-agri-run-2026.jpg",
+      "banner": "irunph-agri-run-2026-banner.jpg",
+      "image": "irunph-agri-run-2026-logo.jpg",
       "tagline": "Following the success of the iRunPH South Run in partnership with Nustar, we continue our mission of transforming every",
       "description": [
         "Following the success of the iRunPH South Run in partnership with Nustar, we continue our mission of transforming every stride into something that truly matters with the iRunPH Agri Run 2026.",
@@ -144,7 +145,8 @@
         "lng": 121.0402,
         "runtime": "Central Park, Filinvest City"
       },
-      "banner": "irunph-pasko-run-2.jpg",
+      "banner": "irunph-pasko-run-2-banner.webp",
+      "image": "irunph-pasko-run-2-logo.webp",
       "tagline": "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions."
@@ -260,7 +262,8 @@
         "lng": 120.9915,
         "runtime": "Parqal, Parañaque"
       },
-      "banner": "irunph-pasko-run-2025.jpg",
+      "banner": "irunph-pasko-run-2025-banner.jpg",
+      "image": "irunph-pasko-run-2025-logo.jpg",
       "tagline": "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions."
@@ -305,7 +308,7 @@
       "theme": {
         "accent": "#ed2123",
         "background": "#082117",
-        "mode": "light"
+        "mode": "dark"
       },
       "blocks": [
         {
@@ -384,7 +387,8 @@
         "lng": 121.0395,
         "runtime": "Filinvest, Alabang, Muntinlupa City"
       },
-      "banner": "irunph-sharp-run-2026.jpg",
+      "banner": "irunph-sharp-run-2026-banner.jpg",
+      "image": "irunph-sharp-run-2026-logo.jpg",
       "tagline": "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions."
@@ -421,7 +425,7 @@
       "theme": {
         "accent": "#5589fd",
         "background": "#b70003",
-        "mode": "light"
+        "mode": "dark"
       },
       "blocks": [
         {
@@ -496,7 +500,8 @@
         "lng": 121.0402,
         "runtime": "Central Park, Filinvest Alabang, Muntinlupa City"
       },
-      "banner": "irunph-south-run.jpg",
+      "banner": "irunph-south-run-banner.jpg",
+      "image": "irunph-south-run-logo.jpg",
       "tagline": "IRUNPH South Run — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH South Run — an iRunPH race by TV8 Media Productions."
@@ -633,7 +638,8 @@
         "lng": 121.0685,
         "runtime": "UP Diliman Academic Oval"
       },
-      "banner": "irunph-sub60-challenge-2026.jpg",
+      "banner": "irunph-sub60-challenge-2026-banner.jpg",
+      "image": "irunph-sub60-challenge-2026-logo.jpg",
       "tagline": "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions."
@@ -745,7 +751,8 @@
         "lng": 121.0685,
         "runtime": "UP Diliman Academic Oval"
       },
-      "banner": "irunph2025-leg-2.jpg",
+      "banner": "irunph2025-leg-2-banner.jpg",
+      "image": "irunph2025-leg-2-logo.jpg",
       "tagline": "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions.",
       "description": [
         "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions."
@@ -790,7 +797,7 @@
       "theme": {
         "accent": "#19232c",
         "background": "#383838",
-        "mode": "light"
+        "mode": "dark"
       },
       "blocks": [
         {
@@ -869,7 +876,8 @@
         "lng": 121.0685,
         "runtime": "UP Diliman Academic Oval"
       },
-      "banner": "irunph2025.jpg",
+      "banner": "irunph2025-banner.jpg",
+      "image": "irunph2025-logo.jpg",
       "tagline": "Join the Movement: I RUN PH 2025 - Run for a Resilient Philippines",
       "description": [
         "Join the Movement: I RUN PH 2025 - Run for a Resilient Philippines",
@@ -973,7 +981,8 @@
         "lng": 121.0685,
         "runtime": "UP Diliman Campus, Quezon City"
       },
-      "banner": "space-run-2026.jpg",
+      "banner": "space-run-2026-banner.jpg",
+      "image": "space-run-2026-logo.jpg",
       "tagline": "Space Run 2026 — an iRunPH race by TV8 Media Productions.",
       "description": [
         "Space Run 2026 — an iRunPH race by TV8 Media Productions."
@@ -1010,7 +1019,7 @@
       "theme": {
         "accent": "#007eac",
         "background": "#1a1436",
-        "mode": "light"
+        "mode": "dark"
       },
       "blocks": [
         {

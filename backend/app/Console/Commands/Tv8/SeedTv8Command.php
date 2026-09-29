@@ -173,7 +173,7 @@ class SeedTv8Command extends Command
             'slug' => $org['slug'],
         ]);
 
-        // One logo, no duplicates on re-run.
+        // One logo (and cover, when we have their banner), no duplicates on re-run.
         $db->table('images')->where('entity_id', $organizerId)->delete();
         $createImage->handle(new CreateImageDTO(
             userId: $user->id,
@@ -182,6 +182,20 @@ class SeedTv8Command extends Command
             imageType: ImageType::ORGANIZER_LOGO,
             entityId: $organizerId,
         ));
+
+        if (! empty($org['banner'])) {
+            $coverPath = $this->imagesPath().'/'.$org['banner'];
+
+            if (is_file($coverPath)) {
+                $createImage->handle(new CreateImageDTO(
+                    userId: $user->id,
+                    accountId: $accountId,
+                    image: new UploadedFile($coverPath, basename($coverPath), mime_content_type($coverPath) ?: 'image/jpeg', null, true),
+                    imageType: ImageType::ORGANIZER_COVER,
+                    entityId: $organizerId,
+                ));
+            }
+        }
 
         $this->line("  organizer <info>{$org['name']}</info> (id {$organizerId})");
 
@@ -318,7 +332,7 @@ class SeedTv8Command extends Command
             $categoryId = $ctx->renameDefaultCategory($eventId, 'Race Categories', 'One ticket per runner. Pick your distance.');
             $productIds = $this->seedProducts($ctx, $db, $definition, $accountId, $eventId, $categoryId, $start);
             $this->seedQuestions($ctx, $db, $definition, $eventId, $productIds);
-            $this->uploadBanner($createEventImage, $definition, $accountId, $eventId);
+            $this->uploadEventImages($createEventImage, $definition, $accountId, $eventId);
 
             // Offline payment is the only method available on this deployment, so
             // the rail has a way to complete an order. The theme and the section
@@ -418,13 +432,25 @@ class SeedTv8Command extends Command
             $discounted = $product['discounted'] !== null ? (float) $product['discounted'] : null;
             $capacity = (int) $product['capacity'];
 
-            $prices = new Collection();
-            if ($discounted !== null && $regular !== null && $discounted < $regular) {
-                $prices->push(new ProductPriceDTO(price: $discounted, label: 'Early bird', initial_quantity_available: $capacity));
-                $prices->push(new ProductPriceDTO(price: $regular, label: 'Standard', initial_quantity_available: $capacity));
-            } else {
-                $prices->push(new ProductPriceDTO(price: $discounted ?? $regular ?? 0.0, initial_quantity_available: $capacity));
+            // One ticket per race category, priced at the live (early-bird) amount
+            // and labelled as such — not two rows for the same race. The standard
+            // price is stated in the ticket's own copy.
+            $onSale = $discounted !== null && $regular !== null && $discounted < $regular;
+            $price = $discounted ?? $regular ?? 0.0;
+
+            $description = $product['description'];
+            if ($onSale) {
+                $description = trim(($description ? $description.' ' : '')
+                    .'On sale — regular '.$this->money($regular).' afterwards.');
             }
+
+            $prices = new Collection([
+                new ProductPriceDTO(
+                    price: $price,
+                    label: $onSale ? 'On sale' : null,
+                    initial_quantity_available: $capacity,
+                ),
+            ]);
 
             $ids[] = $ctx->createProduct->handle(new UpsertProductDTO(
                 account_id: $accountId,
@@ -438,11 +464,16 @@ class SeedTv8Command extends Command
                 min_per_order: 1,
                 max_per_order: 10,
                 show_quantity_remaining: true,
-                description: $product['description'],
+                description: $description,
             ))->getId();
         }
 
         return $ids;
+    }
+
+    private function money(float $amount): string
+    {
+        return 'PHP '.number_format($amount, 0);
     }
 
     /**
@@ -515,27 +546,32 @@ class SeedTv8Command extends Command
         }
     }
 
-    private function uploadBanner(CreateEventImageHandler $createEventImage, array $definition, int $accountId, int $eventId): void
+    private function uploadEventImages(CreateEventImageHandler $createEventImage, array $definition, int $accountId, int $eventId): void
     {
-        if (empty($definition['banner'])) {
-            return;
-        }
+        // The square logo is the event's cover (the site shows a 1:1 plate); the
+        // wide banner is kept as the page cover.
+        $map = [
+            'image' => ImageType::EVENT_IMAGE,
+            'banner' => ImageType::EVENT_COVER,
+        ];
 
-        $path = $this->imagesPath().'/'.$definition['banner'];
+        foreach ($map as $field => $type) {
+            if (empty($definition[$field])) {
+                continue;
+            }
 
-        if (! is_file($path)) {
-            $this->warn('    missing banner '.$path);
+            $path = $this->imagesPath().'/'.$definition[$field];
 
-            return;
-        }
+            if (! is_file($path)) {
+                $this->warn('    missing image '.$path);
 
-        $mime = mime_content_type($path) ?: 'image/jpeg';
+                continue;
+            }
 
-        foreach ([ImageType::EVENT_IMAGE, ImageType::EVENT_COVER] as $type) {
             $createEventImage->handle(new CreateEventImageDTO(
                 eventId: $eventId,
                 accountId: $accountId,
-                image: new UploadedFile($path, basename($path), $mime, null, true),
+                image: new UploadedFile($path, basename($path), mime_content_type($path) ?: 'image/jpeg', null, true),
                 imageType: $type,
             ));
         }
