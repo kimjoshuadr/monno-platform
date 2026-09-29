@@ -123,7 +123,7 @@ class PublicEventCardResource extends BaseResource
                         $lowest = $lowest === null ? $value : min($lowest, $value);
                     }
                     $sold += $price->getQuantitySold();
-                    $remaining += $price->getQuantityAvailable() ?? 0;
+                    $remaining += $this->remainingFor($price);
                     if ($product->getShowQuantityRemaining()) {
                         $showRemaining = true;
                     }
@@ -132,5 +132,25 @@ class PublicEventCardResource extends BaseResource
         }
 
         return [(float) ($lowest ?? 0), $sold, $remaining, $showRemaining];
+    }
+
+    /**
+     * A price's remaining stock. `quantity_available` is only written when the
+     * event uses capacity assignments; normal products leave it null and derive
+     * it from `initial_quantity_available − quantity_sold`, exactly as the full
+     * event payload does. Reading the raw column made a card whose only sale left
+     * 4,999 seats free advertise "Sold out".
+     */
+    private function remainingFor(object $price): int
+    {
+        $available = $price->getQuantityAvailable();
+
+        if ($available !== null) {
+            return max(0, (int) $available);
+        }
+
+        $initial = $price->getInitialQuantityAvailable();
+
+        return $initial === null ? 0 : max(0, (int) $initial - (int) $price->getQuantitySold());
     }
 }
