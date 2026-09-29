@@ -168,7 +168,15 @@ class SeedTv8Command extends Command
             $organizerId = $organizer->getId();
         }
 
+        // Re-assert the organizer's identity on every run, so a rename or a new
+        // logo lands without a fresh database.
         $db->table('organizers')->where('id', $organizerId)->update([
+            'name' => $org['name'],
+            'email' => $email,
+            'website' => $org['social']['site'] ?? null,
+            'description' => $org['bio'],
+            'timezone' => $org['timezone'],
+            'currency' => $org['currency'],
             'status' => 'LIVE',
             'slug' => $org['slug'],
         ]);

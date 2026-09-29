@@ -1,14 +1,15 @@
 {
   "organizer": {
     "email": "irunph2025@gmail.com",
-    "name": "TV8 Media Productions",
+    "name": "I RUN PH",
     "slug": "irunph",
     "city": "Manila",
     "country": "PH",
     "timezone": "Asia/Manila",
     "currency": "PHP",
-    "bio": "Organisers of the iRunPH race series — 3K, 5K, 10K and 16K runs across Metro Manila, raising funds for partner communities.",
-    "logo": "logo.jpg",
+    "bio": "Race organisers behind the I RUN PH series — 3K, 5K, 10K and 16K runs across Metro Manila, with every entry supporting a partner community.",
+    "logo": "organizer-logo.jpg",
+    "banner": "organizer-banner.jpg",
     "social": {
       "facebook": "https://www.facebook.com/IRUNPH/",
       "instagram": "https://www.instagram.com/irunph",
@@ -147,9 +148,9 @@
       },
       "banner": "irunph-pasko-run-2-banner.webp",
       "image": "irunph-pasko-run-2-logo.webp",
-      "tagline": "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH Pasko Run 2 — an I RUN PH race.",
       "description": [
-        "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions."
+        "IRUNPH Pasko Run 2 — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -264,9 +265,9 @@
       },
       "banner": "irunph-pasko-run-2025-banner.jpg",
       "image": "irunph-pasko-run-2025-logo.jpg",
-      "tagline": "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH Pasko Run — an I RUN PH race.",
       "description": [
-        "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions."
+        "IRUNPH Pasko Run — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -389,9 +390,9 @@
       },
       "banner": "irunph-sharp-run-2026-banner.jpg",
       "image": "irunph-sharp-run-2026-logo.jpg",
-      "tagline": "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH Sharp Run — an I RUN PH race.",
       "description": [
-        "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions."
+        "IRUNPH Sharp Run — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -502,9 +503,9 @@
       },
       "banner": "irunph-south-run-banner.jpg",
       "image": "irunph-south-run-logo.jpg",
-      "tagline": "IRUNPH South Run — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH South Run — an I RUN PH race.",
       "description": [
-        "IRUNPH South Run — an iRunPH race by TV8 Media Productions."
+        "IRUNPH South Run — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -640,9 +641,9 @@
       },
       "banner": "irunph-sub60-challenge-2026-banner.jpg",
       "image": "irunph-sub60-challenge-2026-logo.jpg",
-      "tagline": "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH Sub60 10K Edition — an I RUN PH race.",
       "description": [
-        "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions."
+        "IRUNPH Sub60 10K Edition — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -753,9 +754,9 @@
       },
       "banner": "irunph2025-leg-2-banner.jpg",
       "image": "irunph2025-leg-2-logo.jpg",
-      "tagline": "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions.",
+      "tagline": "IRUNPH LEG 2 — an I RUN PH race.",
       "description": [
-        "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions."
+        "IRUNPH LEG 2 — an I RUN PH race."
       ],
       "categories": [
         "3K",
@@ -983,9 +984,9 @@
       },
       "banner": "space-run-2026-banner.jpg",
       "image": "space-run-2026-logo.jpg",
-      "tagline": "Space Run 2026 — an iRunPH race by TV8 Media Productions.",
+      "tagline": "Space Run 2026 — an I RUN PH race.",
       "description": [
-        "Space Run 2026 — an iRunPH race by TV8 Media Productions."
+        "Space Run 2026 — an I RUN PH race."
       ],
       "categories": [
         "3K",
