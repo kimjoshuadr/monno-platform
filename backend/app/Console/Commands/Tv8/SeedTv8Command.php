@@ -418,23 +418,13 @@ class SeedTv8Command extends Command
         $ids = [];
 
         foreach ($definition['products'] as $product) {
-            $existingId = (int) $db->table('products')
-                ->where('event_id', $eventId)
-                ->where('title', $product['title'])
-                ->value('id');
-
-            if ($existingId !== 0) {
-                $ids[] = $existingId;
-                continue;
-            }
-
             $regular = $product['regular'] !== null ? (float) $product['regular'] : null;
             $discounted = $product['discounted'] !== null ? (float) $product['discounted'] : null;
             $capacity = (int) $product['capacity'];
 
-            // One ticket per race category, priced at the live (early-bird) amount
-            // and labelled as such — not two rows for the same race. The standard
-            // price is stated in the ticket's own copy.
+            // One ticket per race category, priced at the live amount and labelled
+            // as on sale — not two rows for the same race. The standard price is
+            // stated in the ticket's own copy.
             $onSale = $discounted !== null && $regular !== null && $discounted < $regular;
             $price = $discounted ?? $regular ?? 0.0;
 
@@ -442,6 +432,25 @@ class SeedTv8Command extends Command
             if ($onSale) {
                 $description = trim(($description ? $description.' ' : '')
                     .'On sale — regular '.$this->money($regular).' afterwards.');
+            }
+
+            $existingId = (int) $db->table('products')
+                ->where('event_id', $eventId)
+                ->where('title', $product['title'])
+                ->value('id');
+
+            if ($existingId !== 0) {
+                // A product an order points at cannot be replaced, so its tiers are
+                // collapsed to the single live price in place.
+                $this->collapseProductPrices($db, $existingId, $price, $onSale ? 'On sale' : null);
+                $db->table('products')->where('id', $existingId)->update([
+                    'description' => $description,
+                    'sale_end_date' => $start->toDateTimeString(),
+                    'updated_at' => now(),
+                ]);
+                $ids[] = $existingId;
+
+                continue;
             }
 
             $prices = new Collection([
@@ -469,6 +478,33 @@ class SeedTv8Command extends Command
         }
 
         return $ids;
+    }
+
+    /** Reduce a product's tiers to the one live price, keeping any tier an order paid for. */
+    private function collapseProductPrices(DatabaseManager $db, int $productId, float $price, ?string $label): void
+    {
+        $priceIds = $db->table('product_prices')->where('product_id', $productId)->orderBy('id')->pluck('id')->all();
+
+        if ($priceIds === []) {
+            return;
+        }
+
+        $referenced = $db->table('order_items')->whereIn('product_price_id', $priceIds)->value('product_price_id');
+        $keep = (int) ($referenced ?? $priceIds[0]);
+
+        foreach ($priceIds as $id) {
+            if ($id === $keep || $db->table('order_items')->where('product_price_id', $id)->exists()) {
+                continue;
+            }
+
+            $db->table('product_prices')->where('id', $id)->delete();
+        }
+
+        $db->table('product_prices')->where('id', $keep)->update([
+            'price' => $price,
+            'label' => $label,
+            'updated_at' => now(),
+        ]);
     }
 
     private function money(float $amount): string
