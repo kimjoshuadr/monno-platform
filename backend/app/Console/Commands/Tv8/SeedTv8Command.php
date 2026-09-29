@@ -321,10 +321,14 @@ class SeedTv8Command extends Command
             $this->uploadBanner($createEventImage, $definition, $accountId, $eventId);
 
             // Offline payment is the only method available on this deployment, so
-            // the rail has a way to complete an order.
+            // the rail has a way to complete an order. The theme and the section
+            // list are theirs — the page background, the accent, the poster
+            // gallery and the race-kit advisories.
             $ctx->applySettings($accountId, $eventId, [
                 'payment_providers' => ['OFFLINE'],
                 'offline_payment_instructions' => 'Pay via bank transfer or GCash, then keep your confirmation email — it carries the QR code we scan at the race village.',
+                'homepage_theme_settings' => $definition['theme'],
+                'homepage_blocks' => $definition['blocks'],
             ]);
 
             $seeded[] = ['id' => $eventId, 'title' => $definition['title']];

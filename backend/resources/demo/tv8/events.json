@@ -39,9 +39,7 @@
         "This is more than a race—it is a movement that brings the spotlight to our local farmers. Through this event, we directly support farming communities by purchasing their fresh produce and sharing it with our finishers, turning every medal moment into a meaningful act of giving back.",
         "Agri Run is also a call to awareness—honoring the hardworking yet often unseen hands that sustain our tables every day. With every kilometer, we amplify their stories, uplift their livelihoods, and remind ourselves that running has the power to create real impact beyond the finish line.",
         "Run that matters. Run with gratitude.",
-        "Run for our farmers. 🌾🏃&zwj;🏃&zwj;",
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be announced via the IRUNPH Facebook page.",
-        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via the IRUNPH Facebook page."
+        "Run for our farmers. 🌾🏃&zwj;🏃&zwj;"
       ],
       "categories": [
         "3K",
@@ -79,7 +77,56 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box · Assembly time: 3:30am · Gun start: 4:00am · Cut-off: 7:00am"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#205c2f",
+        "background": "#9ddaee",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-agri-run-2026-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-agri-run-2026-1781840640131-IRUNPH-AGRI-RUN-POSTER-V4.jpg",
+                "alt": "IRUNPH Agri Run 2026 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-agri-run-2026-1781840641995-IRUNPH-AGRI-RUN-POSTER-V3.jpg",
+                "alt": "IRUNPH Agri Run 2026 poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-agri-run-2026-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be announced via the IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-agri-run-2026-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT DELIVERY SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via the IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-agri-run-2026-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph-pasko-run-2",
@@ -98,11 +145,9 @@
         "runtime": "Central Park, Filinvest City"
       },
       "banner": "irunph-pasko-run-2.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on November 26 to 27, 2026, claiming venue will be announced on I R",
+      "tagline": "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on November 26 to 27, 2026, claiming venue will be announced on I RUN PH Facebook page.",
-        "Race Day Pickup: December 13, 2026, 2:00AM",
-        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via I RUN PH Facebook page."
+        "IRUNPH Pasko Run 2 — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -132,7 +177,72 @@
           "description": "Inclusions · Full Subli Singlet · Race Bib with RFID · Finisher Medal · Finisher's Shirt · Christmas Loot Box · Christmas Ham · Raffle Ticket · Novellino Wine · (for early birds) · Assembly Time: 3:00AM · Gun Start: 4:00AM · Cut-off: 6:30AM (2.5 hours)"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#0e821e",
+        "background": "#0db029",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-pasko-run-2-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234829441-poster.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234831324-registration.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234832374-category.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234833469-medal.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234834987-finisher-shirt.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2-1788234836480-race-bib.webp",
+                "alt": "IRUNPH Pasko Run 2 poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be on November 26 to 27, 2026, claiming venue will be announced on I RUN PH Facebook page.</li><li>Race Day Pickup: December 13, 2026, 2:00AM</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT DELIVERY SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via I RUN PH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph-pasko-run-2025",
@@ -151,10 +261,9 @@
         "runtime": "Parqal, Parañaque"
       },
       "banner": "irunph-pasko-run-2025.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming schedule will be announced via IRUNPH Facebook page.",
+      "tagline": "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming schedule will be announced via IRUNPH Facebook page.",
-        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+        "IRUNPH Pasko Run — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -192,7 +301,72 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Christmas Basket · Special Loot Bag · Assembly Time: 3:00 AM · Gun Start: 3:30 AM · Cut-off: 6:30 AM / 3hrs"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#ed2123",
+        "background": "#082117",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-pasko-run-2025-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761530752831-IRUN-PASKO-POSTER-V3.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761207530323-IRUN-PASKO-RACE-ENTITLEMENTS.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761207532057-IRUN-PASKO-SINGLET.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761207533846-IRUN-PASKO-FINISHER-SHIRT.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761207535059-IRUN-PASKO-MEDALS.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-pasko-run-2025-1761207536464-IRUN-PASKO-RACE-BIB.jpg",
+                "alt": "IRUNPH Pasko Run poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2025-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul><li>Race kit claiming schedule will be announced via IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2025-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-pasko-run-2025-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph-sharp-run-2026",
@@ -211,11 +385,9 @@
         "runtime": "Filinvest, Alabang, Muntinlupa City"
       },
       "banner": "irunph-sharp-run-2026.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on April 16–17, 2026.",
+      "tagline": "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on April 16–17, 2026. The claiming time will be announced on the IRUNPH Facebook page.",
-        "Race Day Pickup: April 19, 2026, 2:00AM",
-        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+        "IRUNPH Sharp Run — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -245,7 +417,68 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Finisher's Shirt · Raffle Ticket · Loot Bag · Assembly time: 4:00am · Gun start: 4:30am · Cut-off: 7:00am"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#5589fd",
+        "background": "#b70003",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-sharp-run-2026-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sharp-run-2026-1773277330642-IRUN-SHARP-POSTER-V2.jpg",
+                "alt": "IRUNPH Sharp Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sharp-run-2026-1773223987633-IRUN-SHARP-SINGLET.jpg",
+                "alt": "IRUNPH Sharp Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sharp-run-2026-1773223988861-IRUN-SHARP-SHIRT.jpg",
+                "alt": "IRUNPH Sharp Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sharp-run-2026-1773223990001-IRUN-SHARP-MEDAL.jpg",
+                "alt": "IRUNPH Sharp Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sharp-run-2026-1773223991200-IRUN-SHARP-RACEIBI.jpg",
+                "alt": "IRUNPH Sharp Run poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-sharp-run-2026-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be on April 16–17, 2026. The claiming time will be announced on the IRUNPH Facebook page.</li><li><p>Race Day Pickup: April 19, 2026, 2:00AM</p></li></ul>"
+          }
+        },
+        {
+          "id": "irunph-sharp-run-2026-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT DELIVERY SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-sharp-run-2026-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph-south-run",
@@ -264,11 +497,9 @@
         "runtime": "Central Park, Filinvest Alabang, Muntinlupa City"
       },
       "banner": "irunph-south-run.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from June 4 to 5, 2026, at Study Room, Festival Mall.",
+      "tagline": "IRUNPH South Run — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from June 4 to 5, 2026, at Study Room, Festival Mall.",
-        "Race Day Pickup: June 7, 2026, 2:00AM",
-        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via the IRUNPH Facebook page ."
+        "IRUNPH South Run — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -319,7 +550,72 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#1d4a6d",
+        "background": "#f2f1f6",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-south-run-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777018695195-IRUN-SOUTH-RUN-POSTER.jpg",
+                "alt": "IRUNPH South Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777018697032-IRUN-SOUTH-RUN-REGISTRATION-V2.jpg",
+                "alt": "IRUNPH South Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777017956123-IRUN-SOUTH-RUN-SINGLET.jpg",
+                "alt": "IRUNPH South Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777017957225-IRUN-SOUTH-RUN-MEDAL.jpg",
+                "alt": "IRUNPH South Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777017958549-IRUN-SOUTH-RUN-FINISHERSHIRT.jpg",
+                "alt": "IRUNPH South Run poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-south-run-1777017959663-IRUN-SOUTH-RUN-RACEBIB.jpg",
+                "alt": "IRUNPH South Run poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-south-run-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be from June 4 to 5, 2026, at Study Room, Festival Mall.</li><li><p>Race Day Pickup: June 7, 2026, 2:00AM</p></li></ul>"
+          }
+        },
+        {
+          "id": "irunph-south-run-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT DELIVERY SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via the <a href='https://www.facebook.com/IRUNPH/' target='_blank'>IRUNPH Facebook page</a>.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-south-run-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph-sub60-challenge-2026",
@@ -338,11 +634,9 @@
         "runtime": "UP Diliman Academic Oval"
       },
       "banner": "irunph-sub60-challenge-2026.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be at UP Diliman in front of Palma Hall on March 25–27, 2026, from 7:0",
+      "tagline": "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be at UP Diliman in front of Palma Hall on March 25–27, 2026, from 7:00 AM to 10:00 AM or 4:00 PM to 8:00 PM (for registrations up to March 15 only).",
-        "For Race Day Pickup: March 29, 2026",
-        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+        "IRUNPH Sub60 10K Edition — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -372,7 +666,68 @@
           "description": "Inclusions · Full Subli Singlet · Finisher's Medal · Finisher's Shirt · Race Bib with RFID · Loot Bag · Sub1 Finisher Trophy"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#f19d20",
+        "background": "#e6e6e6",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph-sub60-challenge-2026-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sub1-challenge-2026-1769496722946-IRUNPH-SUB-1-POSTER-V3.jpg",
+                "alt": "IRUNPH Sub60 10K Edition poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sub1-challenge-2026-1769496725206-IRUNPH-SUB-1-SINGLET.jpg",
+                "alt": "IRUNPH Sub60 10K Edition poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sub1-challenge-2026-1769496726820-IRUNPH-SUB-1-FINISHER-SHIRT.jpg",
+                "alt": "IRUNPH Sub60 10K Edition poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sub1-challenge-2026-1769496727873-IRUNPH-SUB-1-MEDAL.jpg",
+                "alt": "IRUNPH Sub60 10K Edition poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph-sub1-challenge-2026-1769496729232-IRUNPH-SUB-1-BIBS.jpg",
+                "alt": "IRUNPH Sub60 10K Edition poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph-sub60-challenge-2026-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be at UP Diliman in front of Palma Hall on March 25&ndash;27, 2026, from 7:00 AM to 10:00 AM or 4:00 PM to 8:00 PM (for registrations up to March 15 only).</li><li><p>For Race Day Pickup: March 29, 2026</p></li></ul>"
+          }
+        },
+        {
+          "id": "irunph-sub60-challenge-2026-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph-sub60-challenge-2026-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph2025-leg-2",
@@ -391,10 +746,9 @@
         "runtime": "UP Diliman Academic Oval"
       },
       "banner": "irunph2025-leg-2.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race Day Pickup: November 9, 2025, 2:00AM",
+      "tagline": "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race Day Pickup: November 9, 2025, 2:00AM",
-        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+        "IRUNPH LEG 2 — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -432,7 +786,72 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly Time: 3:00 AM · Gun Start: 3:30 AM · Cut-off: 6:30 AM / 3hrs"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#19232c",
+        "background": "#383838",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph2025-leg-2-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756805681877-IRUNPH_LEG_2_POSTER_1_v2.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756805683116-IRUNPH_LEG_2_POSTER_2_v2.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756436430663-IRUN-LEG2-RATES.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756360537483-IRUN-LEG2-SINGLET.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756360538788-IRUN-LEG2-FINISHER-SHIRT.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-leg-2-1756360539767-IRUN-LEG2-FINISHER-MEDAL.jpg",
+                "alt": "IRUNPH LEG 2 poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph2025-leg-2-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li><p>Race Day Pickup: November 9, 2025, 2:00AM</p></li></ul>"
+          }
+        },
+        {
+          "id": "irunph2025-leg-2-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><p>Race kit delivery schedule will be announced via IRUNPH Facebook page.</p>"
+          }
+        },
+        {
+          "id": "irunph2025-leg-2-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "irunph2025",
@@ -457,12 +876,7 @@
         "This July 13, 2025, iHeartPH proudly marks a decade of impact with I RUN PH: a 10th season celebration that brings together passion, purpose, and the power of community.",
         "Whether you're a seasoned athlete or taking your first stride, this fun run welcomes everyone who believes in the strength of movement, the joy of shared stories, and the spirit of resilience.",
         "Proceeds from the event will go to Habitat for Humanity, helping build safe and sustainable homes for Filipino families in need.",
-        "Run with us, for health, for hope, and for a stronger Philippines - one step, and one home, at a time.",
-        "RACE KIT CLAIMING SCHEDULE",
-        "Race kit claiming schedule to be announced.",
-        "Pickup on Race Day location is to be announce on Facebook page.",
-        "FREE SHIPPING until June 6, 2025.",
-        "RACE KIT CLAIMING SCHEDULE Race kit delivery will start on June 30, 2025 until July 11, 2025."
+        "Run with us, for health, for hope, and for a stronger Philippines - one step, and one home, at a time."
       ],
       "categories": [
         "10K",
@@ -492,7 +906,56 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Assembly Time: 5:30 AM · Gun Start: 6:00 AM · Cut-off: 7:00 AM / 1.5 HRS"
         }
       ],
-      "waiver": "IMPORTANT EVENT GUIDELINES: The event will proceed rain or shine."
+      "waiver": "IMPORTANT EVENT GUIDELINES: The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#2c308b",
+        "background": "#939393",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "irunph2025-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-1749801340291-IRUN-PH-POSTER-v3.jpg",
+                "alt": "IRUNPH poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/irunph2025-1749801822196-IRUN-PH-SIZECHART-v2.jpg",
+                "alt": "IRUNPH poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "irunph2025-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3>\n<ul style=\"list-style: disc outside none; margin-left: 15px;\">\n<li>Race kit claiming schedule to be announced.</li>\n<li>Pickup on Race Day location is to be announce on Facebook page.</li>\n</ul>"
+          }
+        },
+        {
+          "id": "irunph2025-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<p style='font-size: 1.1rem; font-weight: 700;'>FREE SHIPPING until June 6, 2025.</p><hr><h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery will start on June 30, 2025 until July 11, 2025.</li></ul>"
+          }
+        },
+        {
+          "id": "irunph2025-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     },
     {
       "key": "space-run-2026",
@@ -511,13 +974,9 @@
         "runtime": "UP Diliman Campus, Quezon City"
       },
       "banner": "space-run-2026.jpg",
-      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from November 27 to 28, 2026 at UP Diliman.",
+      "tagline": "Space Run 2026 — an iRunPH race by TV8 Media Productions.",
       "description": [
-        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from November 27 to 28, 2026 at UP Diliman.",
-        "Race Day Pick up: December 6. Must be claimed at least 30 minutes before your gun start",
-        "⏰ 16K Gun Start (Tentative): 2:00 AM",
-        "Final race schedules will be posted on our Facebook page—please stay tuned for updates.",
-        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+        "Space Run 2026 — an iRunPH race by TV8 Media Productions."
       ],
       "categories": [
         "3K",
@@ -547,7 +1006,64 @@
           "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box"
         }
       ],
-      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine.",
+      "theme": {
+        "accent": "#007eac",
+        "background": "#1a1436",
+        "mode": "light"
+      },
+      "blocks": [
+        {
+          "id": "space-run-2026-gallery",
+          "type": "GALLERY",
+          "visible": true,
+          "settings": {
+            "images": [
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/space-run-2026-1784872688686-SPACE-RUN-2026-POSTER-V2.jpg",
+                "alt": "Space Run 2026 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/space-run-2026-1784872693927-SPACE-RUN-2026-SINGLET-V2.jpg",
+                "alt": "Space Run 2026 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/space-run-2026-1784872696379-SPACE-RUN-2026-FINISHER-SHIRT-V2.jpg",
+                "alt": "Space Run 2026 poster"
+              },
+              {
+                "url": "https://de3ff85059905be27731-aaefc4ed03b466f4ef3fd50b219a58e1.ssl.cf4.rackcdn.com/d87dc/space-run-2026-1784872697614-SPACE-RUN-2026-RACEBIB-V2.jpg",
+                "alt": "Space Run 2026 poster"
+              }
+            ]
+          }
+        },
+        {
+          "id": "space-run-2026-pickupAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT CLAIMING SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit claiming will be from November 27 to 28, 2026 at UP Diliman.</li><li><p>Race Day Pick up: December 6. Must be claimed at least 30 minutes before your gun start</p></li><li><p>⏰ 16K Gun Start (Tentative): 2:00 AM</p></li><li><p>Final race schedules will be posted on our Facebook page&mdash;please stay tuned for updates.</p></li></ul>"
+          }
+        },
+        {
+          "id": "space-run-2026-courierAdvisory",
+          "type": "TEXT",
+          "visible": true,
+          "settings": {
+            "body": "<h3>RACE KIT DELIVERY SCHEDULE</h3><ul style=\"list-style: disc outside none; margin-left: 15px;\"><li>Race kit delivery schedule will be announced via IRUNPH Facebook page.</li></ul>"
+          }
+        },
+        {
+          "id": "space-run-2026-facebook",
+          "type": "CTA",
+          "visible": true,
+          "settings": {
+            "label": "Follow iRunPH on Facebook",
+            "url": "https://www.facebook.com/IRUNPH/"
+          }
+        }
+      ]
     }
   ]
 }
