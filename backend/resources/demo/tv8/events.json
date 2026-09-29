@@ -1,0 +1,553 @@
+{
+  "organizer": {
+    "email": "irunph2025@gmail.com",
+    "name": "TV8 Media Productions",
+    "slug": "irunph",
+    "city": "Manila",
+    "country": "PH",
+    "timezone": "Asia/Manila",
+    "currency": "PHP",
+    "bio": "Organisers of the iRunPH race series — 3K, 5K, 10K and 16K runs across Metro Manila, raising funds for partner communities.",
+    "logo": "logo.jpg",
+    "social": {
+      "facebook": "https://www.facebook.com/IRUNPH/",
+      "instagram": "https://www.instagram.com/irunph",
+      "site": "https://tv8mediaproductions.myruntime.com"
+    }
+  },
+  "events": [
+    {
+      "key": "irunph-agri-run-2026",
+      "title": "IRUNPH Agri Run 2026",
+      "start_local": "2026-08-23 03:00",
+      "duration_hours": 5,
+      "location": {
+        "name": "Central Park, Filinvest Alabang",
+        "address": "Filinvest Alabang",
+        "city": "Muntinlupa City",
+        "region": "Metro Manila",
+        "zip": "1781",
+        "country": "PH",
+        "lat": 14.4145,
+        "lng": 121.0402,
+        "runtime": "Central Park, Filinvest Alabang, Muntinlupa City"
+      },
+      "banner": "irunph-agri-run-2026.jpg",
+      "tagline": "Following the success of the iRunPH South Run in partnership with Nustar, we continue our mission of transforming every",
+      "description": [
+        "Following the success of the iRunPH South Run in partnership with Nustar, we continue our mission of transforming every stride into something that truly matters with the iRunPH Agri Run 2026.",
+        "This is more than a race—it is a movement that brings the spotlight to our local farmers. Through this event, we directly support farming communities by purchasing their fresh produce and sharing it with our finishers, turning every medal moment into a meaningful act of giving back.",
+        "Agri Run is also a call to awareness—honoring the hardworking yet often unseen hands that sustain our tables every day. With every kilometer, we amplify their stories, uplift their livelihoods, and remind ourselves that running has the power to create real impact beyond the finish line.",
+        "Run that matters. Run with gratitude.",
+        "Run for our farmers. 🌾🏃&zwj;🏃&zwj;",
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be announced via the IRUNPH Facebook page.",
+        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via the IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K",
+        "16K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1149,
+          "discounted": 999,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box · Assembly time: 6:00am · Gun start: 6:30am · Cut-off: 7:30am"
+        },
+        {
+          "title": "5K",
+          "regular": 1349,
+          "discounted": 1199,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box · Assembly time: 5:30am · Gun start: 6:00am · Cut-off: 7:30am"
+        },
+        {
+          "title": "10K",
+          "regular": 1549,
+          "discounted": 1399,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box · Assembly time: 4:30am · Gun start: 5:00am · Cut-off: 7:30am"
+        },
+        {
+          "title": "16K",
+          "regular": 1749,
+          "discounted": 1599,
+          "capacity": 800,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box · Assembly time: 3:30am · Gun start: 4:00am · Cut-off: 7:00am"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph-pasko-run-2",
+      "title": "IRUNPH Pasko Run 2",
+      "start_local": "2026-12-13 04:00",
+      "duration_hours": 5,
+      "location": {
+        "name": "Central Park, Filinvest City",
+        "address": "Filinvest City",
+        "city": "Muntinlupa City",
+        "region": "Metro Manila",
+        "zip": "1781",
+        "country": "PH",
+        "lat": 14.4145,
+        "lng": 121.0402,
+        "runtime": "Central Park, Filinvest City"
+      },
+      "banner": "irunph-pasko-run-2.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on November 26 to 27, 2026, claiming venue will be announced on I R",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on November 26 to 27, 2026, claiming venue will be announced on I RUN PH Facebook page.",
+        "Race Day Pickup: December 13, 2026, 2:00AM",
+        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via I RUN PH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1199,
+          "discounted": 1049,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Race Bib with RFID · Finisher Medal · Christmas Loot Box · Raffle Ticket · Christmas Ham · Assembly Time: 5:00AM · Gun Start: 5:30AM · Cut-off: 7:00AM (1.5 hours)"
+        },
+        {
+          "title": "5K",
+          "regular": 1399,
+          "discounted": 1249,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Race Bib with RFID · Finisher Medal · Christmas Loot Box · Raffle Ticket · Christmas Ham · Assembly Time: 4:30AM · Gun Start: 5:00AM · Cut-off: 7:00AM (2 hours)"
+        },
+        {
+          "title": "10K",
+          "regular": 1649,
+          "discounted": 1499,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Race Bib with RFID · Finisher Medal · Finisher's Shirt · Christmas Loot Box · Christmas Ham · Raffle Ticket · Novellino Wine · (for early birds) · Assembly Time: 3:00AM · Gun Start: 4:00AM · Cut-off: 6:30AM (2.5 hours)"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph-pasko-run-2025",
+      "title": "IRUNPH Pasko Run",
+      "start_local": "2025-12-07 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "Parqal",
+        "address": "Parqal, Aseana City",
+        "city": "Parañaque",
+        "region": "Metro Manila",
+        "zip": "1701",
+        "country": "PH",
+        "lat": 14.5145,
+        "lng": 120.9915,
+        "runtime": "Parqal, Parañaque"
+      },
+      "banner": "irunph-pasko-run-2025.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming schedule will be announced via IRUNPH Facebook page.",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming schedule will be announced via IRUNPH Facebook page.",
+        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K",
+        "16K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1094,
+          "discounted": 1099,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Christmas Basket · Loot Bag · Assembly Time: 5:00 AM · Gun Start: 5:30 AM · Cut-off: 7:00 AM / 1hr 30mins"
+        },
+        {
+          "title": "5K",
+          "regular": 1289,
+          "discounted": 1299,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Raffle Ticket · Christmas Basket · Loot Bag · Assembly Time: 4:30 AM · Gun Start: 5:00 AM · Cut-off: 6:30 AM / 1hr 30mins"
+        },
+        {
+          "title": "10K",
+          "regular": 1484,
+          "discounted": 1499,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Christmas Basket · Loot Bag · Assembly Time: 3:30 AM · Gun Start: 4:00 AM · Cut-off: 6:30 AM / 2hrs 30mins"
+        },
+        {
+          "title": "16K",
+          "regular": 1679,
+          "discounted": 1699,
+          "capacity": 800,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Christmas Basket · Special Loot Bag · Assembly Time: 3:00 AM · Gun Start: 3:30 AM · Cut-off: 6:30 AM / 3hrs"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph-sharp-run-2026",
+      "title": "IRUNPH Sharp Run",
+      "start_local": "2026-04-19 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "Filinvest, Alabang",
+        "address": "Filinvest Corporate City",
+        "city": "Muntinlupa City",
+        "region": "Metro Manila",
+        "zip": "1781",
+        "country": "PH",
+        "lat": 14.4184,
+        "lng": 121.0395,
+        "runtime": "Filinvest, Alabang, Muntinlupa City"
+      },
+      "banner": "irunph-sharp-run-2026.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on April 16–17, 2026.",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be on April 16–17, 2026. The claiming time will be announced on the IRUNPH Facebook page.",
+        "Race Day Pickup: April 19, 2026, 2:00AM",
+        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1099,
+          "discounted": 999,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Bag · Assembly time: 5:00am · Gun start: 5:30am · Cut-off: 7:00am"
+        },
+        {
+          "title": "5K",
+          "regular": 1299,
+          "discounted": 1199,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly time: 4:30am · Gun start: 5:00am · Cut-off: 7:00am"
+        },
+        {
+          "title": "10K",
+          "regular": 1499,
+          "discounted": 1399,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Finisher's Shirt · Raffle Ticket · Loot Bag · Assembly time: 4:00am · Gun start: 4:30am · Cut-off: 7:00am"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph-south-run",
+      "title": "IRUNPH South Run",
+      "start_local": "2026-06-07 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "Central Park, Filinvest Alabang",
+        "address": "Filinvest Alabang",
+        "city": "Muntinlupa City",
+        "region": "Metro Manila",
+        "zip": "1781",
+        "country": "PH",
+        "lat": 14.4145,
+        "lng": 121.0402,
+        "runtime": "Central Park, Filinvest Alabang, Muntinlupa City"
+      },
+      "banner": "irunph-south-run.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from June 4 to 5, 2026, at Study Room, Festival Mall.",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from June 4 to 5, 2026, at Study Room, Festival Mall.",
+        "Race Day Pickup: June 7, 2026, 2:00AM",
+        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via the IRUNPH Facebook page ."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1149,
+          "discounted": 999,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "5K",
+          "regular": 1349,
+          "discounted": 1199,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "10K",
+          "regular": 1549,
+          "discounted": 1399,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "Family/Barkada of 3",
+          "regular": 3300,
+          "discounted": 2900,
+          "capacity": 400,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "Family/Barkada of 4",
+          "regular": 4400,
+          "discounted": 3800,
+          "capacity": 400,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "Family/Barkada of 5",
+          "regular": 5500,
+          "discounted": 4700,
+          "capacity": 400,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph-sub60-challenge-2026",
+      "title": "IRUNPH Sub60 10K Edition",
+      "start_local": "2026-03-29 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "UP Diliman Academic Oval",
+        "address": "Roxas Avenue, UP Diliman",
+        "city": "Quezon City",
+        "region": "Metro Manila",
+        "zip": "1101",
+        "country": "PH",
+        "lat": 14.6546,
+        "lng": 121.0685,
+        "runtime": "UP Diliman Academic Oval"
+      },
+      "banner": "irunph-sub60-challenge-2026.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be at UP Diliman in front of Palma Hall on March 25–27, 2026, from 7:0",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be at UP Diliman in front of Palma Hall on March 25–27, 2026, from 7:00 AM to 10:00 AM or 4:00 PM to 8:00 PM (for registrations up to March 15 only).",
+        "For Race Day Pickup: March 29, 2026",
+        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1199,
+          "discounted": 1099,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher's Medal · Race Bib with RFID · Loot Bag"
+        },
+        {
+          "title": "5K",
+          "regular": 1399,
+          "discounted": 1299,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher's Medal · Race Bib with RFID Tag · Loot Bag"
+        },
+        {
+          "title": "10K",
+          "regular": 1599,
+          "discounted": 1499,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher's Medal · Finisher's Shirt · Race Bib with RFID · Loot Bag · Sub1 Finisher Trophy"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph2025-leg-2",
+      "title": "IRUNPH LEG 2",
+      "start_local": "2025-11-09 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "UP Diliman Academic Oval",
+        "address": "Roxas Avenue, UP Diliman",
+        "city": "Quezon City",
+        "region": "Metro Manila",
+        "zip": "1101",
+        "country": "PH",
+        "lat": 14.6546,
+        "lng": 121.0685,
+        "runtime": "UP Diliman Academic Oval"
+      },
+      "banner": "irunph2025-leg-2.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race Day Pickup: November 9, 2025, 2:00AM",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race Day Pickup: November 9, 2025, 2:00AM",
+        "RACE KIT CLAIMING SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K",
+        "16K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1100,
+          "discounted": 1050,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly Time: 5:00 AM · Gun Start: 5:30 AM · Cut-off: 7:00 AM / 1hr 30mins"
+        },
+        {
+          "title": "5K",
+          "regular": 1250,
+          "discounted": 1150,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly Time: 4:30 AM · Gun Start: 5:00 AM · Cut-off: 6:30 AM / 1hr 30mins"
+        },
+        {
+          "title": "10K",
+          "regular": 1550,
+          "discounted": 1400,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly Time: 3:30 AM · Gun Start: 4:00 AM · Cut-off: 6:30 AM / 2hrs 30mins"
+        },
+        {
+          "title": "16K",
+          "regular": 1750,
+          "discounted": 1600,
+          "capacity": 800,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID Tag · Raffle Ticket · Loot Bag · Assembly Time: 3:00 AM · Gun Start: 3:30 AM · Cut-off: 6:30 AM / 3hrs"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    },
+    {
+      "key": "irunph2025",
+      "title": "IRUNPH",
+      "start_local": "2025-07-13 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "UP Diliman Academic Oval",
+        "address": "Roxas Avenue, UP Diliman",
+        "city": "Quezon City",
+        "region": "Metro Manila",
+        "zip": "1101",
+        "country": "PH",
+        "lat": 14.6546,
+        "lng": 121.0685,
+        "runtime": "UP Diliman Academic Oval"
+      },
+      "banner": "irunph2025.jpg",
+      "tagline": "Join the Movement: I RUN PH 2025 - Run for a Resilient Philippines",
+      "description": [
+        "Join the Movement: I RUN PH 2025 - Run for a Resilient Philippines",
+        "This July 13, 2025, iHeartPH proudly marks a decade of impact with I RUN PH: a 10th season celebration that brings together passion, purpose, and the power of community.",
+        "Whether you're a seasoned athlete or taking your first stride, this fun run welcomes everyone who believes in the strength of movement, the joy of shared stories, and the spirit of resilience.",
+        "Proceeds from the event will go to Habitat for Humanity, helping build safe and sustainable homes for Filipino families in need.",
+        "Run with us, for health, for hope, and for a stronger Philippines - one step, and one home, at a time.",
+        "RACE KIT CLAIMING SCHEDULE",
+        "Race kit claiming schedule to be announced.",
+        "Pickup on Race Day location is to be announce on Facebook page.",
+        "FREE SHIPPING until June 6, 2025.",
+        "RACE KIT CLAIMING SCHEDULE Race kit delivery will start on June 30, 2025 until July 11, 2025."
+      ],
+      "categories": [
+        "10K",
+        "5K",
+        "3K"
+      ],
+      "products": [
+        {
+          "title": "10K",
+          "regular": 1350,
+          "discounted": null,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Finisher's Shirt · Assembly Time: 4:00 AM · Gun Start: 4:30 AM · Cut-off: 7:00 AM / 2.5 HRS"
+        },
+        {
+          "title": "5K",
+          "regular": 1150,
+          "discounted": null,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Assembly Time: 5:00 AM · Gun Start: 5:30 AM · Cut-off: 7:30 AM / 2.5 HRS"
+        },
+        {
+          "title": "3K",
+          "regular": 1050,
+          "discounted": null,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Assembly Time: 5:30 AM · Gun Start: 6:00 AM · Cut-off: 7:00 AM / 1.5 HRS"
+        }
+      ],
+      "waiver": "IMPORTANT EVENT GUIDELINES: The event will proceed rain or shine."
+    },
+    {
+      "key": "space-run-2026",
+      "title": "Space Run 2026",
+      "start_local": "2026-12-06 04:30",
+      "duration_hours": 5,
+      "location": {
+        "name": "UP Diliman Campus",
+        "address": "UP Diliman",
+        "city": "Quezon City",
+        "region": "Metro Manila",
+        "zip": "1101",
+        "country": "PH",
+        "lat": 14.6546,
+        "lng": 121.0685,
+        "runtime": "UP Diliman Campus, Quezon City"
+      },
+      "banner": "space-run-2026.jpg",
+      "tagline": "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from November 27 to 28, 2026 at UP Diliman.",
+      "description": [
+        "RACE KIT CLAIMING SCHEDULE Race kit claiming will be from November 27 to 28, 2026 at UP Diliman.",
+        "Race Day Pick up: December 6. Must be claimed at least 30 minutes before your gun start",
+        "⏰ 16K Gun Start (Tentative): 2:00 AM",
+        "Final race schedules will be posted on our Facebook page—please stay tuned for updates.",
+        "RACE KIT DELIVERY SCHEDULE Race kit delivery schedule will be announced via IRUNPH Facebook page."
+      ],
+      "categories": [
+        "3K",
+        "5K",
+        "10K"
+      ],
+      "products": [
+        {
+          "title": "3K",
+          "regular": 1249,
+          "discounted": 1099,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "5K",
+          "regular": 1449,
+          "discounted": 1299,
+          "capacity": 2000,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Race Bib with RFID Tag · Raffle Ticket · Loot Box"
+        },
+        {
+          "title": "10K",
+          "regular": 1649,
+          "discounted": 1499,
+          "capacity": 1500,
+          "description": "Inclusions · Full Subli Singlet · Finisher Medal · Finisher Shirt · Race Bib with RFID · Raffle Ticket · Loot Box"
+        }
+      ],
+      "waiver": "EVENT GUIDELINES The event will proceed rain or shine."
+    }
+  ]
+}
