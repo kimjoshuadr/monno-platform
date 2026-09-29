@@ -316,8 +316,8 @@ class SeedTv8Command extends Command
             }
 
             $categoryId = $ctx->renameDefaultCategory($eventId, 'Race Categories', 'One ticket per runner. Pick your distance.');
-            $productIds = $this->seedProducts($ctx, $definition, $accountId, $eventId, $categoryId, $start);
-            $this->seedQuestions($ctx, $definition, $eventId, $productIds);
+            $productIds = $this->seedProducts($ctx, $db, $definition, $accountId, $eventId, $categoryId, $start);
+            $this->seedQuestions($ctx, $db, $definition, $eventId, $productIds);
             $this->uploadBanner($createEventImage, $definition, $accountId, $eventId);
 
             // Offline payment is the only method available on this deployment, so
@@ -364,12 +364,20 @@ class SeedTv8Command extends Command
     /** Drop the previous tickets, questions and images for an event before rebuilding them. */
     private function clearEventChildren(DatabaseManager $db, int $eventId): void
     {
-        $questionIds = $db->table('questions')->where('event_id', $eventId)->pluck('id')->all();
+        // A product or question that an order points at cannot be deleted, so once
+        // an event has orders we leave its tickets and questions alone and only
+        // fill in whatever is missing (see seedProducts / seedQuestions).
+        if ($db->table('orders')->where('event_id', $eventId)->exists()) {
+            $this->warn("    event {$eventId} has orders — keeping its tickets and questions, filling in any gaps");
+        } else {
+            $questionIds = $db->table('questions')->where('event_id', $eventId)->pluck('id')->all();
 
-        $this->deleteWhereIn($db, 'question_answers', 'question_id', $questionIds);
-        $this->deleteWhereIn($db, 'product_questions', 'question_id', $questionIds);
-        $this->deleteWhereIn($db, 'questions', 'event_id', [$eventId]);
-        $this->deleteWhereIn($db, 'products', 'event_id', [$eventId]);
+            $this->deleteWhereIn($db, 'question_answers', 'question_id', $questionIds);
+            $this->deleteWhereIn($db, 'product_questions', 'question_id', $questionIds);
+            $this->deleteWhereIn($db, 'questions', 'event_id', [$eventId]);
+            $this->deleteWhereIn($db, 'products', 'event_id', [$eventId]);
+        }
+
         $this->deleteWhereIn($db, 'images', 'entity_id', [$eventId]);
     }
 
@@ -382,6 +390,7 @@ class SeedTv8Command extends Command
      */
     private function seedProducts(
         DemoSeedContext $ctx,
+        DatabaseManager $db,
         array $definition,
         int $accountId,
         int $eventId,
@@ -391,6 +400,16 @@ class SeedTv8Command extends Command
         $ids = [];
 
         foreach ($definition['products'] as $product) {
+            $existingId = (int) $db->table('products')
+                ->where('event_id', $eventId)
+                ->where('title', $product['title'])
+                ->value('id');
+
+            if ($existingId !== 0) {
+                $ids[] = $existingId;
+                continue;
+            }
+
             $regular = $product['regular'] !== null ? (float) $product['regular'] : null;
             $discounted = $product['discounted'] !== null ? (float) $product['discounted'] : null;
             $capacity = (int) $product['capacity'];
@@ -432,21 +451,32 @@ class SeedTv8Command extends Command
      *
      * @param  array<int, int>  $productIds
      */
-    private function seedQuestions(DemoSeedContext $ctx, array $definition, int $eventId, array $productIds): void
+    private function seedQuestions(DemoSeedContext $ctx, DatabaseManager $db, array $definition, int $eventId, array $productIds): void
     {
         $categories = $definition['categories'] ?: ['3K', '5K', '10K'];
 
-        $product = fn (string $title, QuestionTypeEnum $type, bool $required, ?array $options = null, ?string $description = null) => $ctx->createQuestion->handle(new UpsertQuestionDTO(
-            title: $title,
-            type: $type,
-            required: $required,
-            options: $options,
-            event_id: $eventId,
-            product_ids: $productIds,
-            is_hidden: false,
-            belongs_to: QuestionBelongsTo::PRODUCT,
-            description: $description,
-        ));
+        $exists = fn (string $title): bool => $db->table('questions')
+            ->where('event_id', $eventId)
+            ->where('title', $title)
+            ->exists();
+
+        $product = function (string $title, QuestionTypeEnum $type, bool $required, ?array $options = null, ?string $description = null) use ($ctx, $exists, $eventId, $productIds): void {
+            if ($exists($title)) {
+                return;
+            }
+
+            $ctx->createQuestion->handle(new UpsertQuestionDTO(
+                title: $title,
+                type: $type,
+                required: $required,
+                options: $options,
+                event_id: $eventId,
+                product_ids: $productIds,
+                is_hidden: false,
+                belongs_to: QuestionBelongsTo::PRODUCT,
+                description: $description,
+            ));
+        };
 
         $product('Category', QuestionTypeEnum::DROPDOWN, true, $categories, 'Pick the distance you are entering.');
         $product('First Name', QuestionTypeEnum::SINGLE_LINE_TEXT, true);
@@ -466,17 +496,19 @@ class SeedTv8Command extends Command
         $product('Have you attended an iRunPH event before?', QuestionTypeEnum::RADIO, true, ['Yes', 'No - This is my first time.']);
         $product('Please specify the event/s.', QuestionTypeEnum::CHECKBOX, false, ['Leg 1', 'Leg 2', 'Pasko Run', 'Sub60', 'Sharp Run', 'South Run']);
 
-        $ctx->createQuestion->handle(new UpsertQuestionDTO(
-            title: 'Liability Waiver and Race Agreement',
-            type: QuestionTypeEnum::CHECKBOX,
-            required: true,
-            options: ['I have read, understood and agreed to the Liability Waiver and Race Agreement.'],
-            event_id: $eventId,
-            product_ids: [],
-            is_hidden: false,
-            belongs_to: QuestionBelongsTo::ORDER,
-            description: $definition['waiver'] ?: null,
-        ));
+        if (! $exists('Liability Waiver and Race Agreement')) {
+            $ctx->createQuestion->handle(new UpsertQuestionDTO(
+                title: 'Liability Waiver and Race Agreement',
+                type: QuestionTypeEnum::CHECKBOX,
+                required: true,
+                options: ['I have read, understood and agreed to the Liability Waiver and Race Agreement.'],
+                event_id: $eventId,
+                product_ids: [],
+                is_hidden: false,
+                belongs_to: QuestionBelongsTo::ORDER,
+                description: $definition['waiver'] ?: null,
+            ));
+        }
     }
 
     private function uploadBanner(CreateEventImageHandler $createEventImage, array $definition, int $accountId, int $eventId): void
