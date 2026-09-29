@@ -400,16 +400,16 @@ class SeedTv8Command extends Command
         $product('Birthdate', QuestionTypeEnum::DATE, true, null, 'Used for age-group results and the junior waiver.');
         $product('Gender', QuestionTypeEnum::DROPDOWN, true, ['Male', 'Female', 'LGBTQIA+']);
         $product('Running Club', QuestionTypeEnum::SINGLE_LINE_TEXT, true, null, 'Put N/A if you are not a member of a running club.');
-        $product('Contact Number', QuestionTypeEnum::PHONE, true);
+        $product('Contact Number', QuestionTypeEnum::SINGLE_LINE_TEXT, true);
         $product('Name on Race Bib', QuestionTypeEnum::SINGLE_LINE_TEXT, false, null, 'Leave blank to use your first name.');
         $product('Address', QuestionTypeEnum::ADDRESS, true);
         $product('Singlet Size', QuestionTypeEnum::DROPDOWN, true, self::SIZES);
         $product('Finisher Shirt Size', QuestionTypeEnum::DROPDOWN, true, self::SIZES, 'Finisher shirts are only awarded within the official cut-off time.');
-        $product('Medical Condition', QuestionTypeEnum::MULTI_SELECT_DROPDOWN, false, ['Hypertension', 'Diabetes', 'Asthma', 'Heart Disease'], 'Select anything our medical team should know about.');
+        $product('Medical Condition', QuestionTypeEnum::CHECKBOX, false, ['Hypertension', 'Diabetes', 'Asthma', 'Heart Disease'], 'Select anything our medical team should know about.');
         $product('Emergency Contact Person', QuestionTypeEnum::SINGLE_LINE_TEXT, true);
-        $product('Emergency Contact No.', QuestionTypeEnum::PHONE, true);
+        $product('Emergency Contact No.', QuestionTypeEnum::SINGLE_LINE_TEXT, true);
         $product('Have you attended an iRunPH event before?', QuestionTypeEnum::RADIO, true, ['Yes', 'No - This is my first time.']);
-        $product('Please specify the event/s.', QuestionTypeEnum::MULTI_SELECT_DROPDOWN, false, ['Leg 1', 'Leg 2', 'Pasko Run', 'Sub60', 'Sharp Run', 'South Run']);
+        $product('Please specify the event/s.', QuestionTypeEnum::CHECKBOX, false, ['Leg 1', 'Leg 2', 'Pasko Run', 'Sub60', 'Sharp Run', 'South Run']);
 
         $ctx->createQuestion->handle(new UpsertQuestionDTO(
             title: 'Liability Waiver and Race Agreement',
