@@ -45,21 +45,20 @@ use Throwable;
  * their Runtime events, race-category tickets and registration questions.
  *
  * This is pitch data, not demo filler: every number, date and ticket is theirs,
- * taken from the Runtime public API and bundled in resources/demo/tv8/. Run it on
- * an environment a prospective organizer will look at:
+ * taken from the Runtime public API and bundled in resources/demo/tv8/.
  *
- *   php artisan tv8:seed --force      # (re)create the organizer and its events
- *   php artisan tv8:seed --keep       # leave existing TV8 events in place
+ *   php artisan tv8:seed            # create missing events, refresh the rest in place
+ *   php artisan tv8:seed --fresh    # wipe the TV8 events first (new event ids)
  *
- * It is idempotent: the account is reused, and the TV8 events/locations/images are
- * wiped and rebuilt on each run, so it also repairs a database after `monno:seed`
- * (which truncates events and organizers).
+ * Events are matched by title and updated in place, so their platform ids — and
+ * therefore every shared /event/{id}/ link — stay stable across runs. Only
+ * `--fresh` reassigns ids. Tickets, questions and images are rebuilt each run.
  */
 class SeedTv8Command extends Command
 {
     protected $signature = 'tv8:seed
         {--force : Skip the production guard and the confirmation prompt}
-        {--keep : Do not wipe the existing TV8 events, locations and images first}';
+        {--fresh : Delete the TV8 events first and recreate them with new ids}';
 
     protected $description = 'Seed the TV8 Media Productions / iRunPH organizer and all of their events, tickets and registration questions.';
 
@@ -91,7 +90,7 @@ class SeedTv8Command extends Command
             $data = $this->loadData();
             [$accountId, $userId, $organizerId] = $this->ensureOrganizer($data, $createAccount, $createOrganizer, $createImage, $db);
 
-            if (! $this->option('keep')) {
+            if ($this->option('fresh')) {
                 $this->wipeOrganizerContent($db, $organizerId);
             }
 
@@ -190,10 +189,9 @@ class SeedTv8Command extends Command
     }
 
     /**
-     * Rebuild the organizer's content. `events` is referenced by a handful of
-     * tables without a cascade (`orders`, `questions`, `promo_codes`, stats …), so
-     * those are cleared explicitly before the events themselves. Everything else
-     * cascades.
+     * `--fresh` only: `events` is referenced by a handful of tables without a
+     * cascade (`orders`, `questions`, `promo_codes`, stats …), so those are
+     * cleared explicitly before the events themselves. Everything else cascades.
      */
     private function wipeOrganizerContent(DatabaseManager $db, int $organizerId): void
     {
@@ -264,48 +262,62 @@ class SeedTv8Command extends Command
             $start = CarbonImmutable::createFromFormat('Y-m-d H:i', $definition['start_local'], $timezone);
             $end = $start->addHours((int) $definition['duration_hours']);
 
-            $location = $ctx->createLocation->handle(new UpsertLocationDTO(
-                organizer_id: $organizerId,
-                account_id: $accountId,
-                name: $definition['location']['name'],
-                structured_address: new AddressDTO(
-                    venue_name: $definition['location']['name'],
-                    address_line_1: $definition['location']['address'],
-                    city: $definition['location']['city'],
-                    state_or_region: $definition['location']['region'] ?: null,
-                    zip_or_postal_code: $definition['location']['zip'] ?: null,
-                    country: $definition['location']['country'],
-                ),
-                latitude: (float) $definition['location']['lat'],
-                longitude: (float) $definition['location']['lng'],
-            ));
+            // Match on title so a re-run updates in place — the platform id, and
+            // every shared /event/{id}/ link, stays put.
+            $eventId = (int) $db->table('events')
+                ->where('organizer_id', $organizerId)
+                ->where('title', $definition['title'])
+                ->value('id');
 
-            $event = $createEvent->handle(new CreateEventDTO(
-                title: $definition['title'],
-                organizer_id: $organizerId,
-                account_id: $accountId,
-                user_id: $userId,
-                start_date: $start->toDateTimeString(),
-                end_date: $end->toDateTimeString(),
-                description: $this->description($definition),
-                timezone: $timezone,
-                currency: $currency,
-                category: EventCategory::SPORTS,
-                event_location: new EventLocationData(type: LocationType::IN_PERSON, location_id: $location->getId()),
-                status: EventStatus::LIVE->name,
-                type: EventType::SINGLE,
-                tagline: $definition['tagline'],
-                featured: $this->isFeatured($definition),
-                image_alt: $definition['title'],
-                agenda: $this->agenda($definition, $start, $end),
-            ));
+            if ($eventId !== 0) {
+                $this->clearEventChildren($db, $eventId);
+                $db->table('events')->where('id', $eventId)->update([
+                    'description' => $this->description($definition),
+                    'start_date' => $ctx->toUtc($start->format('Y-m-d H:i:s'), $timezone),
+                    'end_date' => $ctx->toUtc($end->format('Y-m-d H:i:s'), $timezone),
+                    'timezone' => $timezone,
+                    'currency' => $currency,
+                    'category' => EventCategory::SPORTS->name,
+                    'status' => EventStatus::LIVE->name,
+                    'tagline' => $definition['tagline'],
+                    'featured' => $this->isFeatured($definition),
+                    'image_alt' => $definition['title'],
+                    'agenda' => json_encode($this->agenda($definition, $start, $end), JSON_THROW_ON_ERROR),
+                    'updated_at' => now(),
+                ]);
+                $this->line(sprintf('  event     %s (id %d, updated)', $definition['title'], $eventId));
+            } else {
+                // The venue only needs resolving when the event is first created;
+                // `events.event_location_id` points at an `event_locations` row the
+                // handler builds, so an update leaves it well alone.
+                $locationId = $this->ensureLocation($ctx, $db, $definition, $organizerId, $accountId);
 
-            $eventId = $event->getId();
+                $event = $createEvent->handle(new CreateEventDTO(
+                    title: $definition['title'],
+                    organizer_id: $organizerId,
+                    account_id: $accountId,
+                    user_id: $userId,
+                    start_date: $start->toDateTimeString(),
+                    end_date: $end->toDateTimeString(),
+                    description: $this->description($definition),
+                    timezone: $timezone,
+                    currency: $currency,
+                    category: EventCategory::SPORTS,
+                    event_location: new EventLocationData(type: LocationType::IN_PERSON, location_id: $locationId),
+                    status: EventStatus::LIVE->name,
+                    type: EventType::SINGLE,
+                    tagline: $definition['tagline'],
+                    featured: $this->isFeatured($definition),
+                    image_alt: $definition['title'],
+                    agenda: $this->agenda($definition, $start, $end),
+                ));
+                $eventId = $event->getId();
+                $this->line(sprintf('  event     %s (id %d)', $definition['title'], $eventId));
+            }
+
             $categoryId = $ctx->renameDefaultCategory($eventId, 'Race Categories', 'One ticket per runner. Pick your distance.');
-
             $productIds = $this->seedProducts($ctx, $definition, $accountId, $eventId, $categoryId, $start);
             $this->seedQuestions($ctx, $definition, $eventId, $productIds);
-
             $this->uploadBanner($createEventImage, $definition, $accountId, $eventId);
 
             // Offline payment is the only method available on this deployment, so
@@ -316,10 +328,49 @@ class SeedTv8Command extends Command
             ]);
 
             $seeded[] = ['id' => $eventId, 'title' => $definition['title']];
-            $this->line(sprintf('  event     %s (id %d) %s', $definition['title'], $eventId, $start->format('D j M Y H:i')));
         }
 
         return $seeded;
+    }
+
+    private function ensureLocation(DemoSeedContext $ctx, DatabaseManager $db, array $definition, int $organizerId, int $accountId): int
+    {
+        $existing = (int) $db->table('locations')
+            ->where('organizer_id', $organizerId)
+            ->where('name', $definition['location']['name'])
+            ->value('id');
+
+        if ($existing !== 0) {
+            return $existing;
+        }
+
+        return $ctx->createLocation->handle(new UpsertLocationDTO(
+            organizer_id: $organizerId,
+            account_id: $accountId,
+            name: $definition['location']['name'],
+            structured_address: new AddressDTO(
+                venue_name: $definition['location']['name'],
+                address_line_1: $definition['location']['address'],
+                city: $definition['location']['city'],
+                state_or_region: $definition['location']['region'] ?: null,
+                zip_or_postal_code: $definition['location']['zip'] ?: null,
+                country: $definition['location']['country'],
+            ),
+            latitude: (float) $definition['location']['lat'],
+            longitude: (float) $definition['location']['lng'],
+        ))->getId();
+    }
+
+    /** Drop the previous tickets, questions and images for an event before rebuilding them. */
+    private function clearEventChildren(DatabaseManager $db, int $eventId): void
+    {
+        $questionIds = $db->table('questions')->where('event_id', $eventId)->pluck('id')->all();
+
+        $this->deleteWhereIn($db, 'question_answers', 'question_id', $questionIds);
+        $this->deleteWhereIn($db, 'product_questions', 'question_id', $questionIds);
+        $this->deleteWhereIn($db, 'questions', 'event_id', [$eventId]);
+        $this->deleteWhereIn($db, 'products', 'event_id', [$eventId]);
+        $this->deleteWhereIn($db, 'images', 'entity_id', [$eventId]);
     }
 
     /**
@@ -374,6 +425,10 @@ class SeedTv8Command extends Command
     /**
      * Runtime's runner form, rebuilt as monno event questions. Product questions are
      * asked once per ticket; the waiver is asked once per order.
+     *
+     * Only question types the checkout renders are used: ADDRESS, CHECKBOX,
+     * DROPDOWN, RADIO, SINGLE_LINE_TEXT, DATE. Runtime's phone fields are text and
+     * its multi-selects are checkboxes until the checkout supports those two types.
      *
      * @param  array<int, int>  $productIds
      */
@@ -486,7 +541,7 @@ class SeedTv8Command extends Command
             throw new RuntimeException('TV8 image missing: '.$path);
         }
 
-        return new UploadedFile($path, basename($path), mime_content_type($path) ?: 'image/jpeg', null, true);
+        return new UploadedFile($path, basename($asset), mime_content_type($path) ?: 'image/jpeg', null, true);
     }
 
     private function imagesPath(): string
