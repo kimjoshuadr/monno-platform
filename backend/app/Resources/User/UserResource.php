@@ -38,9 +38,17 @@ class UserResource extends BaseResource
                 'is_impersonating' => true,
                 'impersonator_id' => $impersonatorId,
             ]),
-            $this->mergeWhen(config('app.enforce_email_confirmation_during_registration'), fn () => [
-                'enforce_email_confirmation_during_registration' => true,
-            ]),
+            // One boolean for the client: verification is required when EITHER
+            // flag is on. It also carries the real TTL so the UI can quote the
+            // code's expiry instead of guessing a number.
+            $this->mergeWhen(
+                config('app.enforce_email_confirmation_during_registration')
+                || config('app.require_email_verification'),
+                fn () => [
+                    'enforce_email_confirmation_during_registration' => true,
+                    'email_verification_ttl_minutes' => (int) config('app.email_verification_code_ttl_minutes'),
+                ],
+            ),
             $this->mergeWhen($this->getCurrentAccountUser() !== null, fn () => [
                 'role' => $this->getCurrentAccountUser()?->getRole(),
                 'is_account_owner' => $this->getCurrentAccountUser()?->getIsAccountOwner(),

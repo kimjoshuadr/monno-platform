@@ -54,8 +54,15 @@ export const CreateOrganizer = ({progressInfo}: {
     );
 }
 
-const ConfirmVerificationPin = ({progressInfo}: {
-    progressInfo: { currentStep: number, totalSteps: number, progressPercentage: number }
+/**
+ * The 5-digit code step. Mounts in two places: the onboarding wizard (with its
+ * progress bar) and the standalone /verify-email screen an organizer who logs in
+ * unverified is parked on. Both drive the same endpoint, so the behaviour lives
+ * here once.
+ */
+export const ConfirmVerificationPin = ({progressInfo, onVerified}: {
+    progressInfo?: { currentStep: number, totalSteps: number, progressPercentage: number },
+    onVerified?: () => void,
 }) => {
     const {data: userData} = useGetMe();
     const confirmEmailMutation = useConfirmEmailWithCode();
@@ -63,6 +70,9 @@ const ConfirmVerificationPin = ({progressInfo}: {
     const [resendCooldown, setResendCooldown] = useState(0);
     const [completedPin, setCompletedPin] = useState('');
     const isMobile = useMediaQuery('(max-width: 768px)');
+    // The API reports the code's real TTL, so the copy quotes a number the
+    // cache actually honours instead of a promise that was never kept.
+    const codeTtlMinutes = userData?.email_verification_ttl_minutes ?? 30;
 
     const form = useForm({
         initialValues: {
@@ -96,10 +106,13 @@ const ConfirmVerificationPin = ({progressInfo}: {
                 code: values.pin,
             }, {
                 onSuccess: () => {
-                    trackEvent(AnalyticsEvents.SIGNUP_COMPLETED);
                     showSuccess(t`Email verified successfully!`);
                     form.reset();
                     setCompletedPin('');
+                    // Tracking is the caller's call: onboarding completed a signup,
+                    // the /verify-email screen is a returning organizer logging in
+                    // and must not fire the signup conversion again.
+                    onVerified?.();
                 },
                 onError: (error: any) => {
                     showError(error.response?.data?.message || t`Failed to verify email`);
@@ -179,6 +192,15 @@ const ConfirmVerificationPin = ({progressInfo}: {
                             />
                         </Center>
 
+                        {/* Mantine's `error` prop only toggles the error styles on
+                            the inputs; without this line the server's reason —
+                            expired, wrong, budget spent — never reaches the user. */}
+                        {form.errors.pin && (
+                            <Text size="sm" c="red" ta="center" role="alert" className={classes.pinError}>
+                                {form.errors.pin}
+                            </Text>
+                        )}
+
                         <Button
                             type={'submit'}
                             fullWidth
@@ -211,7 +233,7 @@ const ConfirmVerificationPin = ({progressInfo}: {
                         </Center>
 
                         <Text size="xs" c="dimmed" ta="center" className={classes.helpText}>
-                            {t`The code will expire in 10 minutes. Check your spam folder if you don't see the email.`}
+                            {t`The code will expire in ${codeTtlMinutes} minutes. Check your spam folder if you don't see the email.`}
                         </Text>
                     </Stack>
                 </form>
@@ -503,8 +525,17 @@ const getProgressInfo = (requiresVerification: boolean, currentStep: 'verificati
 };
 
 const Welcome = () => {
-    const {data: userData} = useGetMe();
-    const organizersQuery = useGetOrganizers();
+    const me = useGetMe();
+    const userData = me.data;
+
+    // Decided before the queries below, because while an email is unconfirmed
+    // both endpoints answer 403 — firing them here would run the verify screen
+    // straight into the lock (and, via the API client, out to the login page).
+    const requiresVerification = !!(userData
+        && userData.enforce_email_confirmation_during_registration
+        && !userData.is_email_verified);
+
+    const organizersQuery = useGetOrganizers({enabled: me.isFetched && !requiresVerification});
     const organizers = organizersQuery?.data?.data;
     const organizerExists = organizersQuery.isFetched && Number(organizers?.length) > 0;
     const firstOrganizerId = organizers?.[0]?.id;
@@ -513,20 +544,17 @@ const Welcome = () => {
     // Tells "first time" apart from "already set up": an account that already
     // has an organizer AND events has nothing to set up on this screen.
     // Same query/args as CreateEvent below, so React Query dedupes it.
-    const eventsQuery = useGetEvents({pageNumber: 1});
+    const eventsQuery = useGetEvents({pageNumber: 1}, {enabled: me.isFetched && !requiresVerification});
     const events = eventsQuery?.data?.data;
     const hasEvents = eventsQuery.isFetched && Number(events?.length) > 0;
-
-    const requiresVerification = !!(userData
-        && userData.enforce_email_confirmation_during_registration
-        && !userData.is_email_verified);
 
     useEffect(() => {
         if (!userData || hasTrackedSignup.current) {
             return;
         }
-        // Only track if email verification was NEVER required for this account
-        // Users who needed verification are tracked in ConfirmVerificationPin's onSuccess
+        // Only track if email verification was NEVER required for this account.
+        // Accounts that had to verify are tracked when ConfirmVerificationPin
+        // calls back through onVerified above.
         if (!userData.enforce_email_confirmation_during_registration) {
             hasTrackedSignup.current = true;
             trackEvent(AnalyticsEvents.SIGNUP_COMPLETED);
@@ -564,7 +592,8 @@ const Welcome = () => {
 
                 <Card className={classes.welcomeCard}>
                     {requiresVerification && <ConfirmVerificationPin
-                        progressInfo={getProgressInfo(requiresVerification, 'verification')}/>}
+                        progressInfo={getProgressInfo(requiresVerification, 'verification')}
+                        onVerified={() => trackEvent(AnalyticsEvents.SIGNUP_COMPLETED)}/>}
                     {(!requiresVerification && organizerExists) &&
                         <CreateEvent progressInfo={getProgressInfo(requiresVerification, 'event')}/>}
                     {(!requiresVerification && !organizerExists) && <CreateOrganizer

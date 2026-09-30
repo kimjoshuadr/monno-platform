@@ -1,5 +1,5 @@
 import {Button, PasswordInput, TextInput, Collapse, UnstyledButton} from "@mantine/core";
-import {NavLink, useLocation} from "react-router";
+import {NavLink, useLocation, useNavigate} from "react-router";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {notifications} from '@mantine/notifications';
 import {authClient} from "../../../../api/auth.client.ts";
@@ -17,6 +17,7 @@ import {IconTicket, IconChevronDown} from "@tabler/icons-react";
 const Login = () => {
     const queryClient = useQueryClient();
     const location = useLocation();
+    const navigate = useNavigate();
     const form = useForm({
         initialValues: {
             email: '',
@@ -40,6 +41,16 @@ const Login = () => {
         onSuccess: (response: LoginResponse) => {
             if (response.token) {
                 queryClient.clear();
+
+                // The dashboard is locked until this address is confirmed, so
+                // starting there would only bounce off the lock. Begin at the
+                // code screen; previous_url is left intact for after they pass.
+                if (response.user?.enforce_email_confirmation_during_registration
+                    && !response.user?.is_email_verified) {
+                    navigate('/verify-email');
+                    return;
+                }
+
                 redirectToPreviousUrl();
                 return;
             }

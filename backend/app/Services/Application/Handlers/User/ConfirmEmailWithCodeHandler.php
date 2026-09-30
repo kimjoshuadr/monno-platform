@@ -2,7 +2,6 @@
 
 namespace HiEvents\Services\Application\Handlers\User;
 
-use HiEvents\Exceptions\ResourceConflictException;
 use HiEvents\Repository\Interfaces\UserRepositoryInterface;
 use HiEvents\Services\Application\Handlers\User\DTO\ConfirmEmailWithCodeDTO;
 use HiEvents\Services\Application\Handlers\User\Exception\InvalidEmailVerificationCodeException;
@@ -19,20 +18,38 @@ class ConfirmEmailWithCodeHandler
         private readonly VerifyUserEmailService $verifyUserEmailService,
     ) {}
 
+    /**
+     * @throws InvalidEmailVerificationCodeException
+     */
     public function handle(ConfirmEmailWithCodeDTO $dto): void
     {
         $this->databaseManager->transaction(function () use ($dto) {
             $user = $this->userRepository->findByIdAndAccountId($dto->userId, $dto->accountId);
 
+            // Idempotent on purpose: the code is auto-submitted after a debounce,
+            // so a verification finished in another tab (or retried after a slow
+            // response) must read as success rather than a red conflict error.
             if ($user->getEmailVerifiedAt() !== null) {
-                throw new ResourceConflictException(__('Your email address has already been verified.'));
+                return;
             }
 
-            if (! $this->emailVerificationCodeService->verifyCode($user->getEmail(), $dto->code)) {
-                throw new InvalidEmailVerificationCodeException(__('The verification code is invalid or has expired.'));
+            $outcome = $this->emailVerificationCodeService->attempt($user->getEmail(), $dto->code);
+
+            if ($outcome === EmailVerificationCodeService::OUTCOME_OK) {
+                $this->verifyUserEmailService->markEmailAsVerified($user, $dto->accountId);
+
+                return;
             }
 
-            $this->verifyUserEmailService->markEmailAsVerified($user, $dto->accountId);
+            throw new InvalidEmailVerificationCodeException(match ($outcome) {
+                EmailVerificationCodeService::OUTCOME_EXHAUSTED => __(
+                    'That code has been used too many times. Request a new one to continue.',
+                ),
+                EmailVerificationCodeService::OUTCOME_EXPIRED => __(
+                    'This code has expired. Request a new one and we\'ll email it to you.',
+                ),
+                default => __('The verification code is invalid or has expired.'),
+            });
         });
     }
 }

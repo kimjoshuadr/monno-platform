@@ -313,7 +313,7 @@ $router->prefix('/auth')->group(
 /**
  * Logged In Routes
  */
-$router->middleware(['auth:api'])->group(
+$router->middleware(['auth:api', 'email.verified'])->group(
     function (Router $router): void {
         // Auth
         $router->get('/auth/logout', LogoutAction::class);

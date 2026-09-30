@@ -114,6 +114,8 @@ export interface User {
     is_impersonating?: boolean;
     impersonator_id?: IdParam;
     enforce_email_confirmation_during_registration?: boolean;
+    /** Real TTL of the emailed code, in minutes — the UI quotes this instead of guessing. */
+    email_verification_ttl_minutes?: number;
     pending_email?: string;
     last_login_at?: string;
     status?: 'ACTIVE' | 'INACTIVE' | 'INVITED';

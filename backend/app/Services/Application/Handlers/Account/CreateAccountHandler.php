@@ -55,9 +55,14 @@ class CreateAccountHandler
         }
 
         $isSaasMode = $this->config->get('app.saas_mode_enabled');
+        // A signup must start unverified when verification is required, so the
+        // first thing an organizer does is confirm the address they'll get their
+        // tickets and buyer mail at. saas_mode keeps its historical meaning too,
+        // since deployments running it already expect unverified users.
+        $mustVerifyEmail = $isSaasMode || (bool) $this->config->get('app.require_email_verification');
         $passwordHash = $this->hashManager->make($accountData->password);
 
-        return $this->databaseManager->transaction(function () use ($isSaasMode, $passwordHash, $accountData) {
+        return $this->databaseManager->transaction(function () use ($isSaasMode, $mustVerifyEmail, $passwordHash, $accountData) {
             $account = $this->accountRepository->create([
                 'timezone' => $this->getTimezone($accountData),
                 'currency_code' => $this->getCurrencyCode($accountData),
@@ -75,7 +80,7 @@ class CreateAccountHandler
                 'first_name' => $accountData->first_name,
                 'last_name' => $accountData->last_name,
                 'timezone' => $this->getTimezone($accountData),
-                'email_verified_at' => $isSaasMode ? null : now()->toDateTimeString(),
+                'email_verified_at' => $mustVerifyEmail ? null : now()->toDateTimeString(),
                 'locale' => $accountData->locale,
                 'marketing_opted_in_at' => $accountData->marketing_opt_in ? now()->toDateTimeString() : null,
             ]);
@@ -111,7 +116,20 @@ class CreateAccountHandler
                 ]);
             }
 
-            $this->emailConfirmationService->sendConfirmation($user, $account->getId());
+            // Sending inside the transaction is how Hi.Events ships it, but an
+            // SMTP outage must not roll back an account that already exists in
+            // this commit: the organizer can hit Resend once mail is healthy
+            // again. Swallow, log loudly, let the signup stand.
+            try {
+                $this->emailConfirmationService->sendConfirmation($user, $account->getId());
+            } catch (Throwable $exception) {
+                $this->logger->error('Email confirmation could not be sent during registration', [
+                    'user_id' => $user->getId(),
+                    'account_id' => $account->getId(),
+                    'email' => $user->getEmail(),
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
 
             return $account;
         });

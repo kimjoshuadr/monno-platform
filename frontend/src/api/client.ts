@@ -89,6 +89,17 @@ api.interceptors.response.use(
             return Promise.reject(error);
         }
 
+        // An unverified organizer is authenticated, just parked. They must not
+        // fall through to the generic auth handling below, which clears the
+        // token — otherwise the lock looks like a session that keeps expiring.
+        if (status === 403 && error.response.data?.code === 'email_not_verified') {
+            if (typeof window !== 'undefined' && !currentPath.startsWith('/verify-email')) {
+                const verifySearch = window?.location?.search || '';
+                window?.location?.replace('/verify-email' + verifySearch);
+            }
+            return Promise.reject(error);
+        }
+
         if (isAuthError && (!isAllowedUnauthenticatedPath || isManageEventPath)) {
             if (typeof window !== 'undefined') {
                 window.localStorage?.removeItem(AUTH_TOKEN_KEY);

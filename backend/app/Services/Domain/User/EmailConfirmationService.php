@@ -43,14 +43,16 @@ class EmailConfirmationService
         });
     }
 
+    /**
+     * Send whichever confirmation matches the user's state.
+     *
+     * An unverified user gets the short-lived 5-digit code; anyone already
+     * verified falls through to the long-lived link, which is what re-confirming
+     * an account (or a pending email change) actually wants.
+     */
     public function sendConfirmation(UserDomainObject $user, int $accountId): void
     {
-        // If there are no events, we assume the user is registering for the first time
-        $events = $this->eventRepository->findWhere([
-            'account_id' => $accountId,
-        ]);
-
-        if (config('app.enforce_email_confirmation_during_registration') && $events->isEmpty()) {
+        if ($this->confirmationCodeIsRequired($user, $accountId)) {
             $this->mailer
                 ->to($user->getEmail())
                 ->locale($user->getLocale())
@@ -69,5 +71,28 @@ class EmailConfirmationService
         $this->mailer
             ->to($user->getEmail())
             ->send(new ConfirmEmailAddressEmail($user, $token));
+    }
+
+    private function confirmationCodeIsRequired(UserDomainObject $user, int $accountId): bool
+    {
+        // Already verified: never burn a fresh code at them on resend.
+        if ($user->getEmailVerifiedAt() !== null) {
+            return false;
+        }
+
+        // Our gate: every unverified organizer, whether or not they have events.
+        if ((bool) config('app.require_email_verification')) {
+            return true;
+        }
+
+        // Original Hi.Events behaviour, preserved for the vendor flag: send a
+        // code only to a first-time account with no events to its name.
+        if (! (bool) config('app.enforce_email_confirmation_during_registration')) {
+            return false;
+        }
+
+        return $this->eventRepository->findWhere([
+            'account_id' => $accountId,
+        ])->isEmpty();
     }
 }

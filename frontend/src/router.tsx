@@ -131,6 +131,23 @@ export const router: RouteObject[] = [
         ]
     },
     {
+        path: "verify-email",
+        async lazy() {
+            const WelcomeLayout = await import("./components/layouts/WelcomeLayout");
+            return { Component: WelcomeLayout.default };
+        },
+        errorElement: <ErrorPage />,
+        children: [
+            {
+                path: "",
+                async lazy() {
+                    const VerifyEmail = await import("./components/routes/verify-email");
+                    return { Component: VerifyEmail.default };
+                },
+            },
+        ]
+    },
+    {
         path: "admin",
         errorElement: <ErrorPage />,
         async lazy() {
