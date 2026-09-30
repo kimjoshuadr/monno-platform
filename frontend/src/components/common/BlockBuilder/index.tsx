@@ -1,10 +1,11 @@
-import {useState} from "react";
+import {useRef, useState} from "react";
 import {t} from "@lingui/macro";
 import {
     ActionIcon,
     Badge,
     Button,
     Group,
+    Loader,
     Menu,
     Stack,
     Text,
@@ -20,9 +21,13 @@ import {
     IconEyeOff,
     IconPlus,
     IconTrash,
+    IconUpload,
 } from "@tabler/icons-react";
-import {HomepageBlock, HomepageBlockType} from "../../../types.ts";
+import {HomepageBlock, HomepageBlockType, IdParam} from "../../../types.ts";
 import {blockRegistry, blockTypeOrder, newBlockId} from "./registry";
+import {useUploadImage} from "../../../mutations/useUploadImage.ts";
+import {showSuccess} from "../../../utilites/notifications.tsx";
+import {extractImageUploadErrors, validateImageFile} from "../../../utilites/imageUploadValidation.ts";
 
 interface BlockBuilderProps {
     value: HomepageBlock[];
@@ -214,6 +219,189 @@ export const BlockBuilder = ({value, onChange, disabled = false}: BlockBuilderPr
     );
 };
 
+/** One gallery image as stored inside a block's `settings.images`. */
+interface GalleryImage {
+    url?: string;
+    alt?: string;
+    image_id?: IdParam;
+}
+
+/**
+ * Gallery images: upload a file or paste a link — both end up in the same
+ * `url`, so one section can mix the two.
+ *
+ * Uploads go through the same POST /images as every dropzone in the app, but
+ * without an image_type: the API records those as GENERIC images owned by the
+ * account, because a section's artwork belongs to the page rather than to an
+ * event or organizer row (and the organizer designer's cover/logo slots are
+ * already typed and stay that way).
+ */
+const GalleryEditor = ({images, disabled, onChange}: {
+    images: GalleryImage[];
+    disabled: boolean;
+    onChange: (patch: {images: GalleryImage[]}) => void;
+}) => {
+    const upload = useUploadImage();
+    const [busyKey, setBusyKey] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const replaceIndexRef = useRef<number | null>(null);
+    const replaceInputRef = useRef<HTMLInputElement | null>(null);
+    const addInputRef = useRef<HTMLInputElement | null>(null);
+
+    const patch = (index: number, next: Partial<GalleryImage>) =>
+        onChange({images: images.map((x: GalleryImage, i: number) => (i === index ? {...x, ...next} : x))});
+
+    const uploadFile = async (file: File, targetIndex: number | null) => {
+        const key = targetIndex === null ? 'new' : String(targetIndex);
+        const invalid = validateImageFile(file);
+        if (invalid) {
+            setErrors((prev) => ({...prev, [key]: invalid}));
+            return;
+        }
+
+        setErrors((prev) => ({...prev, [key]: ''}));
+        setBusyKey(key);
+
+        try {
+            const response = await upload.mutateAsync({image: file});
+            const url = response?.data?.url;
+
+            if (url) {
+                if (targetIndex === null) {
+                    onChange({images: [...images, {url, alt: '', image_id: response?.data?.id}]});
+                } else {
+                    patch(targetIndex, {url, image_id: response?.data?.id});
+                }
+                showSuccess(t`Image uploaded`);
+            } else {
+                setErrors((prev) => ({
+                    ...prev,
+                    [key]: t`The upload did not return an image URL. Please try again.`,
+                }));
+            }
+        } catch (error) {
+            setErrors((prev) => ({...prev, [key]: extractImageUploadErrors(error).join(' ')}));
+        } finally {
+            setBusyKey(null);
+            replaceIndexRef.current = null;
+            if (replaceInputRef.current) replaceInputRef.current.value = '';
+            if (addInputRef.current) addInputRef.current.value = '';
+        }
+    };
+
+    return (
+        <div>
+            <Text size="sm" fw={500} mb={6}>{t`Images`}</Text>
+            <Stack gap="sm">
+                {images.map((image: GalleryImage, index: number) => {
+                    const key = String(index);
+                    const uploading = busyKey === key;
+
+                    return (
+                        <div key={index}>
+                            <div style={{display: 'flex', gap: '8px', alignItems: 'flex-end'}}>
+                                {image.url ? (
+                                    <img
+                                        src={image.url}
+                                        alt={image.alt || ''}
+                                        style={{
+                                            width: 44, height: 44, objectFit: 'cover', borderRadius: 6,
+                                            border: '1px solid var(--mantine-color-gray-3)', flexShrink: 0,
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: 44, height: 44, borderRadius: 6, flexShrink: 0,
+                                        border: '1px dashed var(--mantine-color-gray-4)',
+                                    }}/>
+                                )}
+                                <TextInput
+                                    label={index === 0 ? t`Image URL` : undefined}
+                                    placeholder={t`https://…`}
+                                    type="url"
+                                    style={{flex: 1.4, minWidth: 0}} disabled={disabled}
+                                    value={image.url || ''}
+                                    onChange={(e) => patch(index, {url: e.currentTarget.value})}
+                                />
+                                <TextInput
+                                    label={index === 0 ? t`Alt text` : undefined}
+                                    placeholder={t`Crowd under red light`}
+                                    style={{flex: 1, minWidth: 0}} disabled={disabled}
+                                    value={image.alt || ''}
+                                    onChange={(e) => patch(index, {alt: e.currentTarget.value})}
+                                />
+                                <Tooltip label={t`Upload image`}>
+                                    <ActionIcon
+                                        variant="light" color="gray" aria-label={t`Upload image`} mt={24}
+                                        disabled={disabled || (busyKey !== null && !uploading)}
+                                        onClick={() => {
+                                            replaceIndexRef.current = index;
+                                            replaceInputRef.current?.click();
+                                        }}
+                                    >
+                                        {uploading ? <Loader size={14}/> : <IconUpload size={16}/>}
+                                    </ActionIcon>
+                                </Tooltip>
+                                <ActionIcon
+                                    variant="subtle" color="red" aria-label={t`Remove`} mt={24}
+                                    disabled={disabled || images.length === 1}
+                                    onClick={() => onChange({images: images.filter((_: GalleryImage, i: number) => i !== index)})}
+                                >
+                                    <IconTrash size={16}/>
+                                </ActionIcon>
+                            </div>
+                            {errors[key] && (
+                                <Text size="xs" c="red" mt={4}>{errors[key]}</Text>
+                            )}
+                        </div>
+                    );
+                })}
+            </Stack>
+
+            <Group gap="xs" mt="sm">
+                <Button
+                    size="xs" variant="light" leftSection={<IconUpload size={14}/>}
+                    disabled={disabled || (busyKey !== null && busyKey !== 'new')}
+                    loading={busyKey === 'new'}
+                    onClick={() => addInputRef.current?.click()}
+                >
+                    {t`Upload image`}
+                </Button>
+                <Button
+                    size="xs" variant="subtle" disabled={disabled}
+                    onClick={() => onChange({images: [...images, {url: 'https://', alt: ''}]})}
+                >
+                    {t`Add a link`}
+                </Button>
+            </Group>
+
+            {errors['new'] && <Text size="xs" c="red" mt={4}>{errors['new']}</Text>}
+
+            <input
+                ref={replaceInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    const index = replaceIndexRef.current;
+                    if (file && index !== null) void uploadFile(file, index);
+                }}
+            />
+            <input
+                ref={addInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadFile(file, null);
+                }}
+            />
+        </div>
+    );
+};
+
 /** Per-type authoring fields; data-driven types show what they pull from. */
 const BlockSettingsEditor = ({
     block,
@@ -347,54 +535,14 @@ const BlockSettingsEditor = ({
             );
         }
 
-        case 'GALLERY': {
-            const images = Array.isArray(settings.images) ? settings.images : [];
+        case 'GALLERY':
             return (
-                <div>
-                    <Text size="sm" fw={500} mb={6}>{t`Images`}</Text>
-                    <Stack gap="sm">
-                        {images.map((image: any, index: number) => (
-                            <div key={index} style={{display: 'flex', gap: '8px', alignItems: 'flex-end'}}>
-                                <TextInput
-                                    label={index === 0 ? t`Image URL` : undefined}
-                                    placeholder={t`https://…`}
-                                    type="url"
-                                    style={{flex: 1.4, minWidth: 0}} disabled={disabled}
-                                    value={image.url || ''}
-                                    onChange={(e) => onChange({
-                                        images: images.map((x: any, i: number) =>
-                                            i === index ? {...x, url: e.currentTarget.value} : x),
-                                    })}
-                                />
-                                <TextInput
-                                    label={index === 0 ? t`Alt text` : undefined}
-                                    placeholder={t`Crowd under red light`}
-                                    style={{flex: 1, minWidth: 0}} disabled={disabled}
-                                    value={image.alt || ''}
-                                    onChange={(e) => onChange({
-                                        images: images.map((x: any, i: number) =>
-                                            i === index ? {...x, alt: e.currentTarget.value} : x),
-                                    })}
-                                />
-                                <ActionIcon
-                                    variant="subtle" color="red" aria-label={t`Remove`} mt={24}
-                                    disabled={disabled || images.length === 1}
-                                    onClick={() => onChange({images: images.filter((_: any, i: number) => i !== index)})}
-                                >
-                                    <IconTrash size={16}/>
-                                </ActionIcon>
-                            </div>
-                        ))}
-                    </Stack>
-                    <Button
-                        size="xs" variant="light" mt="sm" disabled={disabled}
-                        onClick={() => onChange({images: [...images, {url: 'https://', alt: ''}]})}
-                    >
-                        {t`Add image`}
-                    </Button>
-                </div>
+                <GalleryEditor
+                    images={Array.isArray(settings.images) ? settings.images : []}
+                    disabled={disabled}
+                    onChange={onChange}
+                />
             );
-        }
 
         default: {
             const definition = blockRegistry[block.type as HomepageBlockType];
