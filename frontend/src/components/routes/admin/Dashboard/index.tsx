@@ -59,6 +59,35 @@ const AdminDashboard = () => {
         }).format(amount);
     };
 
+    /**
+     * Totals come back split by the currency they were earned in, because the
+     * platform has no exchange rate: adding a peso event's sales to a dollar
+     * event's would invent a number. Each line is rendered in its own currency
+     * so the card says where the money actually is.
+     */
+    const currencyTotals = (rows?: {currency: string; total: number | string}[] | null) =>
+        (rows ?? [])
+            .map((row) => ({currency: row.currency, amount: Number(row.total)}))
+            .filter((row) => row.currency && Number.isFinite(row.amount));
+
+    const renderCurrencyTotals = (rows?: {currency: string; total: number | string}[] | null) => {
+        const totals = currencyTotals(rows);
+
+        if (totals.length === 0) {
+            return <Text size="xl" fw={700} mt={4}>&ndash;</Text>;
+        }
+
+        return (
+            <Stack gap={2} mt={4}>
+                {totals.map((row) => (
+                    <Text key={row.currency} size="xl" fw={700} lh={1.15}>
+                        {formatCurrency(row.amount, row.currency)}
+                    </Text>
+                ))}
+            </Stack>
+        );
+    };
+
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat().format(num);
     };
@@ -161,7 +190,7 @@ const AdminDashboard = () => {
                         </Group>
                     </Title>
                     <Text size="xs" c="dimmed" mb="md">
-                        <Trans>Monetary values are approximate totals across all currencies</Trans>
+                        <Trans>Money is grouped by the currency it was earned in, with no conversion between them</Trans>
                     </Text>
                     <SimpleGrid cols={{base: 1, sm: 2, md: 4}} spacing="md">
                         <Paper shadow="sm" p="md" radius="md" withBorder>
@@ -174,9 +203,7 @@ const AdminDashboard = () => {
                                     {isLoadingDashboard ? (
                                         <Skeleton height={28} width={80} mt={4} />
                                     ) : (
-                                        <Text size="xl" fw={700}>
-                                            {formatCurrency(dashboardData?.recent_revenue || 0)}
-                                        </Text>
+                                        renderCurrencyTotals(dashboardData?.recent_revenue_by_currency)
                                     )}
                                 </div>
                             </Group>
@@ -210,9 +237,7 @@ const AdminDashboard = () => {
                                     {isLoadingDashboard ? (
                                         <Skeleton height={28} width={80} mt={4} />
                                     ) : (
-                                        <Text size="xl" fw={700}>
-                                            {formatCurrency(dashboardData?.recent_orders_total || 0)}
-                                        </Text>
+                                        renderCurrencyTotals(dashboardData?.recent_orders_total_by_currency)
                                     )}
                                 </div>
                             </Group>
