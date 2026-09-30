@@ -281,6 +281,7 @@ export interface AdminEvent {
     user_id: IdParam;
     attendees_count: number;
     slug: string;
+    currency: string;
     statistics: AdminEventStatistics | null;
 }
 

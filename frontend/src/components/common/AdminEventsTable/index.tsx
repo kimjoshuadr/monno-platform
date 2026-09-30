@@ -30,10 +30,10 @@ const AdminEventsTable = ({events, onSort, sortBy, sortDirection, onViewEvent, o
         return date.toLocaleDateString();
     };
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number, currency = 'USD') => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(amount);
@@ -134,7 +134,7 @@ const AdminEventsTable = ({events, onSort, sortBy, sortDirection, onViewEvent, o
                                         <Stack gap={4}>
                                             <Group gap={6}>
                                                 <Text size="xs" c="dimmed">{t`Sales:`}</Text>
-                                                <Text size="xs" fw={600}>{formatCurrency(event.statistics.total_gross_sales)}</Text>
+                                                <Text size="xs" fw={600}>{formatCurrency(event.statistics.total_gross_sales, event.currency)}</Text>
                                             </Group>
                                             <Group gap={6}>
                                                 <Text size="xs" c="dimmed">{t`Attendees:`}</Text>

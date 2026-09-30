@@ -1,7 +1,7 @@
 import {t} from "@lingui/macro";
 import {Badge, Button, Group, Table as MantineTable, Text} from '@mantine/core';
 import {IdParam} from "../../../types.ts";
-import {IconCopy, IconCurrencyDollar, IconPencil, IconPlus, IconShare, IconTrash, IconUsers} from "@tabler/icons-react";
+import {IconCopy, IconCoin, IconPencil, IconPlus, IconShare, IconTrash, IconUsers} from "@tabler/icons-react";
 import {useClipboard, useDisclosure} from "@mantine/hooks";
 import {useState} from "react";
 import {NoResultsSplash} from "../NoResultsSplash";
@@ -16,6 +16,7 @@ import classes from "./AffiliateTable.module.scss";
 import {Table, TableHead} from "../Table";
 import {ActionMenu} from "../ActionMenu";
 import {websiteEventUrl} from "../../../utilites/urlHelper.ts";
+import {formatCurrency} from "../../../utilites/currency.ts";
 import {useGetEvent} from "../../../queries/useGetEvent.ts";
 
 interface AffiliateTableProps {
@@ -148,9 +149,14 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
 
                                     <div className={classes.statItem}>
                                         <Group gap={4} align="center">
-                                            <IconCurrencyDollar size={12} className={classes.statIcon}/>
+                                            <IconCoin size={12} className={classes.statIcon}/>
                                             <Text className={classes.statValue}>
-                                                ${affiliate.total_sales_gross.toFixed(2)}
+                                                {/* The event's own currency — this used to be a
+                                                    hardcoded `$`, which quoted every organizer's
+                                                    revenue in dollars regardless of how they sell. */}
+                                                {event
+                                                    ? formatCurrency(affiliate.total_sales_gross, event.currency)
+                                                    : '—'}
                                             </Text>
                                         </Group>
                                         <Text className={classes.statLabel}>
