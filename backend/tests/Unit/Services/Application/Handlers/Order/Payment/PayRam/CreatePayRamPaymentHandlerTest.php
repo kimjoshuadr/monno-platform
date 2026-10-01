@@ -1,0 +1,256 @@
+<?php
+
+namespace Tests\Unit\Services\Application\Handlers\Order\Payment\PayRam;
+
+use HiEvents\DomainObjects\EventSettingDomainObject;
+use HiEvents\DomainObjects\Enums\PaymentProviders;
+use HiEvents\DomainObjects\OrderDomainObject;
+use HiEvents\DomainObjects\Status\OrderPaymentStatus;
+use HiEvents\DomainObjects\Status\OrderStatus;
+use HiEvents\Exceptions\PayRam\PayRamConfigurationException;
+use HiEvents\Exceptions\ResourceConflictException;
+use HiEvents\Exceptions\UnauthorizedException;
+use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
+use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
+use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
+use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\CreatePayRamPaymentHandler;
+use HiEvents\Services\Domain\Payment\PayRam\DTOs\PayRamPaymentSessionDTO;
+use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
+use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
+use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
+use HiEvents\Services\Infrastructure\Session\CheckoutSessionManagementService;
+use HiEvents\Values\MoneyValue;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Mockery as m;
+use Psr\Log\LoggerInterface;
+use Tests\TestCase;
+
+class CreatePayRamPaymentHandlerTest extends TestCase
+{
+    private OrderRepositoryInterface $orderRepository;
+    private EventSettingsRepositoryInterface $eventSettingsRepository;
+    private PayRamPaymentsRepositoryInterface $payramPaymentsRepository;
+    private PayRamClient $payramClient;
+    private CheckoutSessionManagementService $sessionService;
+    private CurrencyConversionClientInterface $currencyConversionClient;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.payram.enabled' => true,
+            'services.payram.base_url' => 'https://pay.monno.io',
+            'services.payram.api_key' => 'key',
+            'services.payram.fee_bps' => 250,
+            'mail.from.address' => 'no-reply@monno.io',
+        ]);
+
+        $this->orderRepository = m::mock(OrderRepositoryInterface::class);
+        $this->eventSettingsRepository = m::mock(EventSettingsRepositoryInterface::class);
+        $this->payramPaymentsRepository = m::mock(PayRamPaymentsRepositoryInterface::class);
+        $this->payramClient = m::mock(PayRamClient::class);
+        $this->sessionService = m::mock(CheckoutSessionManagementService::class);
+        $this->currencyConversionClient = m::mock(CurrencyConversionClientInterface::class);
+    }
+
+    protected function tearDown(): void
+    {
+        m::close();
+        parent::tearDown();
+    }
+
+    private function makeOrder(
+        string $currency = 'PHP',
+        float $totalGross = 1099.00,
+        string $status = OrderStatus::RESERVED->name,
+        ?string $reservedUntil = null,
+        ?string $sessionId = 'session-abc',
+    ): OrderDomainObject {
+        $order = new OrderDomainObject;
+        $order->setId(77)
+            ->setEventId(5)
+            ->setShortId('ORDSHORT')
+            ->setTotalGross($totalGross)
+            ->setCurrency($currency)
+            ->setStatus($status)
+            ->setPaymentStatus(OrderPaymentStatus::AWAITING_PAYMENT->name)
+            ->setReservedUntil($reservedUntil ?? Carbon::now()->addMinutes(30)->toDateTimeString())
+            ->setSessionId($sessionId)
+            ->setEmail('buyer@example.com');
+
+        return $order;
+    }
+
+    private function makeSettings(array $providers): EventSettingDomainObject
+    {
+        $settings = new EventSettingDomainObject;
+        $settings->setEventId(5)->setPaymentProviders($providers);
+
+        return $settings;
+    }
+
+    private function handler(): CreatePayRamPaymentHandler
+    {
+        return new CreatePayRamPaymentHandler(
+            orderRepository: $this->orderRepository,
+            eventSettingsRepository: $this->eventSettingsRepository,
+            payramPaymentsRepository: $this->payramPaymentsRepository,
+            payramClient: $this->payramClient,
+            sessionIdentifierService: $this->sessionService,
+            currencyConversionClient: $this->currencyConversionClient,
+        );
+    }
+
+    public function test_it_refuses_to_quote_when_no_exchange_rate_provider_is_configured(): void
+    {
+        // No OPEN_EXCHANGE_RATES_APP_ID means the NoOp client is bound, which
+        // would otherwise pass 1099.00 straight through as 1099.00 USD.
+        $order = $this->makeOrder(currency: 'PHP', totalGross: 1099.00);
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+
+        $handler = new CreatePayRamPaymentHandler(
+            orderRepository: $this->orderRepository,
+            eventSettingsRepository: $this->eventSettingsRepository,
+            payramPaymentsRepository: $this->payramPaymentsRepository,
+            payramClient: $this->payramClient,
+            sessionIdentifierService: $this->sessionService,
+            currencyConversionClient: new NoOpCurrencyConversionClient(app(LoggerInterface::class)),
+        );
+
+        $this->expectException(PayRamConfigurationException::class);
+        $handler->handle('ORDSHORT');
+    }
+
+    public function test_it_allows_a_usd_order_without_an_exchange_rate_provider(): void
+    {
+        $order = $this->makeOrder(currency: 'USD', totalGross: 25.00);
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO(
+                referenceId: 'ref-1',
+                checkoutUrl: 'https://pay.monno.io/payments?reference_id=ref-1',
+                host: 'https://pay.monno.io',
+            ));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        $this->assertSame('ref-1', $response->referenceId);
+        $this->assertSame(25.00, $response->orderAmount);
+        // 25.00 / (1 - 0.025) = 25.6410... -> rounds up to the cent
+        $this->assertSame(25.65, $response->amountInUsd);
+        $this->assertSame(0.65, $response->platformFeeUsd);
+    }
+
+    public function test_it_grosses_the_fee_up_to_the_cent_so_we_never_under_collect(): void
+    {
+        $order = $this->makeOrder(currency: 'USD', totalGross: 100.00);
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO('ref-2', 'https://pay.monno.io/payments?reference_id=ref-2', ''));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        // 100 / 0.975 = 102.5641... -> 102.57
+        $this->assertSame(102.57, $response->amountInUsd);
+        $this->assertSame(2.57, $response->platformFeeUsd);
+
+        // After PayRam takes 2.5% of what the buyer paid, the organizer is left
+        // with at least the ticket price.
+        $this->assertGreaterThanOrEqual(100.00, $response->amountInUsd * 0.975);
+    }
+
+    public function test_it_converts_the_order_total_before_quoting(): void
+    {
+        $order = $this->makeOrder(currency: 'PHP', totalGross: 1099.00);
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->currencyConversionClient->shouldReceive('convert')
+            ->withArgs(fn ($from, $to, $amount) => $from->getCurrencyCode() === 'PHP'
+                && $to->getCurrencyCode() === 'USD'
+                && $amount === 1099.00)
+            ->andReturn(MoneyValue::fromFloat(19.30, 'USD'));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO('ref-3', 'https://pay.monno.io/payments?reference_id=ref-3', ''));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        // 19.30 / (1 - 0.025) = 19.7948... -> rounds up to 19.80
+        $this->assertSame(19.80, $response->amountInUsd);
+        $this->assertSame(0.50, $response->platformFeeUsd);
+        $this->assertSame('PHP', $response->orderCurrency);
+        $this->assertSame(1099.00, $response->orderAmount);
+        $this->assertSame(0.017561, round($response->fxRate, 6));
+
+        // After PayRam takes its 2.5% on-chain, the organizer is still left
+        // with at least the ticket price they advertised.
+        $this->assertGreaterThanOrEqual(19.30, $response->amountInUsd * 0.975);
+    }
+
+    public function test_it_rejects_an_order_whose_session_cannot_be_verified(): void
+    {
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($this->makeOrder());
+        $this->sessionService->shouldReceive('verifySession')->andReturn(false);
+
+        $this->expectException(UnauthorizedException::class);
+        $this->handler()->handle('ORDSHORT');
+    }
+
+    public function test_it_rejects_an_order_when_crypto_is_not_enabled_for_the_event(): void
+    {
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($this->makeOrder());
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::OFFLINE->value]));
+
+        $this->expectException(UnauthorizedException::class);
+        $this->handler()->handle('ORDSHORT');
+    }
+
+    public function test_it_rejects_an_expired_order(): void
+    {
+        $order = $this->makeOrder(reservedUntil: Carbon::now()->subMinute()->toDateTimeString());
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+
+        $this->expectException(ResourceConflictException::class);
+        $this->handler()->handle('ORDSHORT');
+    }
+
+    public function test_it_rejects_a_completed_order(): void
+    {
+        $order = $this->makeOrder(status: OrderStatus::COMPLETED->name);
+
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+
+        $this->expectException(ResourceConflictException::class);
+        $this->handler()->handle('ORDSHORT');
+    }
+}

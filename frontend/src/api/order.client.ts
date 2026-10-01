@@ -152,6 +152,22 @@ export const orderClientPublic = {
         return response.data;
     },
 
+    createPayRamPayment: async (eventId: number, orderShortId: string) => {
+        const response = await publicApi.post<{
+            reference_id: string,
+            url: string,
+            amount_in_usd: number,
+            amount_in_usd_formatted: string,
+            platform_fee_usd: number,
+            platform_fee_usd_formatted: string,
+            order_amount: number,
+            order_currency: string,
+            fx_rate: number,
+            expires_at: string,
+        }>(`events/${eventId}/order/${orderShortId}/payram/payment`);
+        return response.data;
+    },
+
     finaliseOrder: async (
         eventId: number,
         orderShortId: string,

@@ -56,6 +56,7 @@ use HiEvents\Repository\Eloquent\QuestionAnswerRepository;
 use HiEvents\Repository\Eloquent\QuestionRepository;
 use HiEvents\Repository\Eloquent\StripeCustomerRepository;
 use HiEvents\Repository\Eloquent\StripePaymentsRepository;
+use HiEvents\Repository\Eloquent\PayRamPaymentsRepository;
 use HiEvents\Repository\Eloquent\StripePayoutsRepository;
 use HiEvents\Repository\Eloquent\TaxAndFeeRepository;
 use HiEvents\Repository\Eloquent\TicketLookupTokenRepository;
@@ -104,6 +105,7 @@ use HiEvents\Repository\Interfaces\OrganizerVatSettingRepositoryInterface;
 use HiEvents\Repository\Interfaces\OutgoingMessageRepositoryInterface;
 use HiEvents\Repository\Interfaces\PasswordResetRepositoryInterface;
 use HiEvents\Repository\Interfaces\PasswordResetTokenRepositoryInterface;
+use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductCategoryRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductOccurrenceVisibilityRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductPriceOccurrenceOverrideRepositoryInterface;
@@ -143,6 +145,7 @@ class RepositoryServiceProvider extends ServiceProvider
         QuestionRepositoryInterface::class => QuestionRepository::class,
         QuestionAnswerRepositoryInterface::class => QuestionAnswerRepository::class,
         StripePaymentsRepositoryInterface::class => StripePaymentsRepository::class,
+        PayRamPaymentsRepositoryInterface::class => PayRamPaymentsRepository::class,
         PromoCodeRepositoryInterface::class => PromoCodeRepository::class,
         MessageRepositoryInterface::class => MessageRepository::class,
         PasswordResetTokenRepositoryInterface::class => PasswordResetTokenRepository::class,

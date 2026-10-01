@@ -15,7 +15,7 @@ import {Editor} from "../../../../../common/Editor";
 import {LiquidTokenControl} from "../../../../../common/Editor/Controls/LiquidTokenControl";
 import {InputLabelWithHelp} from "../../../../../common/InputLabelWithHelp";
 import {isEmptyHtml} from "../../../../../../utilites/helpers.ts";
-import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../../../../utilites/paymentProviders.ts";
+import {PAYRAM_ENABLED, resolvePaymentProviders, STRIPE_ENABLED} from "../../../../../../utilites/paymentProviders.ts";
 
 export const PaymentAndInvoicingSettings = () => {
     const {eventId} = useParams();
@@ -88,6 +88,11 @@ export const PaymentAndInvoicingSettings = () => {
             label: t`Stripe`,
             description: t`Accept credit card payments with Stripe`
         }] : []),
+        ...(PAYRAM_ENABLED ? [{
+            value: "PAYRAM",
+            label: t`Crypto (USDT / USDC)`,
+            description: t`Buyers pay in stablecoins on a hosted checkout. Funds settle to your wallet automatically, on-chain, once the payment confirms.`
+        }] : []),
         {
             value: "OFFLINE",
             label: t`Pay via invoice or bank transfer`,
@@ -108,7 +113,7 @@ export const PaymentAndInvoicingSettings = () => {
                             <Text size="lg" fw={500} mb="md">{t`Payment Methods`}</Text>
                             {!STRIPE_ENABLED && (
                                 <Alert variant="light" color="blue" icon={<IconInfoCircle size={18}/>} mb="md">
-                                    {t`Online card payments are unavailable in this region. Take payment outside the platform and mark each order as paid once the money arrives. Add your payment instructions below so buyers know how to pay.`}
+                                    {t`Online card payments are unavailable in this region. You can accept crypto payments directly, or take payment outside the platform and mark each order as paid once the money arrives — add your payment instructions below so buyers know how to pay.`}
                                 </Alert>
                             )}
                             {paymentOptions.map((option) => {

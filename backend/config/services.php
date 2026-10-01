@@ -49,6 +49,25 @@ return [
         // Primary platform for new organizers
         'primary_platform' => env('STRIPE_PRIMARY_PLATFORM'),
     ],
+    /*
+    | PayRam (crypto payments, self-hosted at pay.monno.io)
+    |
+    | The API key is the per-project key from the PayRam dashboard; it is also
+    | the HMAC key PayRam signs webhook bodies with (X-Payram-Signature).
+    */
+    'payram' => [
+        'base_url' => rtrim(env('PAYRAM_BASE_URL', 'https://pay.monno.io'), '/'),
+        'api_key' => env('PAYRAM_API_KEY'),
+        'webhook_secret' => env('PAYRAM_WEBHOOK_SECRET', env('PAYRAM_API_KEY')),
+        'enabled' => (bool) env('PAYRAM_ENABLED', true),
+        'timeout' => (int) env('PAYRAM_TIMEOUT', 20),
+
+        // Operator markup PayRam collects on-chain at sweep time (bps).
+        // Must match the fee configured for this chain in the PayRam dashboard,
+        // because we gross the buyer's amount up by it so the organizer nets
+        // their sticker price.
+        'fee_bps' => (int) env('PAYRAM_FEE_BPS', 250),
+    ],
     'open_exchange_rates' => [
         'app_id' => env('OPEN_EXCHANGE_RATES_APP_ID'),
     ],

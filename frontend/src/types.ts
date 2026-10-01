@@ -252,7 +252,7 @@ export type ImageType =
 
 export type BackgroundMediaImageType = 'EVENT_BACKGROUND' | 'ORGANIZER_BACKGROUND';
 
-export type PaymentProvider = 'STRIPE' | 'OFFLINE';
+export type PaymentProvider = 'STRIPE' | 'OFFLINE' | 'PAYRAM';
 
 export type AttendeeDetailsCollectionMethod = 'PER_TICKET' | 'PER_ORDER';
 
