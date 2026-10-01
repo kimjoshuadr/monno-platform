@@ -18,6 +18,13 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ProcessExpiredWaitlistOffersJob)->everyMinute()->withoutOverlapping();
         $schedule->job(new ProcessScheduledAccountDeletionsJob)->hourly()->withoutOverlapping();
 
+        // PayRam settlement is poll-based until webhook endpoint registration
+        // ships on our gateway build — this is what actually marks orders paid.
+        $schedule->command('monno:payram-reconcile')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         $schedule->call(function (): void {
             $count = DB::table('failed_jobs')->count();
             if ($count > 0) {
