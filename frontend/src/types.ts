@@ -215,6 +215,27 @@ export interface OrganizerStripeConnectAccountsResponse {
     has_completed_setup: boolean;
 }
 
+export type OrganizerPayRamAccountStatus =
+    'NOT_CONNECTED'
+    | 'PROVISIONING'
+    | 'READY'
+    | 'FAILED';
+
+export interface OrganizerPayRamAccountResponse {
+    status: OrganizerPayRamAccountStatus;
+    project_name?: string | null;
+    member_email?: string | null;
+    external_platform_id?: number | null;
+    wallet_status?: string | null;
+    dashboard_url?: string;
+    last_error?: string | null;
+    /** Present only in the response that created the account. */
+    credentials?: {
+        email: string;
+        password: string;
+    };
+}
+
 export interface LoginData {
     email: string;
     password: string;

@@ -191,6 +191,7 @@ use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
 use HiEvents\Http\Actions\Organizers\PayRam\GetOrProvisionPayRamAccountAction;
+use HiEvents\Http\Actions\Organizers\PayRam\GetPayRamAccountAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
 use HiEvents\Http\Actions\Organizers\Settings\PartialUpdateOrganizerSettingsAction;
@@ -405,6 +406,7 @@ $router->middleware(['auth:api', 'email.verified'])->group(
         // Stripe Connect - Organizer level
         $router->get('/organizers/{organizerId}/stripe/connect_accounts', GetStripeConnectAccountsAction::class);
         // PayRam merchant account - organizer level
+        $router->get('/organizers/{organizerId}/payram/account', GetPayRamAccountAction::class);
         $router->post('/organizers/{organizerId}/payram/account', GetOrProvisionPayRamAccountAction::class);
 
         $router->post('/organizers/{organizerId}/stripe/connect', CreateStripeConnectAccountAction::class);

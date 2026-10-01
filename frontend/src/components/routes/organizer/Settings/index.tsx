@@ -8,12 +8,13 @@ import { PayoutsSettings } from "./Sections/PayoutsSettings";
 import { PlatformFeesSettings } from "./Sections/PlatformFeesSettings";
 import { DangerZoneSettings } from "./Sections/DangerZoneSettings";
 import { TrackingPixelSettings } from "./Sections/TrackingPixelSettings";
+import { PayRamSettings } from "./Sections/PayRamSettings";
 import ImageAssetSettings from "./Sections/ImageAssetSettings";
 import { PageBody } from "../../../common/PageBody";
 import { PageTitle } from "../../../common/PageTitle";
 import { t } from "@lingui/macro";
 import { Box, Group, NavLink as MantineNavLink, Stack } from "@mantine/core";
-import { IconAlertTriangle, IconBrandGoogleAnalytics, IconBrandStripe, IconInfoCircle, IconMapPin, IconShare, IconMail, IconCalendarEvent, IconPercentage, IconChartBar, IconPhoto } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBrandGoogleAnalytics, IconBrandStripe, IconInfoCircle, IconMapPin, IconShare, IconMail, IconCalendarEvent, IconPercentage, IconChartBar, IconPhoto, IconCurrencyBitcoin } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "../../../common/Card";
@@ -75,6 +76,12 @@ const Settings = () => {
                 label: t`Tracking & Analytics`,
                 icon: IconChartBar,
                 component: TrackingPixelSettings,
+            },
+            {
+                id: 'crypto-payments',
+                label: t`Crypto Payments`,
+                icon: IconCurrencyBitcoin,
+                component: () => <PayRamSettings organizerId={organizerId!}/>,
             },
             {
                 id: 'danger-zone',

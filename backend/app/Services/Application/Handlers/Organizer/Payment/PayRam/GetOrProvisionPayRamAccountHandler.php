@@ -18,16 +18,24 @@ class GetOrProvisionPayRamAccountHandler
         private readonly OrganizerRepositoryInterface $organizerRepository,
     ) {}
 
+    public const STATUS_NOT_CONNECTED = 'NOT_CONNECTED';
+
     /**
+     * @param  bool  $provision  false = report only, so merely opening the settings
+     *                           page never creates anything behind the user's back
      * @return array<string, mixed>
      */
-    public function handle(int $organizerId): array
+    public function handle(int $organizerId, bool $provision = true): array
     {
         $existing = $this->provisioningService->findForOrganizer($organizerId);
 
         if ($existing !== null
             && $existing->getStatus() !== PayRamMerchantProvisioningService::STATUS_FAILED) {
             return $this->present($existing);
+        }
+
+        if (! $provision) {
+            return ['status' => self::STATUS_NOT_CONNECTED, 'dashboard_url' => rtrim((string) config('services.payram.base_url'), '/')];
         }
 
         $organizer = $this->organizerRepository->findById($organizerId);
