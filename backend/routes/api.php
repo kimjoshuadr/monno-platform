@@ -718,7 +718,8 @@ $router->prefix('/public')->group(
         $router->post('/events/{event_id}/order/{order_short_id}/payram/payment', CreatePayRamPaymentActionPublic::class);
         $router->get('/payram/return', PayRamReturnAction::class);
         $router->get('/payram/cancel', PayRamCancelAction::class);
-        $router->post('/payram/sso-exchange', ExchangePayRamSsoCodeAction::class);
+        $router->post('/payram/sso-exchange', ExchangePayRamSsoCodeAction::class)
+            ->middleware('throttle:60,1');
 
         // Questions
         $router->get('/events/{event_id}/questions', GetQuestionsPublicAction::class);

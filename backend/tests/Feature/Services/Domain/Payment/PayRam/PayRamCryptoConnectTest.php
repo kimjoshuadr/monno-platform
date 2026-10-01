@@ -179,45 +179,36 @@ class PayRamCryptoConnectTest extends TestCase
         $this->assertStringContainsString('/checkout/'.$this->eventId.'/ORD12345/payment?canceled=1', $response->getTargetUrl());
     }
 
-    public function test_sso_exchange_rejects_a_missing_or_wrong_secret(): void
+    public function test_sso_exchange_requires_a_code(): void
     {
-        config(['services.payram.sso_secret' => 'shared-secret']);
-
         $action = app(ExchangePayRamSsoCodeAction::class);
 
-        $withoutSecret = $action(Request::create('/public/payram/sso-exchange', 'POST', ['code' => 'abc']));
-        $wrongSecret = $action(Request::create(
-            '/public/payram/sso-exchange',
-            'POST',
-            ['code' => 'abc'],
-            [],
-            [],
-            ['HTTP_X_PAYRAM_SSO_SECRET' => 'nope'],
-        ));
+        $response = $action(Request::create('/public/payram/sso-exchange', 'POST', []));
 
-        $this->assertEquals(401, $withoutSecret->getStatusCode());
-        $this->assertEquals(401, $wrongSecret->getStatusCode());
+        $this->assertEquals(422, $response->getStatusCode());
     }
 
     public function test_sso_exchange_returns_the_session_once(): void
     {
-        config(['services.payram.sso_secret' => 'shared-secret']);
-
         Cache::put(
             CreatePayRamSsoTokenHandler::CACHE_PREFIX.'one-time-code',
-            ['accessToken' => 'member-token'],
+            ['accessToken' => 'member-token', 'refreshToken' => 'refresh-token', 'resetPasswordRequired' => true],
             60,
         );
 
         $action = app(ExchangePayRamSsoCodeAction::class);
-        $server = ['HTTP_X_PAYRAM_SSO_SECRET' => 'shared-secret'];
 
-        $first = $action(Request::create('/public/payram/sso-exchange', 'POST', ['code' => 'one-time-code'], [], [], $server));
+        $first = $action(Request::create('/public/payram/sso-exchange', 'POST', ['code' => 'one-time-code']));
         $this->assertEquals(200, $first->getStatusCode());
-        $this->assertSame('member-token', $first->getData(true)['tokens']['accessToken']);
+
+        $session = $first->getData(true)['session'];
+        $this->assertSame('member-token', $session['accessToken']);
+        $this->assertSame('refresh-token', $session['refreshToken']);
+        // The first-login password reset is cleared — Monno already authenticated them.
+        $this->assertFalse($session['resetPasswordRequired']);
 
         // The code is single-use: a replay finds nothing.
-        $replay = $action(Request::create('/public/payram/sso-exchange', 'POST', ['code' => 'one-time-code'], [], [], $server));
+        $replay = $action(Request::create('/public/payram/sso-exchange', 'POST', ['code' => 'one-time-code']));
         $this->assertEquals(410, $replay->getStatusCode());
     }
 }

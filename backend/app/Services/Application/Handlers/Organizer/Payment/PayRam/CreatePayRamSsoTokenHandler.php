@@ -17,9 +17,10 @@ use Throwable;
  * PayRam console already signed in.
  *
  * We sign in as the member here (the operator holds their credentials), then
- * park the resulting session under a random code. The PayRam app redeems the
- * code server-to-server. Nothing sensitive ever travels in the URL beyond the
- * one-time code, and the organizer never sees a password.
+ * park the resulting session under a random code. A small page we ship inside
+ * the PayRam image redeems it and writes the session into the gateway's own
+ * localStorage. The code is the only secret and it is single-use, so the
+ * organizer never sees a password.
  */
 class CreatePayRamSsoTokenHandler
 {
@@ -77,6 +78,7 @@ class CreatePayRamSsoTokenHandler
         return [
             'code' => $code,
             'dashboard_url' => $dashboardUrl,
+            'exchange_url' => rtrim((string) config('app.api_public_url'), '/').'/public/payram/sso-exchange',
         ];
     }
 }

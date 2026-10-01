@@ -40,6 +40,7 @@ export const organizerPayRamClient = {
         const response = await api.post<{
             code: string;
             dashboard_url: string;
+            exchange_url: string;
         }>(`organizers/${organizerId}/payram/sso-token`);
         return response.data;
     },
