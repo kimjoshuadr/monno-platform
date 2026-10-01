@@ -27,8 +27,6 @@ import {HeadingWithDescription} from "../../../../../common/Card/CardHeading";
 import {useGetPayRamAccount} from "../../../../../../queries/useGetPayRamAccount";
 import {IdParam} from "../../../../../../types";
 import {CryptoConnectWizardModal} from "./CryptoConnectWizardModal";
-import {organizerPayRamClient} from "../../../../../../api/organizer-payram.client";
-import {showError} from "../../../../../../utilites/notifications";
 
 interface PayRamSettingsProps {
     organizerId: IdParam;
@@ -37,7 +35,6 @@ interface PayRamSettingsProps {
 export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const {data, isPending} = useGetPayRamAccount(organizerId);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
-    const [isOpeningConsole, setIsOpeningConsole] = useState(false);
 
     const isConnected = data?.status === 'READY';
     const isWalletConfigured = Boolean(
@@ -50,20 +47,12 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const gateway = data?.gateway;
     const gatewayWalletReady = gateway?.available ? gateway.cold_wallet_configured : null;
 
-    const handleOpenConsole = async () => {
-        try {
-            setIsOpeningConsole(true);
-            const {code, dashboard_url} = await organizerPayRamClient.createSsoToken(organizerId);
-            window.open(
-                `${dashboard_url}/sso#code=${encodeURIComponent(code)}`,
-                '_blank',
-                'noopener,noreferrer',
-            );
-        } catch {
-            showError(t`Could not open the payment gateway console. Please try again.`);
-        } finally {
-            setIsOpeningConsole(false);
-        }
+    // The console is a separate app we do not control: it has no token-login
+    // route we can deep-link into, so we can only open it. Until the gateway
+    // gains an SSO accept route, the organizer signs in with the credentials
+    // they were given when crypto was first set up.
+    const handleOpenConsole = () => {
+        window.open(data?.dashboard_url || 'https://pay.monno.io', '_blank', 'noopener,noreferrer');
     };
 
     return (
@@ -154,7 +143,6 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         variant="subtle"
                                         size="xs"
                                         rightSection={<IconExternalLink size={14} />}
-                                        loading={isOpeningConsole}
                                         onClick={handleOpenConsole}
                                     >
                                         {t`PayRam console`}
