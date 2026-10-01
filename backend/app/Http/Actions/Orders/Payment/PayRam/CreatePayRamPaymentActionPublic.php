@@ -36,6 +36,8 @@ class CreatePayRamPaymentActionPublic extends BaseAction
             'url' => $session->checkoutUrl,
             'amount_in_usd' => $session->amountInUsd,
             'amount_in_usd_formatted' => $session->amountInUsdFormatted(),
+            'ticket_amount_in_usd' => $session->ticketAmountInUsd(),
+            'ticket_amount_in_usd_formatted' => $session->ticketAmountInUsdFormatted(),
             'platform_fee_usd' => $session->platformFeeUsd,
             'platform_fee_usd_formatted' => $session->platformFeeUsdFormatted(),
             'order_amount' => $session->orderAmount,

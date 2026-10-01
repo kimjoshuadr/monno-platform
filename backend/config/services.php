@@ -71,6 +71,11 @@ return [
     'open_exchange_rates' => [
         'app_id' => env('OPEN_EXCHANGE_RATES_APP_ID'),
     ],
+    // Keyless fallback rate source, used when no Open Exchange Rates key is set.
+    'currency' => [
+        'keyless_api_url' => env('CURRENCY_KEYLESS_API_URL', 'https://open.er-api.com/v6/latest/USD'),
+        'keyless_enabled' => (bool) env('CURRENCY_KEYLESS_ENABLED', true),
+    ],
     'geo' => [
         'provider' => env('GEO_PROVIDER', 'google'),
         'google' => [

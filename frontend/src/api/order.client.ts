@@ -158,6 +158,8 @@ export const orderClientPublic = {
             url: string,
             amount_in_usd: number,
             amount_in_usd_formatted: string,
+            ticket_amount_in_usd: number,
+            ticket_amount_in_usd_formatted: string,
             platform_fee_usd: number,
             platform_fee_usd_formatted: string,
             order_amount: number,

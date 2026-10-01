@@ -84,7 +84,7 @@ export const PayRamPaymentMethod = ({enabled, setSubmitHandler}: PayRamPaymentMe
                 <Stack gap={4}>
                     <Group justify="space-between">
                         <Text size="sm">{formatCurrency(data.order_amount, data.order_currency)}</Text>
-                        <Text size="sm" c="dimmed">≈ {formatCurrency(data.amount_in_usd, 'USD')}</Text>
+                        <Text size="sm" c="dimmed">≈ {formatCurrency(data.ticket_amount_in_usd, 'USD')}</Text>
                     </Group>
 
                     {data.platform_fee_usd > 0 && (
