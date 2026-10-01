@@ -6,7 +6,7 @@ use HiEvents\Http\Actions\BaseAction;
 use HiEvents\Http\ResponseCodes;
 use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\DTO\PayRamWebhookDTO;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamIncomingWebhookHandler;
-use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
+use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamWebhookVerifier;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Throwable;
@@ -21,7 +21,7 @@ use Throwable;
 class PayRamIncomingWebhookAction extends BaseAction
 {
     public function __construct(
-        private readonly PayRamClient $payRamClient,
+        private readonly PayRamWebhookVerifier $webhookVerifier,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -30,7 +30,7 @@ class PayRamIncomingWebhookAction extends BaseAction
         $signature = $request->header('X-Payram-Signature');
         $apiKeyHeader = $request->header('API-KEY');
 
-        if (! $this->payRamClient->verifyWebhookSignature($rawBody, $signature, $apiKeyHeader)) {
+        if (! $this->webhookVerifier->verify($rawBody, $signature, $apiKeyHeader)) {
             logger()->warning('Rejected PayRam webhook with an invalid signature');
 
             return $this->noContentResponse(ResponseCodes::HTTP_UNAUTHORIZED);
