@@ -10,8 +10,8 @@ use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\DTO\PayRamWebhoo
 use HiEvents\Services\Domain\Payment\PayRam\PayRamIncomingWebhookHandler;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamPaymentSettlementHandler;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PayRamSettlementTest extends TestCase
@@ -50,7 +50,7 @@ class PayRamSettlementTest extends TestCase
     {
         $id = DB::table('orders')->insertGetId(array_merge([
             'event_id' => $this->eventId,
-            'short_id' => 'ORD' . strtoupper(substr(uniqid(), -8)),
+            'short_id' => 'ORD'.strtoupper(substr(uniqid(), -8)),
             'public_id' => (string) random_int(100000, 999999),
             'currency' => 'USD',
             'status' => 'RESERVED',
@@ -76,7 +76,7 @@ class PayRamSettlementTest extends TestCase
             'reference_id' => self::REFERENCE,
             'invoice_id' => $order['short_id'],
             'customer_id' => $order['short_id'],
-            'checkout_url' => 'https://pay.monno.io/payments?reference_id=' . self::REFERENCE,
+            'checkout_url' => 'https://pay.monno.io/payments?reference_id='.self::REFERENCE,
             'amount_in_usd' => 19.80,
             'order_currency' => 'USD',
             'order_amount' => 19.30,

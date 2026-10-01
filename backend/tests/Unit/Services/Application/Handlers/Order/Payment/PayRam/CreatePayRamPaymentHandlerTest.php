@@ -2,9 +2,10 @@
 
 namespace Tests\Unit\Services\Application\Handlers\Order\Payment\PayRam;
 
-use HiEvents\DomainObjects\EventSettingDomainObject;
 use HiEvents\DomainObjects\Enums\PaymentProviders;
+use HiEvents\DomainObjects\EventSettingDomainObject;
 use HiEvents\DomainObjects\OrderDomainObject;
+use HiEvents\DomainObjects\PayramPaymentDomainObject;
 use HiEvents\DomainObjects\Status\OrderPaymentStatus;
 use HiEvents\DomainObjects\Status\OrderStatus;
 use HiEvents\Exceptions\PayRam\PayRamConfigurationException;
@@ -12,9 +13,11 @@ use HiEvents\Exceptions\ResourceConflictException;
 use HiEvents\Exceptions\UnauthorizedException;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
+use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\CreatePayRamPaymentHandler;
 use HiEvents\Services\Domain\Payment\PayRam\DTOs\PayRamPaymentSessionDTO;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamCredentialResolver;
 use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
 use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
@@ -29,11 +32,18 @@ use Tests\TestCase;
 class CreatePayRamPaymentHandlerTest extends TestCase
 {
     private OrderRepositoryInterface $orderRepository;
+
     private EventSettingsRepositoryInterface $eventSettingsRepository;
+
     private PayRamPaymentsRepositoryInterface $payramPaymentsRepository;
+
     private PayRamClient $payramClient;
+
     private CheckoutSessionManagementService $sessionService;
+
     private CurrencyConversionClientInterface $currencyConversionClient;
+
+    private OrganizerPayRamAccountsRepositoryInterface $accountsRepository;
 
     protected function setUp(): void
     {
@@ -53,6 +63,9 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         $this->payramClient = m::mock(PayRamClient::class);
         $this->sessionService = m::mock(CheckoutSessionManagementService::class);
         $this->currencyConversionClient = m::mock(CurrencyConversionClientInterface::class);
+        $this->accountsRepository = m::mock(OrganizerPayRamAccountsRepositoryInterface::class);
+        // No per-organizer merchant account → the shared instance key is used.
+        $this->accountsRepository->shouldReceive('findFirstWhere')->andReturn(null);
     }
 
     protected function tearDown(): void
@@ -100,6 +113,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
             payramClient: $this->payramClient,
             sessionIdentifierService: $this->sessionService,
             currencyConversionClient: $this->currencyConversionClient,
+            credentialResolver: new PayRamCredentialResolver($this->accountsRepository),
         );
     }
 
@@ -109,6 +123,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         // would otherwise pass 1099.00 straight through as 1099.00 USD.
         $order = $this->makeOrder(currency: 'PHP', totalGross: 1099.00);
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
         $this->eventSettingsRepository->shouldReceive('findFirstWhere')
@@ -121,6 +136,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
             payramClient: $this->payramClient,
             sessionIdentifierService: $this->sessionService,
             currencyConversionClient: new NoOpCurrencyConversionClient(app(LoggerInterface::class)),
+            credentialResolver: new PayRamCredentialResolver($this->accountsRepository),
         );
 
         $this->expectException(PayRamConfigurationException::class);
@@ -131,13 +147,14 @@ class CreatePayRamPaymentHandlerTest extends TestCase
     {
         $order = $this->makeOrder(currency: 'USD', totalGross: 25.00);
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
         $this->eventSettingsRepository->shouldReceive('findFirstWhere')
             ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
         $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
-        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
         $this->payramClient->shouldReceive('createPayment')
             ->andReturn(new PayRamPaymentSessionDTO(
                 referenceId: 'ref-1',
@@ -158,13 +175,14 @@ class CreatePayRamPaymentHandlerTest extends TestCase
     {
         $order = $this->makeOrder(currency: 'USD', totalGross: 100.00);
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
         $this->eventSettingsRepository->shouldReceive('findFirstWhere')
             ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
         $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
-        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
         $this->payramClient->shouldReceive('createPayment')
             ->andReturn(new PayRamPaymentSessionDTO('ref-2', 'https://pay.monno.io/payments?reference_id=ref-2', ''));
 
@@ -183,6 +201,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
     {
         $order = $this->makeOrder(currency: 'PHP', totalGross: 1099.00);
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
@@ -194,7 +213,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
                 && $amount === 1099.00)
             ->andReturn(MoneyValue::fromFloat(19.30, 'USD'));
         $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
-        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new \HiEvents\DomainObjects\PayramPaymentDomainObject);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
         $this->payramClient->shouldReceive('createPayment')
             ->andReturn(new PayRamPaymentSessionDTO('ref-3', 'https://pay.monno.io/payments?reference_id=ref-3', ''));
 
@@ -214,6 +233,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
 
     public function test_it_rejects_an_order_whose_session_cannot_be_verified(): void
     {
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($this->makeOrder());
         $this->sessionService->shouldReceive('verifySession')->andReturn(false);
 
@@ -223,6 +243,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
 
     public function test_it_rejects_an_order_when_crypto_is_not_enabled_for_the_event(): void
     {
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($this->makeOrder());
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
         $this->eventSettingsRepository->shouldReceive('findFirstWhere')
@@ -236,6 +257,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
     {
         $order = $this->makeOrder(reservedUntil: Carbon::now()->subMinute()->toDateTimeString());
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
 
@@ -247,6 +269,7 @@ class CreatePayRamPaymentHandlerTest extends TestCase
     {
         $order = $this->makeOrder(status: OrderStatus::COMPLETED->name);
 
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
         $this->sessionService->shouldReceive('verifySession')->andReturn(true);
 

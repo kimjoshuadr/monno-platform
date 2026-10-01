@@ -2,10 +2,14 @@
 
 namespace HiEvents\Console\Commands;
 
+use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\Status\PayRamPaymentStatus;
 use HiEvents\Exceptions\PayRam\PayRamApiException;
+use HiEvents\Repository\Eloquent\Value\Relationship;
+use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\DTO\PayRamWebhookDTO;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamCredentialResolver;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamIncomingWebhookHandler;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamStatusPayloadMapper;
 use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
@@ -34,6 +38,8 @@ class PayRamReconcileCommand extends Command
         private readonly PayRamClient $payRamClient,
         private readonly PayRamIncomingWebhookHandler $webhookHandler,
         private readonly PayRamStatusPayloadMapper $mapper,
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly PayRamCredentialResolver $credentialResolver,
     ) {
         parent::__construct();
     }
@@ -56,12 +62,16 @@ class PayRamReconcileCommand extends Command
             $referenceId = $payment->getReferenceId();
 
             try {
-                $status = $this->payRamClient->getPaymentStatus($referenceId);
+                $status = $this->payRamClient->getPaymentStatus(
+                    $referenceId,
+                    $this->apiKeyFor($payment),
+                );
                 $payload = $this->mapper->toWebhookPayload($status);
 
                 if ($payload === null) {
                     $failed++;
                     $this->warn(sprintf('No usable status for %s', $referenceId));
+
                     continue;
                 }
 
@@ -99,5 +109,23 @@ class PayRamReconcileCommand extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Payments made under an organizer's merchant account can only be read
+     * with that organizer's project key.
+     */
+    private function apiKeyFor($payment): ?string
+    {
+        $invoiceId = $payment->getInvoiceId();
+        if ($invoiceId === null || $invoiceId === '') {
+            return null;
+        }
+
+        $order = $this->orderRepository
+            ->loadRelation(new Relationship(EventDomainObject::class, name: 'event'))
+            ->findByShortId($invoiceId);
+
+        return $this->credentialResolver->forOrganizer($order?->getEvent()?->getOrganizerId());
     }
 }

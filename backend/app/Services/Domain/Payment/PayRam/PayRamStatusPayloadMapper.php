@@ -10,8 +10,7 @@ namespace HiEvents\Services\Domain\Payment\PayRam;
 class PayRamStatusPayloadMapper
 {
     /**
-     * @param array<string, mixed> $statusResponse GET /api/v1/payment/reference/{id}
-     *
+     * @param  array<string, mixed>  $statusResponse  GET /api/v1/payment/reference/{id}
      * @return array<string, mixed>|null null when there is nothing useful to sync
      */
     public function toWebhookPayload(array $statusResponse): ?array

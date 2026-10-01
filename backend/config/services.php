@@ -67,6 +67,11 @@ return [
         // because we gross the buyer's amount up by it so the organizer nets
         // their sticker price.
         'fee_bps' => (int) env('PAYRAM_FEE_BPS', 250),
+
+        // Operator account: used only to provision organizer merchant accounts
+        // (project, dashboard login, role, API key). Never used for payments.
+        'operator_email' => env('PAYRAM_OPERATOR_EMAIL'),
+        'operator_password' => env('PAYRAM_OPERATOR_PASSWORD'),
     ],
     'open_exchange_rates' => [
         'app_id' => env('OPEN_EXCHANGE_RATES_APP_ID'),

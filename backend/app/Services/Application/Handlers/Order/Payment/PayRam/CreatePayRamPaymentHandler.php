@@ -5,6 +5,7 @@ namespace HiEvents\Services\Application\Handlers\Order\Payment\PayRam;
 use Brick\Money\Currency;
 use Carbon\Carbon;
 use HiEvents\DomainObjects\Enums\PaymentProviders;
+use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\Generated\EventSettingDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\OrderDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\PayramPaymentDomainObjectAbstract;
@@ -15,10 +16,12 @@ use HiEvents\Exceptions\PayRam\PayRamConfigurationException;
 use HiEvents\Exceptions\ResourceConflictException;
 use HiEvents\Exceptions\UnauthorizedException;
 use HiEvents\Repository\Eloquent\Value\OrderAndDirection;
+use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Domain\Payment\PayRam\DTOs\CreatePayRamPaymentResponseDTO;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamCredentialResolver;
 use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
 use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
@@ -49,6 +52,7 @@ readonly class CreatePayRamPaymentHandler
         private PayRamClient $payramClient,
         private CheckoutSessionManagementService $sessionIdentifierService,
         private CurrencyConversionClientInterface $currencyConversionClient,
+        private PayRamCredentialResolver $credentialResolver,
     ) {}
 
     /**
@@ -58,7 +62,9 @@ readonly class CreatePayRamPaymentHandler
      */
     public function handle(string $orderShortId): CreatePayRamPaymentResponseDTO
     {
-        $order = $this->orderRepository->findByShortId($orderShortId);
+        $order = $this->orderRepository
+            ->loadRelation(new Relationship(EventDomainObject::class, name: 'event'))
+            ->findByShortId($orderShortId);
 
         if (! $order || ! $this->sessionIdentifierService->verifySession($order->getSessionId())) {
             throw new UnauthorizedException(__('Sorry, we could not verify your session. Please create a new order.'));
@@ -89,12 +95,19 @@ readonly class CreatePayRamPaymentHandler
             );
         }
 
+        // Money moves under the organizer's own merchant account when they
+        // have one; otherwise the shared instance key (their funds would land
+        // in monno's wallet, which is why this is only a staging/QA fallback).
+        $organizerId = $order->getEvent()?->getOrganizerId();
+        $apiKey = $this->credentialResolver->forOrganizer($organizerId);
+
         $session = $this->payramClient->createPayment(
             customerEmail: $order->getEmail() ?? config('mail.from.address'),
             customerId: $order->getShortId(),
             amountInUsd: $amountInUsd,
             invoiceId: $order->getShortId(),
             expireAt: $expiresAt->format(DATE_ATOM),
+            apiKey: $apiKey,
         );
 
         $this->payramPaymentsRepository->create([

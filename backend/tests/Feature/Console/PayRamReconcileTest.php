@@ -4,11 +4,12 @@ namespace Tests\Feature\Console;
 
 use HiEvents\Models\Account;
 use HiEvents\Models\User;
+use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 /**
@@ -74,7 +75,7 @@ class PayRamReconcileTest extends TestCase
             'reference_id' => self::REFERENCE,
             'invoice_id' => 'oRECON0001',
             'customer_id' => 'oRECON0001',
-            'checkout_url' => 'https://pay.test/payments?reference_id=' . self::REFERENCE,
+            'checkout_url' => 'https://pay.test/payments?reference_id='.self::REFERENCE,
             'amount_in_usd' => 17.96,
             'order_currency' => 'USD',
             'order_amount' => 17.51,
@@ -118,7 +119,7 @@ class PayRamReconcileTest extends TestCase
         $this->assertSame('0xPayRamDepositAddr', $payment->destination_address);
         $this->assertNotNull($payment->paid_at);
 
-        $this->assertStringContainsString('Settled ' . self::REFERENCE, Artisan::output());
+        $this->assertStringContainsString('Settled '.self::REFERENCE, Artisan::output());
     }
 
     public function test_an_open_payment_is_left_awaiting_and_not_settled(): void
@@ -160,7 +161,7 @@ class PayRamReconcileTest extends TestCase
         $this->assertSame('RESERVED', $order->status, 'A cancelled link must not complete the order.');
 
         // terminal payments must leave the poller's working set
-        $stillOpen = app(\HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface::class)
+        $stillOpen = app(PayRamPaymentsRepositoryInterface::class)
             ->findWhereIn('status', ['OPEN', 'PARTIALLY_FILLED']);
         $this->assertFalse(
             $stillOpen->contains(fn ($p) => $p->getReferenceId() === self::REFERENCE),

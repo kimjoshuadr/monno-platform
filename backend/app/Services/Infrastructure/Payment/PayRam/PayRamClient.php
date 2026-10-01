@@ -26,6 +26,7 @@ class PayRamClient
         ?string $expireAt = null,
         ?string $currency = null,
         ?string $network = null,
+        ?string $apiKey = null,
     ): PayRamPaymentSessionDTO {
         $payload = array_filter([
             'customerEmail' => $customerEmail,
@@ -37,7 +38,7 @@ class PayRamClient
             'network' => $network,
         ], static fn ($value) => $value !== null && $value !== '');
 
-        $body = $this->request('post', '/api/v1/payment', $payload);
+        $body = $this->request('post', '/api/v1/payment', $payload, $apiKey);
 
         $referenceId = (string) ($body['reference_id'] ?? '');
         $url = (string) ($body['url'] ?? '');
@@ -60,9 +61,9 @@ class PayRamClient
      *
      * @throws PayRamApiException
      */
-    public function getPaymentStatus(string $referenceId): array
+    public function getPaymentStatus(string $referenceId, ?string $apiKey = null): array
     {
-        return $this->request('get', '/api/v1/payment/reference/'.rawurlencode($referenceId));
+        return $this->request('get', '/api/v1/payment/reference/'.rawurlencode($referenceId), [], $apiKey);
     }
 
     /**
@@ -110,11 +111,11 @@ class PayRamClient
      *
      * @throws PayRamApiException
      */
-    private function request(string $method, string $uri, array $payload = []): array
+    private function request(string $method, string $uri, array $payload = [], ?string $apiKey = null): array
     {
-        $this->configuration->assertCanCreatePayments();
+        $this->configuration->assertCanCreatePayments($apiKey);
 
-        $headers = ['API-Key' => $this->configuration->getApiKey()];
+        $headers = ['API-Key' => $apiKey ?? $this->configuration->getApiKey()];
 
         try {
             $pending = Http::withOptions([

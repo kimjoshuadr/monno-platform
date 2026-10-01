@@ -40,15 +40,22 @@ readonly class PayRamConfigurationService
     }
 
     /**
+     * @param  string|null  $providedKey  a per-organizer project key, when the
+     *                                    merchant account has been provisioned
+     *
      * @throws PayRamConfigurationException
      */
-    public function assertCanCreatePayments(): void
+    public function assertCanCreatePayments(?string $providedKey = null): void
     {
         if (! $this->isEnabled()) {
             throw new PayRamConfigurationException(__('Crypto payments are not enabled.'));
         }
 
-        if ($this->getBaseUrl() === '' || $this->getApiKey() === '') {
+        if ($this->getBaseUrl() === '') {
+            throw new PayRamConfigurationException(__('Crypto payments are not configured. Please contact the organizer.'));
+        }
+
+        if (($providedKey ?? '') === '' && $this->getApiKey() === '') {
             throw new PayRamConfigurationException(__('Crypto payments are not configured. Please contact the organizer.'));
         }
     }
