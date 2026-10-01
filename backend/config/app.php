@@ -18,6 +18,14 @@ return [
     'api_url' => env('APP_URL', 'https://localhost:8443'),
 
     /*
+     * Mirrors STRIPE_ENABLED in the frontend
+     * (frontend/src/utilites/paymentProviders.ts). When card payments are off
+     * deployment-wide the client force-enables OFFLINE, so every paid event is
+     * payable and the publish gate must not block it. Flip both together.
+     */
+    'stripe_enabled' => env('STRIPE_ENABLED', false),
+
+    /*
      * The publicly reachable base of this API. In production the app is proxied
      * under a path prefix (nginx only forwards /api/* to PHP), so a URL built
      * from APP_URL alone would 404. Anything that hands a URL to a third party

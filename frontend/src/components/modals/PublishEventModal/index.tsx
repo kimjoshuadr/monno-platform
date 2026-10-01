@@ -68,11 +68,12 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const hasOccurrences = (occurrencesQuery.data?.data?.length ?? 0) > 0;
 
     // Mirrors the backend gate (EventPublishingValidationService): a paid event
-    // needs at least one payment provider *explicitly enabled* in event settings.
-    // Checkout still resolves OFFLINE for legacy events, but publishing requires
-    // a deliberate choice so a paid event never goes live with no way to pay.
+    // needs a payment provider. With card payments off deployment-wide the
+    // client always offers offline (see resolvePaymentProviders), and new events
+    // are seeded with ["STRIPE"] which the settings page rewrites to OFFLINE —
+    // so offline counts as available here too, exactly as the backend does.
     const enabledProviders = eventSettings?.payment_providers ?? [];
-    const hasOffline = enabledProviders.includes('OFFLINE');
+    const hasOffline = !STRIPE_ENABLED || enabledProviders.includes('OFFLINE');
     const hasPayRam = enabledProviders.includes('PAYRAM');
     const isPayRamReady = payramAccount?.status === 'READY'
         && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);

@@ -31,6 +31,16 @@ class EventPublishingValidationService
             return;
         }
 
+        // Mirror the client's resolvePaymentProviders(): with card payments off
+        // deployment-wide, OFFLINE is always offered and force-ticked, so a paid
+        // event is always payable. New events are seeded with ["STRIPE"] and the
+        // client rewrites that to OFFLINE on save, so the stored value cannot be
+        // trusted here — blocking would strand an event whose settings page
+        // already shows a working payment method.
+        if (! config('app.stripe_enabled')) {
+            return;
+        }
+
         $eventSettings = DB::table('event_settings')
             ->where('event_id', $eventId)
             ->first();
@@ -83,6 +93,6 @@ class EventPublishingValidationService
             }
         }
 
-        throw new CannotPublishEventWithoutPaymentMethodException();
+        throw new CannotPublishEventWithoutPaymentMethodException;
     }
 }
