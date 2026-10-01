@@ -13,7 +13,7 @@ import {useGetEventOccurrences} from "../../../queries/useGetEventOccurrences.ts
 import {useGetPayRamAccount} from "../../../queries/useGetPayRamAccount.ts";
 import {useUpdateEventStatus} from "../../../mutations/useUpdateEventStatus.ts";
 import {showError} from "../../../utilites/notifications.tsx";
-import {STRIPE_ENABLED} from "../../../utilites/paymentProviders.ts";
+import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../utilites/paymentProviders.ts";
 import classes from './PublishEventModal.module.scss';
 
 interface PublishEventModalProps {
@@ -68,12 +68,10 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const hasOccurrences = (occurrencesQuery.data?.data?.length ?? 0) > 0;
 
     // Mirrors the backend gate (EventPublishingValidationService): a paid event
-    // needs a payment provider. With card payments off deployment-wide the
-    // client always offers offline (see resolvePaymentProviders), and new events
-    // are seeded with ["STRIPE"] which the settings page rewrites to OFFLINE —
-    // so offline counts as available here too, exactly as the backend does.
-    const enabledProviders = eventSettings?.payment_providers ?? [];
-    const hasOffline = !STRIPE_ENABLED || enabledProviders.includes('OFFLINE');
+    // needs at least one payment method that is both selected and usable here.
+    // Offline is no longer forced on, so it only counts when it was chosen.
+    const enabledProviders = resolvePaymentProviders(eventSettings?.payment_providers);
+    const hasOffline = enabledProviders.includes('OFFLINE');
     const hasPayRam = enabledProviders.includes('PAYRAM');
     const isPayRamReady = payramAccount?.status === 'READY'
         && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);

@@ -16,23 +16,22 @@ export const PAYRAM_ENABLED = true;
 /**
  * The payment methods an event can actually offer.
  *
- * With Stripe disabled, offline payments are the fallback and are always available —
- * events stored as ['STRIPE'] or [] (every event before Stripe was disabled) stay
- * payable. Crypto is offered when the event has it switched on.
+ * Providers this deployment cannot process are dropped (card payments are off,
+ * see STRIPE_ENABLED), but nothing is *added*. The organizer's selection stands
+ * on its own.
+ *
+ * Offline used to be force-enabled here because it was the only fallback once
+ * Stripe was disabled — which made "no cards" mean "offline whether you want it
+ * or not". Crypto is a real gateway now, so that assumption is gone: an event
+ * offers exactly the methods that were chosen for it.
  */
 export const resolvePaymentProviders = (providers?: PaymentProvider[] | null): PaymentProvider[] => {
-    if (STRIPE_ENABLED) {
-        return providers ?? [];
-    }
+    const resolved = new Set<PaymentProvider>();
 
-    const resolved = new Set<PaymentProvider>(['OFFLINE']);
-
-    if (PAYRAM_ENABLED) {
-        for (const provider of providers ?? []) {
-            if (provider === 'PAYRAM') {
-                resolved.add('PAYRAM');
-            }
-        }
+    for (const provider of providers ?? []) {
+        if (provider === 'STRIPE' && !STRIPE_ENABLED) continue;
+        if (provider === 'PAYRAM' && !PAYRAM_ENABLED) continue;
+        resolved.add(provider);
     }
 
     return Array.from(resolved);

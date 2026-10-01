@@ -247,7 +247,7 @@ class CreateEventService
             'get_tickets_button_text' => $terminology->defaultGetTicketsButtonText(),
             'support_email' => $organizer->getEmail(),
 
-            'payment_providers' => [PaymentProviders::STRIPE->value],
+            'payment_providers' => [PaymentProviders::OFFLINE->value],
             'offline_payment_instructions' => null,
 
             'enable_invoicing' => false,

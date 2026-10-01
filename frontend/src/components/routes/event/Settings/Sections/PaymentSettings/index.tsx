@@ -117,15 +117,12 @@ export const PaymentAndInvoicingSettings = () => {
                                 </Alert>
                             )}
                             {paymentOptions.map((option) => {
-                                const isOnlyAvailableMethod = !STRIPE_ENABLED && option.value === 'OFFLINE';
-
                                 return (
                                     <Checkbox
                                         key={option.value}
                                         label={option.label}
                                         description={option.description}
-                                        checked={isOnlyAvailableMethod || form.values.payment_providers?.includes(option.value as PaymentProvider)}
-                                        disabled={isOnlyAvailableMethod}
+                                        checked={form.values.payment_providers?.includes(option.value as PaymentProvider)}
                                         onChange={(event) => {
                                             const checked = event.currentTarget.checked;
                                             const currentValues = form.values.payment_providers || [];

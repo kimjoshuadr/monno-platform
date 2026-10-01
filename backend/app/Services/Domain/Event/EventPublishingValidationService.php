@@ -31,16 +31,6 @@ class EventPublishingValidationService
             return;
         }
 
-        // Mirror the client's resolvePaymentProviders(): with card payments off
-        // deployment-wide, OFFLINE is always offered and force-ticked, so a paid
-        // event is always payable. New events are seeded with ["STRIPE"] and the
-        // client rewrites that to OFFLINE on save, so the stored value cannot be
-        // trusted here — blocking would strand an event whose settings page
-        // already shows a working payment method.
-        if (! config('app.stripe_enabled')) {
-            return;
-        }
-
         $eventSettings = DB::table('event_settings')
             ->where('event_id', $eventId)
             ->first();
@@ -53,6 +43,13 @@ class EventPublishingValidationService
             if (is_array($decoded)) {
                 $providers = $decoded;
             }
+        }
+
+        // Mirror the client's resolvePaymentProviders(): drop methods this
+        // deployment cannot process, but never add one. Offline is a choice now
+        // that crypto is a real gateway, not a forced fallback.
+        if (! config('app.stripe_enabled')) {
+            $providers = array_values(array_diff($providers, [PaymentProviders::STRIPE->value]));
         }
 
         $hasOffline = in_array(PaymentProviders::OFFLINE->value, $providers, true);

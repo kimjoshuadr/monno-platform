@@ -94,13 +94,32 @@ class EventPublishingValidationServiceTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_a_paid_event_publishes_when_card_payments_are_off_deployment_wide(): void
+    public function test_a_paid_event_whose_only_provider_is_disabled_is_blocked(): void
     {
-        // The client force-enables OFFLINE in this deployment, so the stored
-        // value (new events are seeded with ["STRIPE"]) must not block anyone.
+        // ["STRIPE"] with card payments off resolves to nothing, so the
+        // organizer has to choose a method that actually works here.
         $this->addProduct(25);
         $this->setProviders(['STRIPE']);
         config(['app.stripe_enabled' => false]);
+
+        $this->expectException(CannotPublishEventWithoutPaymentMethodException::class);
+
+        $this->validate();
+    }
+
+    public function test_a_paid_event_with_crypto_selected_publishes_with_cards_off(): void
+    {
+        $this->addProduct(25);
+        $this->setProviders(['PAYRAM']);
+        config(['app.stripe_enabled' => false]);
+
+        DB::table('organizer_payram_accounts')->insert([
+            'organizer_id' => $this->organizerId,
+            'status' => 'READY',
+            'wallet_address' => '0x142e57a939aBeFb8D50Ab39A8aB58ef9572620ef',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->validate();
 
