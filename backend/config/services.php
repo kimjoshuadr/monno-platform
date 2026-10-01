@@ -72,6 +72,10 @@ return [
         // (project, dashboard login, role, API key). Never used for payments.
         'operator_email' => env('PAYRAM_OPERATOR_EMAIL'),
         'operator_password' => env('PAYRAM_OPERATOR_PASSWORD'),
+
+        // Shared secret the PayRam app presents when redeeming a console SSO
+        // code. Falls back to the API key so single-key deployments still work.
+        'sso_secret' => env('PAYRAM_SSO_SECRET', env('PAYRAM_API_KEY')),
     ],
     'open_exchange_rates' => [
         'app_id' => env('OPEN_EXCHANGE_RATES_APP_ID'),

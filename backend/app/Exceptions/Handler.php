@@ -83,6 +83,12 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if ($exception instanceof CannotPublishEventWithoutPaymentMethodException) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+
         if ($exception instanceof ResourceNotFoundException || $exception instanceof SymfonyResourceNotFoundException) {
             return response()->json([
                 'message' => $exception->getMessage() ?: 'Resource not found',

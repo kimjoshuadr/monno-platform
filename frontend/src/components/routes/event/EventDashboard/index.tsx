@@ -29,6 +29,7 @@ import {hasEventDetails, SetupChecklist} from "./SetupChecklist";
 import {PublishEventModal} from "../../../modals/PublishEventModal";
 import {EventLiveCelebrationModal} from "../../../modals/EventLiveCelebrationModal";
 import {websiteEventUrl} from "../../../../utilites/urlHelper.ts";
+import {useGetPayRamAccount} from "../../../../queries/useGetPayRamAccount.ts";
 
 export const DashBoardSkeleton = () => {
     return (
@@ -77,6 +78,8 @@ export const EventDashboard = () => {
     const organizerId = event?.organizer_id ?? event?.organizer?.id;
     const {data: organizer} = useGetOrganizer(organizerId);
     const isStripeConnected = !!organizer?.stripe_connect_setup_complete;
+    const {data: payramAccount} = useGetPayRamAccount(organizerId);
+    const isPayRamReady = payramAccount?.status === 'READY' && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);
     const {data: productCategoriesResponse} = useGetEventProductCategories(eventId);
     const productCount = productCategoriesResponse?.data?.reduce(
         (sum, category) => sum + (category.products?.length ?? 0),
@@ -131,6 +134,13 @@ export const EventDashboard = () => {
             return;
         }
         navigate(`/manage/organizer/${organizerId}/settings#payouts`);
+    };
+
+    const handleConnectCrypto = () => {
+        if (!organizerId) {
+            return;
+        }
+        navigate(`/manage/organizer/${organizerId}/settings#crypto-payments`);
     };
 
     const handleAddTickets = () => {
@@ -236,8 +246,8 @@ export const EventDashboard = () => {
                 {shouldShowChecklist && (
                     <SetupChecklist
                         event={event}
-                        organizer={organizer}
                         isStripeConnected={isStripeConnected}
+                        isPayRamReady={isPayRamReady}
                         productCount={productCount}
                         hasOccurrences={hasOccurrences}
                         eventImages={eventImages}
@@ -245,6 +255,7 @@ export const EventDashboard = () => {
                         me={me}
                         onPublish={handlePublish}
                         onConnectStripe={handleConnectStripe}
+                        onConnectCrypto={handleConnectCrypto}
                         onAddTickets={handleAddTickets}
                         onEditDetails={handleEditDetails}
                         onSetupSchedule={handleSetupSchedule}

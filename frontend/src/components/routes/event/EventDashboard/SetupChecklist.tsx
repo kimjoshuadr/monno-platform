@@ -1,17 +1,16 @@
 import {Button} from "@mantine/core";
 import {IconCheck, IconCircle, IconCircleCheck, IconX} from "@tabler/icons-react";
 import {t} from "@lingui/macro";
-import {Account, Event, EventType, Image, Organizer, User} from "../../../../types.ts";
+import {Account, Event, EventType, Image, User} from "../../../../types.ts";
 import {BouncingEmoji} from "../../../common/BouncingEmoji";
 import {useResendEmailConfirmation} from "../../../../mutations/useResendEmailConfirmation.ts";
 import {showError, showSuccess} from "../../../../utilites/notifications.tsx";
 import classes from "./SetupChecklist.module.scss";
-import {STRIPE_ENABLED} from "../../../../utilites/paymentProviders.ts";
 
 interface SetupChecklistProps {
     event: Event;
-    organizer: Organizer | undefined;
     isStripeConnected: boolean;
+    isPayRamReady?: boolean;
     productCount: number;
     hasOccurrences: boolean;
     eventImages: Image[] | undefined;
@@ -19,6 +18,7 @@ interface SetupChecklistProps {
     me: User | undefined;
     onPublish: () => void;
     onConnectStripe: () => void;
+    onConnectCrypto?: () => void;
     onAddTickets: () => void;
     onEditDetails: () => void;
     onSetupSchedule: () => void;
@@ -50,8 +50,8 @@ interface Step {
 
 export const SetupChecklist = ({
                                    event,
-                                   organizer,
                                    isStripeConnected,
+                                   isPayRamReady = false,
                                    productCount,
                                    hasOccurrences,
                                    eventImages,
@@ -59,6 +59,7 @@ export const SetupChecklist = ({
                                    me,
                                    onPublish,
                                    onConnectStripe,
+                                   onConnectCrypto,
                                    onAddTickets,
                                    onEditDetails,
                                    onSetupSchedule,
@@ -67,10 +68,6 @@ export const SetupChecklist = ({
                                    isDismissed,
                                    showCongratsHeader = false,
                                }: SetupChecklistProps) => {
-    const payoutsButtonLabel = organizer?.stripe_account_id
-        ? t`Finish setup`
-        : t`Connect bank`;
-
     const resendEmailConfirmation = useResendEmailConfirmation();
     const handleResendEmail = () => {
         if (!me?.id) return;
@@ -122,16 +119,16 @@ export const SetupChecklist = ({
                     : (!hasTickets ? 'secondary' : 'primary'),
             onAction: onPublish,
         },
-        // Payouts are a Stripe Connect feature.
-        ...(isSaasMode && STRIPE_ENABLED ? [{
+        // Payment setup: Stripe or Crypto
+        ...(isSaasMode ? [{
             key: 'payouts',
-            title: t`Set up payouts`,
-            helperIncomplete: t`Connect your bank to receive ticket sales straight to your account`,
-            helperComplete: t`Bank account connected`,
-            complete: isStripeConnected,
-            actionLabel: payoutsButtonLabel,
+            title: t`Set up payments`,
+            helperIncomplete: t`Connect crypto wallet or bank to receive ticket sales`,
+            helperComplete: isPayRamReady ? t`Crypto payments active` : t`Payment provider connected`,
+            complete: isStripeConnected || !!isPayRamReady,
+            actionLabel: (isStripeConnected || isPayRamReady) ? undefined : t`Set up payments`,
             actionStyle: 'primary',
-            onAction: onConnectStripe,
+            onAction: onConnectCrypto || onConnectStripe,
         } as Step] : []),
         {
             key: 'details',

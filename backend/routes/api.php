@@ -170,6 +170,8 @@ use HiEvents\Http\Actions\Orders\GetOrdersAction;
 use HiEvents\Http\Actions\Orders\MarkOrderAsPaidAction;
 use HiEvents\Http\Actions\Orders\MessageOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\PayRam\CreatePayRamPaymentActionPublic;
+use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamCancelAction;
+use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamReturnAction;
 use HiEvents\Http\Actions\Orders\Payment\RefundOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\CreatePaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\GetPaymentIntentActionPublic;
@@ -190,8 +192,11 @@ use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
+use HiEvents\Http\Actions\Organizers\PayRam\CreatePayRamSsoTokenAction;
+use HiEvents\Http\Actions\Organizers\PayRam\ExchangePayRamSsoCodeAction;
 use HiEvents\Http\Actions\Organizers\PayRam\GetOrProvisionPayRamAccountAction;
 use HiEvents\Http\Actions\Organizers\PayRam\GetPayRamAccountAction;
+use HiEvents\Http\Actions\Organizers\PayRam\SetupPayRamCryptoConnectAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
 use HiEvents\Http\Actions\Organizers\Settings\PartialUpdateOrganizerSettingsAction;
@@ -408,6 +413,8 @@ $router->middleware(['auth:api', 'email.verified'])->group(
         // PayRam merchant account - organizer level
         $router->get('/organizers/{organizerId}/payram/account', GetPayRamAccountAction::class);
         $router->post('/organizers/{organizerId}/payram/account', GetOrProvisionPayRamAccountAction::class);
+        $router->post('/organizers/{organizerId}/payram/setup', SetupPayRamCryptoConnectAction::class);
+        $router->post('/organizers/{organizerId}/payram/sso-token', CreatePayRamSsoTokenAction::class);
 
         $router->post('/organizers/{organizerId}/stripe/connect', CreateStripeConnectAccountAction::class);
         $router->post('/organizers/{organizerId}/stripe/copy_from/{sourceOrganizerId}', CopyStripeConnectAccountAction::class);
@@ -709,6 +716,9 @@ $router->prefix('/public')->group(
 
         // PayRam payment gateway (crypto)
         $router->post('/events/{event_id}/order/{order_short_id}/payram/payment', CreatePayRamPaymentActionPublic::class);
+        $router->get('/payram/return', PayRamReturnAction::class);
+        $router->get('/payram/cancel', PayRamCancelAction::class);
+        $router->post('/payram/sso-exchange', ExchangePayRamSsoCodeAction::class);
 
         // Questions
         $router->get('/events/{event_id}/questions', GetQuestionsPublicAction::class);

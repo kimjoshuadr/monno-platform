@@ -29,7 +29,11 @@ class PayRamOperatorClient
      */
     public function createProject(string $name): int
     {
-        $body = $this->request('post', '/api/v1/external-platform', ['name' => $name], withToken: true);
+        $body = $this->request('post', '/api/v1/external-platform', [
+            'name' => $name,
+            'successEndpoint' => $this->returnUrl('/public/payram/return'),
+            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
+        ], withToken: true);
 
         $projectId = (int) ($body['id'] ?? 0);
         if ($projectId <= 0) {
@@ -37,6 +41,53 @@ class PayRamOperatorClient
         }
 
         return $projectId;
+    }
+
+    /**
+     * @throws PayRamApiException
+     */
+    public function updateProject(int $projectId, string $name, ?string $successEndpoint = null, ?string $cancelEndpoint = null): void
+    {
+        $this->request('put', sprintf('/api/v1/external-platform/%d', $projectId), [
+            'name' => $name,
+            'successEndpoint' => $successEndpoint ?? $this->returnUrl('/public/payram/return'),
+            'cancelEndpoint' => $cancelEndpoint ?? $this->returnUrl('/public/payram/cancel'),
+        ], withToken: true);
+    }
+
+    /**
+     * Where PayRam should send a buyer back to. Built from the public API base,
+     * not APP_URL, because the deployed app sits behind an /api prefix.
+     */
+    private function returnUrl(string $path): string
+    {
+        return rtrim((string) config('app.api_public_url'), '/').$path;
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws PayRamApiException
+     */
+    public function signInMember(string $email, string $password): array
+    {
+        try {
+            $response = Http::withOptions([
+                'timeout' => $this->configuration->getTimeout(),
+                'connect_timeout' => 10,
+            ])->asJson()->post($this->configuration->getBaseUrl().'/api/v1/signin', [
+                'email' => $email,
+                'password' => $password,
+            ]);
+        } catch (ConnectionException $exception) {
+            throw new PayRamApiException(__('Could not reach the payment gateway.'), null, $exception->getMessage());
+        }
+
+        if ($response->failed()) {
+            throw new PayRamApiException(__('Could not sign in member to PayRam.'), $response->status(), $response->body());
+        }
+
+        return (array) $response->json();
     }
 
     /**
@@ -89,6 +140,85 @@ class PayRamOperatorClient
     }
 
     /**
+     * The upstream project record, including the return/cancel endpoints PayRam
+     * will send a buyer back to.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws PayRamApiException
+     */
+    public function getProject(int $projectId): array
+    {
+        return $this->request('get', sprintf('/api/v1/external-platform/%d', $projectId), [], withToken: true);
+    }
+
+    /**
+     * Every blockchain the gateway supports (code, family, network mode). The
+     * source of truth for which currency codes a wizard selection may use.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getBlockchains(): array
+    {
+        return $this->requestList('/api/v1/blockchains');
+    }
+
+    /**
+     * The gateway's catalogue of deposit-able blockchain/currency pairs.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getBlockchainCurrencies(): array
+    {
+        return $this->requestList('/api/v1/blockchain-currency');
+    }
+
+    /**
+     * The wallets attached to a project (hot + deposit), for reconciling what
+     * the gateway actually holds against what an organizer asked for.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getProjectWallets(int $projectId): array
+    {
+        return $this->requestList(sprintf('/api/v1/project/%d/wallets', $projectId));
+    }
+
+    /**
+     * Per wallet/currency settlement status: cold-wallet readiness, what is
+     * eligible to sweep, and the last sweep error. This is what turns "where is
+     * my money?" into a concrete answer in the UI.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getProjectAddressBalances(int $projectId): array
+    {
+        return $this->requestList(sprintf('/api/v1/project/%d/addresses/balance', $projectId));
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    private function requestList(string $uri): array
+    {
+        $body = $this->request('get', $uri, [], withToken: true);
+
+        // A list endpoint returns a JSON array; request() already coerced that to
+        // an array, so anything without list shape is reported as empty.
+        return array_is_list($body) ? $body : [];
+    }
+
+    /**
      * @return array<string, mixed>
      *
      * @throws PayRamApiException
@@ -106,9 +236,13 @@ class PayRamOperatorClient
                 'connect_timeout' => 10,
             ])->withHeaders($headers);
 
+            $url = $this->configuration->getBaseUrl().$uri;
             $response = match ($method) {
-                'post' => $pending->asJson()->post($this->configuration->getBaseUrl().$uri, $payload),
-                default => $pending->get($this->configuration->getBaseUrl().$uri),
+                'post' => $pending->asJson()->post($url, $payload),
+                'put' => $pending->asJson()->put($url, $payload),
+                'patch' => $pending->asJson()->patch($url, $payload),
+                'delete' => $pending->asJson()->delete($url, $payload),
+                default => $pending->get($url),
             };
         } catch (ConnectionException $exception) {
             throw new PayRamApiException(__('Could not reach the payment gateway.'), null, $exception->getMessage());

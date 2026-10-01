@@ -221,14 +221,40 @@ export type OrganizerPayRamAccountStatus =
     | 'READY'
     | 'FAILED';
 
+export interface PayRamSweepError {
+    statusCode?: string;
+    category?: string;
+    reason?: string;
+    actionHint?: string;
+}
+
+export interface PayRamGatewayStatus {
+    /** False when the gateway could not be reached — never guess from this. */
+    available: boolean;
+    cold_wallet_configured: boolean;
+    default_cold_wallet_set: boolean;
+    eligible_for_sweep: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        currency_code?: string | null;
+        amount: string;
+        amount_usd?: string | null;
+    }>;
+    last_sweep_error: PayRamSweepError | null;
+}
+
 export interface OrganizerPayRamAccountResponse {
     status: OrganizerPayRamAccountStatus;
     project_name?: string | null;
     member_email?: string | null;
     external_platform_id?: number | null;
     wallet_status?: string | null;
+    wallet_address?: string | null;
+    supported_currencies?: string[] | null;
     dashboard_url?: string;
     last_error?: string | null;
+    /** The gateway's own view of the project — absent for unprovisioned accounts. */
+    gateway?: PayRamGatewayStatus | null;
     /** Present only in the response that created the account. */
     credentials?: {
         email: string;

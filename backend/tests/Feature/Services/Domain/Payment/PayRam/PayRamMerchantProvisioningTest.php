@@ -258,8 +258,10 @@ class PayRamMerchantProvisioningTest extends TestCase
         $this->assertSame('READY', $second['status']);
         $this->assertNotNull($second['dashboard_url']);
 
-        // one provisioning run: signin, project, member, roles, api-key
-        Http::assertSentCount(5);
+        // One provisioning run (signin, project, member, roles, api-key) plus one
+        // gateway status read when the account is presented. The second present()
+        // is served from the status cache, so it adds no call.
+        Http::assertSentCount(6);
     }
 
     public function test_a_failed_account_is_retried_and_then_returns_credentials(): void

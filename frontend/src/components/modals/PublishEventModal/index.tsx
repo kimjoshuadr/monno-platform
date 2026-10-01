@@ -10,9 +10,10 @@ import {useGetEventSettings} from "../../../queries/useGetEventSettings.ts";
 import {useGetOrganizer} from "../../../queries/useGetOrganizer.ts";
 import {useGetEventProductCategories} from "../../../queries/useGetProductCategories.ts";
 import {useGetEventOccurrences} from "../../../queries/useGetEventOccurrences.ts";
+import {useGetPayRamAccount} from "../../../queries/useGetPayRamAccount.ts";
 import {useUpdateEventStatus} from "../../../mutations/useUpdateEventStatus.ts";
 import {showError} from "../../../utilites/notifications.tsx";
-import {resolvePaymentProviders, STRIPE_ENABLED} from "../../../utilites/paymentProviders.ts";
+import {STRIPE_ENABLED} from "../../../utilites/paymentProviders.ts";
 import classes from './PublishEventModal.module.scss';
 
 interface PublishEventModalProps {
@@ -53,6 +54,7 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const {data: account, isFetched: isAccountFetched} = useGetAccount();
     const {data: eventSettings, isFetched: isSettingsFetched} = useGetEventSettings(eventId);
     const {data: organizer, isFetched: isOrganizerFetched} = useGetOrganizer(organizerId);
+    const {data: payramAccount, isFetched: isPayRamFetched} = useGetPayRamAccount(organizerId);
     const {data: productCategories, isFetched: isProductsFetched} = useGetEventProductCategories(eventId);
     const occurrencesQuery = useGetEventOccurrences(eventId, {pageNumber: 1, perPage: 1}, isRecurring);
 
@@ -62,30 +64,41 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const hasProducts = products.length > 0;
     const hasPaidProducts = products.some(productRequiresPayment);
     const isSaasMode = !!account?.is_saas_mode_enabled;
-    const isStripeEnabled = STRIPE_ENABLED && resolvePaymentProviders(eventSettings?.payment_providers).includes('STRIPE');
     const isStripeConnected = !!organizer?.stripe_connect_setup_complete;
     const hasOccurrences = (occurrencesQuery.data?.data?.length ?? 0) > 0;
+
+    // Mirrors the backend gate (EventPublishingValidationService): a paid event
+    // needs at least one payment provider *explicitly enabled* in event settings.
+    // Checkout still resolves OFFLINE for legacy events, but publishing requires
+    // a deliberate choice so a paid event never goes live with no way to pay.
+    const enabledProviders = eventSettings?.payment_providers ?? [];
+    const hasOffline = enabledProviders.includes('OFFLINE');
+    const hasPayRam = enabledProviders.includes('PAYRAM');
+    const isPayRamReady = payramAccount?.status === 'READY'
+        && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);
+    const hasStripe = STRIPE_ENABLED && enabledProviders.includes('STRIPE');
+    const isStripeReady = hasStripe && (isSaasMode ? isStripeConnected : true);
+    const hasActivePaymentMethod = hasOffline || (hasPayRam && isPayRamReady) || isStripeReady;
 
     const checksLoaded = isAccountFetched
         && isSettingsFetched
         && isOrganizerFetched
         && isProductsFetched
+        && isPayRamFetched
         && (!isRecurring || occurrencesQuery.isFetched);
 
     const checks: PublishCheck[] = [];
 
-    // Stripe is disabled in this deployment (see STRIPE_ENABLED), so connecting it is
-    // never a publish requirement — paid events publish with offline payments.
-    if (STRIPE_ENABLED && isSaasMode && hasPaidProducts && isStripeEnabled && !isStripeConnected) {
+    if (hasPaidProducts && !hasActivePaymentMethod) {
         checks.push({
-            key: 'stripe',
+            key: 'payment-method',
             blocking: true,
             icon: <IconCreditCardOff size={18}/>,
-            title: t`Connect Stripe to accept payments`,
-            description: t`You have paid tickets, but Stripe isn't connected yet, so you can't take payments.`,
-            actionLabel: t`Connect Stripe`,
-            actionUrl: `/manage/organizer/${organizerId}/settings#payouts`,
-            secondaryActionLabel: t`Or enable offline payments and disable Stripe`,
+            title: t`Payment method required to publish`,
+            description: t`This event has paid tickets, but no active payment method (Crypto, Stripe, or Offline Payments) is configured.`,
+            actionLabel: t`Set up Crypto payments`,
+            actionUrl: `/manage/organizer/${organizerId}/settings#crypto-payments`,
+            secondaryActionLabel: t`Or configure payment methods in Event Settings`,
             secondaryActionUrl: `/manage/event/${eventId}/settings#payment-settings`,
         });
     }

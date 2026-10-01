@@ -4,6 +4,7 @@ namespace HiEvents\Services\Application\Handlers\Organizer\Payment\PayRam;
 
 use HiEvents\DomainObjects\OrganizerPayramAccountDomainObject;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamGatewayStatusService;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamMerchantProvisioningService;
 
 /**
@@ -16,6 +17,7 @@ class GetOrProvisionPayRamAccountHandler
     public function __construct(
         private readonly PayRamMerchantProvisioningService $provisioningService,
         private readonly OrganizerRepositoryInterface $organizerRepository,
+        private readonly PayRamGatewayStatusService $gatewayStatusService,
     ) {}
 
     public const STATUS_NOT_CONNECTED = 'NOT_CONNECTED';
@@ -62,8 +64,11 @@ class GetOrProvisionPayRamAccountHandler
             'member_email' => $account->getMemberEmail(),
             'external_platform_id' => $account->getExternalPlatformId(),
             'wallet_status' => $account->getWalletStatus(),
+            'wallet_address' => $account->getWalletAddress(),
+            'supported_currencies' => $account->getSupportedCurrencies(),
             'dashboard_url' => rtrim($dashboardUrl, '/'),
             'last_error' => $account->getLastError(),
+            'gateway' => $this->gatewayStatusService->forProject($account->getExternalPlatformId()),
         ];
 
         if ($includeCredentials && $account->getProvisionedPassword() !== null) {

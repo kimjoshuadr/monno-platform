@@ -7,7 +7,9 @@ use HiEvents\DomainObjects\EventLocationDomainObject;
 use HiEvents\DomainObjects\EventOccurrenceDomainObject;
 use HiEvents\DomainObjects\LocationDomainObject;
 use HiEvents\DomainObjects\Status\EventStatus;
+use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\Exceptions\AccountNotVerifiedException;
+use HiEvents\Exceptions\CannotPublishEventWithoutPaymentMethodException;
 use HiEvents\Exceptions\EventPendingReviewException;
 use HiEvents\Exceptions\ResourceNotFoundException;
 use HiEvents\Jobs\Event\Webhook\DispatchEventWebhookJob;
@@ -15,6 +17,7 @@ use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\AccountRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Event\DTO\UpdateEventStatusDTO;
+use HiEvents\Services\Domain\Event\EventPublishingValidationService;
 use HiEvents\Services\Domain\Event\EventSpamCheckDispatchService;
 use HiEvents\Services\Infrastructure\DomainEvents\Enums\DomainEventType;
 use Illuminate\Database\DatabaseManager;
@@ -29,6 +32,7 @@ readonly class UpdateEventStatusHandler
         private LoggerInterface $logger,
         private DatabaseManager $databaseManager,
         private readonly EventSpamCheckDispatchService $eventSpamCheckDispatchService,
+        private readonly EventPublishingValidationService $publishingValidationService,
     ) {}
 
     /**
@@ -79,6 +83,13 @@ readonly class UpdateEventStatusHandler
         if ($event->getStatus() === EventStatus::PENDING_MANUAL_REVIEW->name) {
             throw new EventPendingReviewException(
                 __('This event is pending manual review and its status cannot be changed until the review is complete.'),
+            );
+        }
+
+        if ($updateEventStatusDTO->status === EventStatus::LIVE->name) {
+            $this->publishingValidationService->validateCanPublish(
+                $event->getId(),
+                $event->getOrganizerId(),
             );
         }
 
