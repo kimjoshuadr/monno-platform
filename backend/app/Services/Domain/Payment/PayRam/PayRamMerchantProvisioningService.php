@@ -64,7 +64,7 @@ class PayRamMerchantProvisioningService
             throw $exception;
         }
 
-        return $this->accountsRepository->create([
+        $attributes = [
             OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID => $organizerId,
             OrganizerPayramAccountDomainObjectAbstract::EXTERNAL_PLATFORM_ID => $projectId,
             OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $organizerName,
@@ -73,7 +73,18 @@ class PayRamMerchantProvisioningService
             OrganizerPayramAccountDomainObjectAbstract::PROVISIONED_PASSWORD => $password,
             OrganizerPayramAccountDomainObjectAbstract::STATUS => self::STATUS_READY,
             OrganizerPayramAccountDomainObjectAbstract::WALLET_STATUS => self::WALLET_NOT_CONFIGURED,
-        ]);
+            OrganizerPayramAccountDomainObjectAbstract::LAST_ERROR => null,
+        ];
+
+        // A retry after a failed attempt must update, not trip the unique key.
+        $existing = $this->findForOrganizer($organizerId);
+        if ($existing !== null) {
+            $this->accountsRepository->updateFromArray($existing->getId(), $attributes);
+
+            return $this->findForOrganizer($organizerId);
+        }
+
+        return $this->accountsRepository->create($attributes);
     }
 
     /**

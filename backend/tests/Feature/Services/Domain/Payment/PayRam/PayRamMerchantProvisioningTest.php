@@ -8,6 +8,7 @@ use HiEvents\Exceptions\PayRam\PayRamApiException;
 use HiEvents\Models\Account;
 use HiEvents\Models\User;
 use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
+use HiEvents\Services\Application\Handlers\Organizer\Payment\PayRam\GetOrProvisionPayRamAccountHandler;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamMerchantProvisioningService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Bus;
@@ -237,6 +238,79 @@ class PayRamMerchantProvisioningTest extends TestCase
         $this->assertSame(
             1,
             DB::table('organizer_payram_accounts')->where('organizer_id', $this->organizerId)->count(),
+        );
+    }
+
+    public function test_credentials_are_handed_over_exactly_once(): void
+    {
+        $this->fakeSuccessfulProvisioning();
+        $handler = app(GetOrProvisionPayRamAccountHandler::class);
+
+        $first = $handler->handle($this->organizerId);
+
+        $this->assertArrayHasKey('credentials', $first, 'The first response carries their dashboard password.');
+        $this->assertSame('organizer@example.com', $first['credentials']['email']);
+        $this->assertNotEmpty($first['credentials']['password']);
+
+        $second = $handler->handle($this->organizerId);
+
+        $this->assertArrayNotHasKey('credentials', $second, 'It must not be readable a second time.');
+        $this->assertSame('READY', $second['status']);
+        $this->assertNotNull($second['dashboard_url']);
+
+        // one provisioning run: signin, project, member, roles, api-key
+        Http::assertSentCount(5);
+    }
+
+    public function test_a_failed_account_is_retried_and_then_returns_credentials(): void
+    {
+        // Http::fake() appends, so one stateful fake plays both attempts:
+        // the first project creation is rejected, the second succeeds.
+        $projectAttempts = 0;
+        Http::fake(function ($request) use (&$projectAttempts) {
+            $url = $request->url();
+
+            if (str_ends_with($url, '/api/v1/signin')) {
+                return Http::response(['accessToken' => 'operator-jwt-token']);
+            }
+
+            if (str_contains($url, '/api-key')) {
+                return Http::response(['id' => 7, 'key' => self::ORGANIZER_KEY]);
+            }
+
+            if (str_ends_with($url, '/api/v1/external-platform')) {
+                $projectAttempts++;
+
+                return $projectAttempts === 1
+                    ? Http::response(['error' => ['code' => 'BOOM']], 400)
+                    : Http::response(['id' => 42, 'name' => 'Acme Run']);
+            }
+
+            return Http::response(['id' => 11]);
+        });
+
+        $handler = app(GetOrProvisionPayRamAccountHandler::class);
+
+        try {
+            $handler->handle($this->organizerId);
+            $this->fail('Expected the first attempt to fail.');
+        } catch (PayRamApiException) {
+            // expected
+        }
+
+        $this->assertSame(
+            'FAILED',
+            DB::table('organizer_payram_accounts')->where('organizer_id', $this->organizerId)->value('status'),
+        );
+
+        $payload = $handler->handle($this->organizerId);
+
+        $this->assertSame('READY', $payload['status']);
+        $this->assertArrayHasKey('credentials', $payload, 'They never saw the first attempt, so hand them over now.');
+        $this->assertSame(
+            1,
+            DB::table('organizer_payram_accounts')->where('organizer_id', $this->organizerId)->count(),
+            'A retry must update the row, not create a second one.',
         );
     }
 }

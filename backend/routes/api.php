@@ -127,8 +127,8 @@ use HiEvents\Http\Actions\Events\DeleteEventAction;
 use HiEvents\Http\Actions\Events\DuplicateEventAction;
 use HiEvents\Http\Actions\Events\GetEventAction;
 use HiEvents\Http\Actions\Events\GetEventDeletionStatusAction;
-use HiEvents\Http\Actions\Events\GetEventPublicAction;
 use HiEvents\Http\Actions\Events\GetEventOgImagePublicAction;
+use HiEvents\Http\Actions\Events\GetEventPublicAction;
 use HiEvents\Http\Actions\Events\GetEventsAction;
 use HiEvents\Http\Actions\Events\GetEventsListPublicAction;
 use HiEvents\Http\Actions\Events\GetOrganizerEventsPublicAction;
@@ -158,6 +158,9 @@ use HiEvents\Http\Actions\Messages\CancelMessageAction;
 use HiEvents\Http\Actions\Messages\GetMessageRecipientsAction;
 use HiEvents\Http\Actions\Messages\GetMessagesAction;
 use HiEvents\Http\Actions\Messages\SendMessageAction;
+use HiEvents\Http\Actions\Og\GetCategoryOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetCityOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetSiteOgImagePublicAction;
 use HiEvents\Http\Actions\Orders\CancelOrderAction;
 use HiEvents\Http\Actions\Orders\DownloadOrderInvoiceAction;
 use HiEvents\Http\Actions\Orders\EditOrderAction;
@@ -166,8 +169,8 @@ use HiEvents\Http\Actions\Orders\GetOrderAction;
 use HiEvents\Http\Actions\Orders\GetOrdersAction;
 use HiEvents\Http\Actions\Orders\MarkOrderAsPaidAction;
 use HiEvents\Http\Actions\Orders\MessageOrderAction;
-use HiEvents\Http\Actions\Orders\Payment\RefundOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\PayRam\CreatePayRamPaymentActionPublic;
+use HiEvents\Http\Actions\Orders\Payment\RefundOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\CreatePaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\GetPaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Public\AbandonOrderActionPublic;
@@ -183,13 +186,11 @@ use HiEvents\Http\Actions\Organizers\EditOrganizerAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerDeletionStatusAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerEventsAction;
+use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
-use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
-use HiEvents\Http\Actions\Og\GetCategoryOgImagePublicAction;
-use HiEvents\Http\Actions\Og\GetCityOgImagePublicAction;
-use HiEvents\Http\Actions\Og\GetSiteOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
+use HiEvents\Http\Actions\Organizers\PayRam\GetOrProvisionPayRamAccountAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
 use HiEvents\Http\Actions\Organizers\Settings\PartialUpdateOrganizerSettingsAction;
@@ -403,6 +404,9 @@ $router->middleware(['auth:api', 'email.verified'])->group(
 
         // Stripe Connect - Organizer level
         $router->get('/organizers/{organizerId}/stripe/connect_accounts', GetStripeConnectAccountsAction::class);
+        // PayRam merchant account - organizer level
+        $router->post('/organizers/{organizerId}/payram/account', GetOrProvisionPayRamAccountAction::class);
+
         $router->post('/organizers/{organizerId}/stripe/connect', CreateStripeConnectAccountAction::class);
         $router->post('/organizers/{organizerId}/stripe/copy_from/{sourceOrganizerId}', CopyStripeConnectAccountAction::class);
         $router->delete('/organizers/{organizerId}/stripe/connect_accounts/{stripeAccountId}', DisconnectStripeConnectAccountAction::class)
