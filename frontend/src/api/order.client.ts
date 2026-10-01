@@ -55,6 +55,7 @@ export interface RefundOrderPayload {
     amount: number;
     notify_buyer: boolean;
     cancel_order: boolean;
+    refund_transaction_hash?: string;
 }
 
 export const orderClient = {

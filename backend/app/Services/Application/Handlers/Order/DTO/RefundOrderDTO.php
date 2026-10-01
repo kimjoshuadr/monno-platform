@@ -11,6 +11,7 @@ class RefundOrderDTO extends BaseDTO
         public readonly int $order_id,
         public readonly float $amount,
         public readonly bool $notify_buyer,
-        public readonly bool $cancel_order
+        public readonly bool $cancel_order,
+        public readonly ?string $refund_transaction_hash = null,
     ) {}
 }

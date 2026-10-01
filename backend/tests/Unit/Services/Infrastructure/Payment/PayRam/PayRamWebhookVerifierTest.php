@@ -12,6 +12,7 @@ use Tests\TestCase;
 class PayRamWebhookVerifierTest extends TestCase
 {
     private const INSTANCE_KEY = 'monno-shared-key';
+
     private const ORGANIZER_KEY = 'organizer-own-key-12345';
 
     private PayRamWebhookVerifier $verifier;
@@ -44,7 +45,7 @@ class PayRamWebhookVerifierTest extends TestCase
 
     private function sign(string $body, string $key): string
     {
-        return 'sha256=' . hash_hmac('sha256', $body, $key);
+        return 'sha256='.hash_hmac('sha256', $body, $key);
     }
 
     public function test_it_accepts_a_delivery_signed_with_the_shared_instance_key(): void

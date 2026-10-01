@@ -36,7 +36,7 @@ class PayRamClientTest extends TestCase
     public function test_it_accepts_a_correct_hmac_signature(): void
     {
         $body = '{"reference_id":"abc","status":"FILLED"}';
-        $signature = 'sha256=' . hash_hmac('sha256', $body, self::API_KEY);
+        $signature = 'sha256='.hash_hmac('sha256', $body, self::API_KEY);
 
         $this->assertTrue($this->client->verifyWebhookSignature($body, $signature));
     }
@@ -44,14 +44,14 @@ class PayRamClientTest extends TestCase
     public function test_it_rejects_a_signature_computed_with_the_wrong_key(): void
     {
         $body = '{"reference_id":"abc","status":"FILLED"}';
-        $signature = 'sha256=' . hash_hmac('sha256', $body, 'not-our-key');
+        $signature = 'sha256='.hash_hmac('sha256', $body, 'not-our-key');
 
         $this->assertFalse($this->client->verifyWebhookSignature($body, $signature));
     }
 
     public function test_it_rejects_a_body_tampered_with_after_signing(): void
     {
-        $signature = 'sha256=' . hash_hmac('sha256', '{"status":"FILLED"}', self::API_KEY);
+        $signature = 'sha256='.hash_hmac('sha256', '{"status":"FILLED"}', self::API_KEY);
 
         $this->assertFalse($this->client->verifyWebhookSignature('{"status":"CANCELLED"}', $signature));
     }
@@ -60,7 +60,7 @@ class PayRamClientTest extends TestCase
     {
         $body = '{"status":"FILLED"}';
 
-        $this->assertFalse($this->client->verifyWebhookSignature($body, 'sha256=' . hash('sha256', $body)));
+        $this->assertFalse($this->client->verifyWebhookSignature($body, 'sha256='.hash('sha256', $body)));
     }
 
     public function test_it_accepts_the_legacy_verbatim_api_key_header(): void
@@ -80,7 +80,7 @@ class PayRamClientTest extends TestCase
 
     public function test_it_rejects_an_empty_body(): void
     {
-        $signature = 'sha256=' . hash_hmac('sha256', '', self::API_KEY);
+        $signature = 'sha256='.hash_hmac('sha256', '', self::API_KEY);
 
         $this->assertFalse($this->client->verifyWebhookSignature('', $signature));
     }
@@ -90,7 +90,7 @@ class PayRamClientTest extends TestCase
         config(['services.payram.webhook_secret' => '', 'services.payram.api_key' => '']);
 
         $body = '{"status":"FILLED"}';
-        $signature = 'sha256=' . hash_hmac('sha256', $body, '');
+        $signature = 'sha256='.hash_hmac('sha256', $body, '');
 
         $this->assertFalse($this->client->verifyWebhookSignature($body, $signature));
     }

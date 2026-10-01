@@ -2,7 +2,6 @@
 
 namespace HiEvents\Services\Infrastructure\Payment\PayRam;
 
-use HiEvents\DomainObjects\Generated\OrganizerPayramAccountDomainObjectAbstract;
 use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamMerchantProvisioningService;
 
@@ -34,7 +33,7 @@ class PayRamWebhookVerifier
             }
 
             if ($signatureHeader !== null && $signatureHeader !== '') {
-                if (hash_equals('sha256=' . hash_hmac('sha256', $rawBody, $secret), $signatureHeader)) {
+                if (hash_equals('sha256='.hash_hmac('sha256', $rawBody, $secret), $signatureHeader)) {
                     return true;
                 }
 

@@ -27,6 +27,8 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
 
     public ?StripePaymentDomainObject $stripePayment = null;
 
+    public ?PayramPaymentDomainObject $payramPayment = null;
+
     /** @var Collection<QuestionAndAnswerViewDomainObject>|null */
     public ?Collection $questionAndAnswerViews = null;
 
@@ -186,6 +188,13 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
         return $this;
     }
 
+    public function setPayramPayment(?PayramPaymentDomainObject $payramPayment): OrderDomainObject
+    {
+        $this->payramPayment = $payramPayment;
+
+        return $this;
+    }
+
     public function isPartiallyRefunded(): bool
     {
         return $this->getTotalRefunded() > 0 && $this->getTotalRefunded() < $this->getTotalGross();
@@ -224,6 +233,11 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
     public function getStripePayment(): ?StripePaymentDomainObject
     {
         return $this->stripePayment;
+    }
+
+    public function getPayramPayment(): ?PayramPaymentDomainObject
+    {
+        return $this->payramPayment;
     }
 
     public function isFreeOrder(): bool
@@ -292,7 +306,11 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
     {
         return ! $this->isFreeOrder()
             && $this->getStatus() !== OrderPaymentStatus::AWAITING_OFFLINE_PAYMENT->name
-            && in_array($this->getPaymentProvider(), [PaymentProviders::STRIPE->name, PaymentProviders::OFFLINE->name], true)
+            && in_array($this->getPaymentProvider(), [
+                PaymentProviders::STRIPE->name,
+                PaymentProviders::OFFLINE->name,
+                PaymentProviders::PAYRAM->name,
+            ], true)
             && $this->getRefundStatus() !== OrderRefundStatus::REFUNDED->name;
     }
 
