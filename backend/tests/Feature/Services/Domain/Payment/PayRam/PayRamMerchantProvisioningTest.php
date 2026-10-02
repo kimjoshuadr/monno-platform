@@ -353,4 +353,43 @@ class PayRamMerchantProvisioningTest extends TestCase
         $this->assertSame(self::ORGANIZER_KEY, $account->getApiKey());
         $this->assertSame(1, $projectsCreated, 'A resume must not create a second project.');
     }
+
+    public function test_provisioning_adopts_a_project_that_already_has_this_name(): void
+    {
+        // PayRam enforces unique project names, so an earlier attempt's project
+        // is returned as DUPLICATE_PROJECT_NAME rather than a new one.
+        Http::fake(function ($request) {
+            $url = $request->url();
+
+            if (str_ends_with($url, '/api/v1/signin')) {
+                return Http::response(['accessToken' => 'operator-jwt-token']);
+            }
+
+            if (str_ends_with($url, '/api/v1/external-platform')) {
+                return Http::response(['error' => ['code' => 'DUPLICATE_PROJECT_NAME']], 409);
+            }
+
+            if (str_ends_with($url, '/api/v1/external-platform/all')) {
+                return Http::response([
+                    ['id' => 55, 'name' => 'Someone Else'],
+                    ['id' => 77, 'name' => 'Acme Run'],
+                ]);
+            }
+
+            if (str_ends_with($url, '/api/v1/member')) {
+                return Http::response(['id' => 9]);
+            }
+
+            if (str_contains($url, '/api-key')) {
+                return Http::response(['key' => self::ORGANIZER_KEY]);
+            }
+
+            return Http::response(['status' => 'ok']);
+        });
+
+        $account = $this->provisioningService()->provision($this->organizerId, 'Acme Run', 'organizer@example.com');
+
+        $this->assertSame('READY', $account->getStatus());
+        $this->assertSame(77, $account->getExternalPlatformId(), 'It must adopt the project by name, not just any project.');
+    }
 }

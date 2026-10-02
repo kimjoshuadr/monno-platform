@@ -29,11 +29,30 @@ class PayRamOperatorClient
      */
     public function createProject(string $name): int
     {
-        $body = $this->request('post', '/api/v1/external-platform', [
-            'name' => $name,
-            'successEndpoint' => $this->returnUrl('/public/payram/return'),
-            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
-        ], withToken: true);
+        try {
+            $body = $this->request('post', '/api/v1/external-platform', [
+                'name' => $name,
+                'successEndpoint' => $this->returnUrl('/public/payram/return'),
+                'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
+            ], withToken: true);
+        } catch (PayRamApiException $exception) {
+            // PayRam enforces unique project names. A previous attempt already
+            // created this one — adopt it rather than failing the organizer.
+            if (! str_contains((string) $exception->rawBody, 'DUPLICATE_PROJECT_NAME')) {
+                throw $exception;
+            }
+
+            $existingId = $this->findProjectIdByName($name);
+
+            if ($existingId === null) {
+                throw $exception;
+            }
+
+            // It may predate the return/cancel endpoints; make it ours properly.
+            $this->updateProject($existingId, $name);
+
+            return $existingId;
+        }
 
         $projectId = (int) ($body['id'] ?? 0);
         if ($projectId <= 0) {
@@ -41,6 +60,20 @@ class PayRamOperatorClient
         }
 
         return $projectId;
+    }
+
+    /**
+     * @throws PayRamApiException
+     */
+    private function findProjectIdByName(string $name): ?int
+    {
+        foreach ($this->requestList('/api/v1/external-platform/all') as $project) {
+            if (($project['name'] ?? null) === $name) {
+                return (int) $project['id'];
+            }
+        }
+
+        return null;
     }
 
     /**
