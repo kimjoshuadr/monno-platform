@@ -21,6 +21,7 @@ import {
     IconArrowRight,
     IconArrowLeft,
     IconAlertCircle,
+    IconInfoCircle,
 } from '@tabler/icons-react';
 import {t} from '@lingui/macro';
 import {IdParam, OrganizerPayRamAccountResponse} from '../../../../../../types';
@@ -423,16 +424,24 @@ export const CryptoConnectWizardModal = ({
                 {/* Step 3: Success & Review */}
                 {step === 3 && (
                     <Stack gap="md" py="xs">
-                        {gatewayConfirmed === false ? (
+                        {gatewayConfirmed === true && (
+                            <Alert color="teal" icon={<IconCheck size={18}/>} title={t`Crypto payments are ready`}>
+                                <Text size="sm">
+                                    {t`Buyers can now pay with crypto on your events.`}
+                                </Text>
+                            </Alert>
+                        )}
+                        {gatewayConfirmed === false && (
                             <Alert color="orange" icon={<IconAlertCircle size={18}/>} title={t`Payout wallet not confirmed yet`}>
                                 <Text size="sm">
                                     {t`Your settings were saved, but the payment gateway has not confirmed your payout wallet. Finish the wallet step in the PayRam console, then reopen this setup.`}
                                 </Text>
                             </Alert>
-                        ) : (
-                            <Alert color="teal" icon={<IconCheck size={18}/>} title={t`Crypto payments are ready`}>
+                        )}
+                        {gatewayConfirmed === null && (
+                            <Alert color="indigo" icon={<IconInfoCircle size={18}/>} title={t`We could not confirm your payout wallet`}>
                                 <Text size="sm">
-                                    {t`Buyers can now pay with crypto on your events.`}
+                                    {t`Your settings were saved, but we could not reach the payment gateway to confirm your payout wallet. Finish the wallet step in the PayRam console, then reopen this setup.`}
                                 </Text>
                             </Alert>
                         )}
