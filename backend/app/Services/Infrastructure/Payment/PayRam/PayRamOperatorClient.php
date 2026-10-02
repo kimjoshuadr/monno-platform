@@ -104,7 +104,7 @@ class PayRamOperatorClient
      *
      * @throws PayRamApiException
      */
-    public function signInMember(string $email, string $password): array
+    public function signInMember(string $email, string $password, bool $autoClearResetRequired = true): array
     {
         try {
             $response = Http::withOptions([
@@ -122,12 +122,65 @@ class PayRamOperatorClient
             throw new PayRamApiException(__('Could not sign in member to PayRam.'), $response->status(), $response->body());
         }
 
-        return (array) $response->json();
+        $session = (array) $response->json();
+
+        // If PayRam flags this member as needing a first-login password reset,
+        // clear it proactively on the gateway so subsequent API calls don't get
+        // blocked with RESET_PASSWORD_REQUIRED (HTTP 403).
+        if ($autoClearResetRequired && ! empty($session['resetPasswordRequired'])) {
+            $token = (string) ($session['accessToken'] ?? '');
+            if ($token !== '') {
+                try {
+                    $this->changeMemberPassword($token, $password, $password);
+
+                    return $this->signInMember($email, $password, autoClearResetRequired: false);
+                } catch (\Throwable $exception) {
+                    logger()->warning('Failed to auto-clear PayRam member resetPasswordRequired', [
+                        'email' => $email,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        return $session;
+    }
+
+    /**
+     * Changes a member's password using their authenticated session.
+     * Used to clear PayRam's forced first-login password reset so the
+     * organizer lands directly in the console without seeing a password prompt
+     * or getting blocked with RESET_PASSWORD_REQUIRED (HTTP 403).
+     *
+     * @throws PayRamApiException
+     */
+    public function changeMemberPassword(string $accessToken, string $oldPassword, string $newPassword): void
+    {
+        try {
+            $response = Http::withOptions([
+                'timeout' => $this->configuration->getTimeout(),
+                'connect_timeout' => 10,
+            ])->withToken($accessToken)->asJson()->post($this->configuration->getBaseUrl().'/api/v1/member/change-password', [
+                'oldPassword' => $oldPassword,
+                'password' => $newPassword,
+            ]);
+        } catch (ConnectionException $exception) {
+            throw new PayRamApiException(__('Could not reach the payment gateway.'), null, $exception->getMessage());
+        }
+
+        if ($response->failed()) {
+            throw new PayRamApiException(
+                (string) ($response->json('error.message') ?? $response->json('message') ?? __('Could not change member password.')),
+                $response->status(),
+                $response->body(),
+            );
+        }
     }
 
     /**
      * Creates the organizer's own dashboard login. PayRam marks it as needing a
-     * password reset, so they set their own password on first sign-in.
+     * password reset, which Monno clears upon first sign-in / SSO so organizers
+     * land seamlessly in their console without a manual password prompt.
      *
      * @throws PayRamApiException
      */
