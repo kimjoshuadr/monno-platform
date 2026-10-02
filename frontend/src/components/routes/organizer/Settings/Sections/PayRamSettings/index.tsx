@@ -53,11 +53,19 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     // Hand the gateway a one-time code via the URL fragment; its /sso.html page
     // (shipped in our PayRam image) redeems it and signs the organizer in, so
     // they never see a password or a forced reset.
+    //
+    // Deep-link to the wallet setup page for organizers whose gateway payout
+    // wallet isn't confirmed yet — they need to complete exactly one action
+    // there and we don't want them hunting for it.
     const handleOpenConsole = async () => {
         try {
             setIsOpeningConsole(true);
             const {code, dashboard_url, exchange_url} = await organizerPayRamClient.createSsoToken(organizerId);
-            const fragment = new URLSearchParams({code, exchange: exchange_url}).toString();
+
+            const needsWalletSetup = !gatewayWalletReady;
+            const redirect = needsWalletSetup ? '/manageWallet/deposit-wallet' : '/dashboard';
+
+            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect}).toString();
             window.open(`${dashboard_url}/sso.html#${fragment}`, '_blank', 'noopener,noreferrer');
         } catch {
             // We could not mint a session — most likely this merchant's login
@@ -155,13 +163,16 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Edit setup`}
                                     </Button>
                                     <Button
-                                        variant="subtle"
+                                        variant={gatewayWalletReady === false ? 'filled' : 'subtle'}
+                                        color={gatewayWalletReady === false ? 'orange' : undefined}
                                         size="xs"
                                         rightSection={<IconExternalLink size={14} />}
                                         loading={isOpeningConsole}
                                         onClick={handleOpenConsole}
                                     >
-                                        {t`PayRam console`}
+                                        {gatewayWalletReady === false
+                                            ? t`Finish wallet setup ↗`
+                                            : t`PayRam console`}
                                     </Button>
                                 </Group>
                             </Group>
@@ -226,11 +237,27 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     </Text>
                                 </Group>
 
-                                {gateway?.available && (
+                                {gateway?.available && !gatewayWalletReady && (
+                                    <Alert
+                                        color="orange"
+                                        variant="light"
+                                        icon={<IconAlertCircle size={14}/>}
+                                        p="xs"
+                                    >
+                                        <Text size="xs" fw={500} mb={4}>
+                                            {t`One step remaining: connect your payout wallet`}
+                                        </Text>
+                                        <Text size="xs" c="dimmed">
+                                            {t`Click "Finish wallet setup" above. You'll be taken directly to the wallet setup page in the PayRam console where you connect MetaMask and set your payout address. This takes about 2 minutes and only happens once.`}
+                                        </Text>
+                                    </Alert>
+                                )}
+
+                                {gateway?.available && gatewayWalletReady && (
                                     <Group justify="space-between">
                                         <Text size="xs" c="dimmed">{t`Gateway payout wallet`}</Text>
-                                        <Badge size="xs" variant="light" color={gatewayWalletReady ? 'teal' : 'orange'}>
-                                            {gatewayWalletReady ? t`Confirmed` : t`Not configured`}
+                                        <Badge size="xs" variant="light" color="teal">
+                                            {t`Confirmed`}
                                         </Badge>
                                     </Group>
                                 )}
