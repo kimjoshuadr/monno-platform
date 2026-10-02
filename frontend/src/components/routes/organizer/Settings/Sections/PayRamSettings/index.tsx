@@ -64,6 +64,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
 
             const needsWalletSetup = !gatewayWalletReady;
             const redirect = needsWalletSetup ? '/manageWallet/deposit-wallet' : '/dashboard';
+            const wallet = needsWalletSetup ? 'needs' : 'ok';
 
             // Tell the console guide which chains this organizer enabled and
             // where to send them back, so it tailors the steps instead of
@@ -74,7 +75,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
             ).join(',');
             const back = `${window.location.origin}/manage/organizer/${organizerId}/settings#crypto-payments`;
 
-            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect, coins, back}).toString();
+            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect, coins, back, wallet}).toString();
             window.open(`${dashboard_url}/sso.html#${fragment}`, '_blank', 'noopener,noreferrer');
         } catch {
             // We could not mint a session — most likely this merchant's login
