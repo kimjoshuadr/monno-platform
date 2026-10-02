@@ -65,7 +65,16 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
             const needsWalletSetup = !gatewayWalletReady;
             const redirect = needsWalletSetup ? '/manageWallet/deposit-wallet' : '/dashboard';
 
-            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect}).toString();
+            // Tell the console guide which chains this organizer enabled and
+            // where to send them back, so it tailors the steps instead of
+            // guessing (see monno-payram/public/monno-ui.js).
+            const coins = (data?.supported_currencies && data.supported_currencies.length > 0
+                ? data.supported_currencies
+                : ['ETH', 'USDC', 'USDT', 'POL']
+            ).join(',');
+            const back = `${window.location.origin}/manage/organizer/${organizerId}/settings#crypto-payments`;
+
+            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect, coins, back}).toString();
             window.open(`${dashboard_url}/sso.html#${fragment}`, '_blank', 'noopener,noreferrer');
         } catch {
             // We could not mint a session — most likely this merchant's login
