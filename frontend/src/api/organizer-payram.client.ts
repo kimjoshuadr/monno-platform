@@ -18,7 +18,7 @@ export const organizerPayRamClient = {
         return response.data;
     },
 
-    /** Configure Monno Crypto Connect wizard settings */
+    /** Save the crypto setup wizard's wallet and currency choices */
     setupCryptoConnect: async (
         organizerId: IdParam,
         data: {

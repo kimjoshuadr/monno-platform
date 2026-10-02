@@ -192,7 +192,7 @@ export const CryptoConnectWizardModal = ({
                 <Group gap={8}>
                     <IconShieldCheck size={22} color="#6366f1" />
                     <Text fw={700} size="lg">
-                        {t`Monno Crypto Connect Setup`}
+                        {t`Crypto payments setup`}
                     </Text>
                 </Group>
             }
@@ -340,7 +340,7 @@ export const CryptoConnectWizardModal = ({
 
                                 <Alert variant="light" color="indigo" icon={<IconShieldCheck size={16} />}>
                                     <Text size="xs">
-                                        {t`Non-custodial & safe: Monno deploys smart contract deposit routing so funds sweep straight to this address. We never ask for or hold your private keys.`}
+                                        {t`Non-custodial: settlements move straight to this address on-chain. We never ask for or hold your private keys.`}
                                     </Text>
                                 </Alert>
                             </Stack>
@@ -387,7 +387,7 @@ export const CryptoConnectWizardModal = ({
                     <Stack align="center" gap="md" py="xl">
                         <Loader size="lg" color="indigo" />
                         <Text fw={600} size="md">
-                            {t`Configuring Monno Crypto Connect...`}
+                            {t`Saving your crypto settings...`}
                         </Text>
                         <Stack gap="xs" style={{maxWidth: 360, width: '100%'}}>
                             <Group gap="xs">
@@ -430,7 +430,7 @@ export const CryptoConnectWizardModal = ({
                         ) : (
                             <Alert color="teal" icon={<IconCheck size={18}/>} title={t`Crypto payments are ready`}>
                                 <Text size="sm">
-                                    {t`Buyers can now pay with crypto on your events. Your payout address is on file and sales settle to it on-chain.`}
+                                    {t`Buyers can now pay with crypto on your events.`}
                                 </Text>
                             </Alert>
                         )}

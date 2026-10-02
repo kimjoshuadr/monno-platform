@@ -70,7 +70,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
         <Card>
             <HeadingWithDescription
                 heading={t`Crypto payments`}
-                description={t`Accept USDC, USDT, ETH, and other cryptocurrencies with zero chargebacks. Sales settle instantly to your cold wallet on-chain.`}
+                description={t`Accept USDC, USDT, ETH, and other cryptocurrencies with zero chargebacks. Sales settle to your own cold wallet on-chain.`}
             />
 
             <Stack gap="md" mt="sm">
@@ -93,10 +93,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     </ThemeIcon>
                                     <div>
                                         <Text fw={600} size="sm">
-                                            {t`Monno Crypto Connect`}
+                                            {t`Crypto payments, powered by PayRam`}
                                         </Text>
                                         <Text size="xs" c="dimmed">
-                                            {t`Stripe-like guided setup for Web3 payments`}
+                                            {t`Accept stablecoins and other crypto with zero chargebacks.`}
                                         </Text>
                                     </div>
                                 </Group>
@@ -106,7 +106,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                             </Group>
 
                             <Text size="sm" c="dimmed">
-                                {t`Set up your payout cold wallet and choose accepted currencies in under 2 minutes. We automatically deploy smart contract routing so payments sweep straight to your custody.`}
+                                {t`Choose the currencies you accept and record the wallet your sales settle to. Settling to that wallet needs one wallet connection in the PayRam console — we never ask for or hold your private keys.`}
                             </Text>
 
                             <Group gap="xs" mt="xs">
@@ -138,7 +138,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Active`}
                                     </Badge>
                                     <Text fw={600} size="sm">
-                                        {t`Monno Crypto Connect is ready`}
+                                        {t`Crypto payments are ready`}
                                     </Text>
                                 </Group>
                                 <Group gap="xs">
