@@ -43,7 +43,7 @@ class SetupPayRamCryptoConnectHandler
 
         $account = $this->provisioningService->findForOrganizer($organizerId);
 
-        if ($account === null || $account->getStatus() === PayRamMerchantProvisioningService::STATUS_FAILED) {
+        if ($account === null || $account->getStatus() !== PayRamMerchantProvisioningService::STATUS_READY) {
             $organizer = $this->organizerRepository->findById($organizerId);
             $account = $this->provisioningService->provision(
                 organizerId: $organizerId,

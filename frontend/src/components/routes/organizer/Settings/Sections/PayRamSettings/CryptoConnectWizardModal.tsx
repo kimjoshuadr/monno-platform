@@ -162,10 +162,12 @@ export const CryptoConnectWizardModal = ({
                     setStep(3); // Success step
                 },
                 onError: (error: any) => {
-                    showError(
-                        error?.response?.data?.message ||
-                            t`Could not activate crypto payments. Please check your address and try again.`
-                    );
+                    const serverMessage = error?.response?.data?.message;
+                    const message =
+                        serverMessage && serverMessage !== 'Server Error'
+                            ? serverMessage
+                            : t`Could not activate crypto payments. Please check your payout address and connection, then try again.`;
+                    showError(message);
                     setStep(1); // Return to address step
                 },
             }

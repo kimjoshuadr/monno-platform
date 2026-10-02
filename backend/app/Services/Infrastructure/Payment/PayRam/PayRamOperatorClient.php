@@ -67,8 +67,10 @@ class PayRamOperatorClient
      */
     private function findProjectIdByName(string $name): ?int
     {
+        $target = trim($name);
         foreach ($this->requestList('/api/v1/external-platform/all') as $project) {
-            if (($project['name'] ?? null) === $name) {
+            $projectName = trim((string) ($project['name'] ?? ''));
+            if (strcasecmp($projectName, $target) === 0) {
                 return (int) $project['id'];
             }
         }
@@ -141,7 +143,8 @@ class PayRamOperatorClient
             // PayRam answers a duplicate email with HTTP 500 and an ALREADY_EXIST
             // body. That is a resume, not a failure: a previous attempt already
             // created this member.
-            if (! str_contains((string) $exception->rawBody, 'ALREADY_EXIST')) {
+            $raw = (string) $exception->rawBody;
+            if (! str_contains($raw, 'ALREADY_EXIST') && ! str_contains(strtolower($raw), 'already exist')) {
                 throw $exception;
             }
         }
@@ -298,8 +301,12 @@ class PayRamOperatorClient
                 return $this->request($method, $uri, $payload, withToken: false);
             }
 
+            $errorMessage = $response->json('error.message')
+                ?? $response->json('message')
+                ?? __('The payment gateway rejected the request.');
+
             throw new PayRamApiException(
-                __('The payment gateway rejected the request.'),
+                (string) $errorMessage,
                 $response->status(),
                 $response->body(),
             );

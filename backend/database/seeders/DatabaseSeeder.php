@@ -16,5 +16,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call('monno:seed', ['--force' => true]);
+        $this->call('tv8:seed', ['--force' => true]);
     }
 }

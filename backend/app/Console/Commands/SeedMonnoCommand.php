@@ -88,6 +88,7 @@ class SeedMonnoCommand extends Command
         try {
             $owners = $this->seedOrganizers($createAccount, $createOrganizer, $createImage, $db);
             $seeded = $this->seedEvents($ctx, $createEventImage, $owners);
+            $this->call('tv8:seed', ['--force' => true]);
         } catch (Throwable $e) {
             $this->error('Seeding failed: '.$e->getMessage());
             $this->line($e->getFile().':'.$e->getLine());

@@ -22,6 +22,7 @@ php artisan storage:link
 if [ "${MONNO_SEED_ON_START:-}" = "true" ]; then
     echo "MONNO_SEED_ON_START=true — seeding the curated monno content …"
     php artisan monno:seed --force || echo "WARNING: monno:seed failed (check the output above)"
+    php artisan tv8:seed --force || echo "WARNING: tv8:seed failed (check the output above)"
 fi
 
 chown -R www-data:www-data /app/backend

@@ -52,7 +52,15 @@ class PayRamMerchantProvisioningService
         // the project and the member: the gateway refuses a second member with the
         // same email, and creating another project leaks one we can never delete.
         $email = $existing?->getMemberEmail() ?: $email;
-        $password = $existing?->getProvisionedPassword() ?: self::generatePassword();
+        $password = $existing?->getProvisionedPassword();
+        if (! $password
+            || ! preg_match('/[A-Z]/', $password)
+            || ! preg_match('/[a-z]/', $password)
+            || ! preg_match('/[0-9]/', $password)
+            || ! preg_match('/[^a-zA-Z0-9]/', $password)
+        ) {
+            $password = self::generatePassword();
+        }
         $projectId = $existing?->getExternalPlatformId();
 
         try {
@@ -72,7 +80,7 @@ class PayRamMerchantProvisioningService
 
             $this->operatorClient->createMember($organizerName, $email, $password);
             $this->operatorClient->assignMemberRole($email, $projectId, 'project_admin');
-            $apiKey = $this->operatorClient->createApiKey($projectId, sprintf('monno server key for %s', $organizerName));
+            $apiKey = $existing?->getApiKey() ?: $this->operatorClient->createApiKey($projectId, sprintf('monno server key for %s', $organizerName));
         } catch (Throwable $exception) {
             $this->logger->error('PayRam merchant provisioning failed', [
                 'organizer_id' => $organizerId,

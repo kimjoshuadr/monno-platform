@@ -2,6 +2,7 @@
 
 namespace HiEvents\Exceptions;
 
+use HiEvents\Exceptions\PayRam\PayRamApiException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -83,7 +84,10 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        if ($exception instanceof CannotPublishEventWithoutPaymentMethodException) {
+        if ($exception instanceof CannotPublishEventWithoutPaymentMethodException
+            || $exception instanceof ValidationException
+            || $exception instanceof PayRamApiException
+        ) {
             return response()->json([
                 'message' => $exception->getMessage(),
             ], 422);
