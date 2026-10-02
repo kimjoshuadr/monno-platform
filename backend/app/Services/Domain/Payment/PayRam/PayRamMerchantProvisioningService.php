@@ -46,10 +46,30 @@ class PayRamMerchantProvisioningService
      */
     public function provision(int $organizerId, string $organizerName, string $email): OrganizerPayramAccountDomainObject
     {
-        $password = self::generatePassword();
+        $existing = $this->findForOrganizer($organizerId);
+
+        // Resume rather than restart. A previous attempt may already have created
+        // the project and the member: the gateway refuses a second member with the
+        // same email, and creating another project leaks one we can never delete.
+        $email = $existing?->getMemberEmail() ?: $email;
+        $password = $existing?->getProvisionedPassword() ?: self::generatePassword();
+        $projectId = $existing?->getExternalPlatformId();
 
         try {
-            $projectId = $this->operatorClient->createProject($organizerName);
+            if ($projectId === null) {
+                $projectId = $this->operatorClient->createProject($organizerName);
+
+                // Checkpoint before the steps that can fail, so a retry resumes
+                // from here instead of minting another project.
+                $existing = $this->persist($organizerId, $existing, [
+                    OrganizerPayramAccountDomainObjectAbstract::EXTERNAL_PLATFORM_ID => $projectId,
+                    OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $organizerName,
+                    OrganizerPayramAccountDomainObjectAbstract::MEMBER_EMAIL => $email,
+                    OrganizerPayramAccountDomainObjectAbstract::PROVISIONED_PASSWORD => $password,
+                    OrganizerPayramAccountDomainObjectAbstract::STATUS => self::STATUS_PROVISIONING,
+                ]);
+            }
+
             $this->operatorClient->createMember($organizerName, $email, $password);
             $this->operatorClient->assignMemberRole($email, $projectId, 'project_admin');
             $apiKey = $this->operatorClient->createApiKey($projectId, sprintf('monno server key for %s', $organizerName));
@@ -64,8 +84,7 @@ class PayRamMerchantProvisioningService
             throw $exception;
         }
 
-        $attributes = [
-            OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID => $organizerId,
+        return $this->persist($organizerId, $existing, [
             OrganizerPayramAccountDomainObjectAbstract::EXTERNAL_PLATFORM_ID => $projectId,
             OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $organizerName,
             OrganizerPayramAccountDomainObjectAbstract::MEMBER_EMAIL => $email,
@@ -74,17 +93,30 @@ class PayRamMerchantProvisioningService
             OrganizerPayramAccountDomainObjectAbstract::STATUS => self::STATUS_READY,
             OrganizerPayramAccountDomainObjectAbstract::WALLET_STATUS => self::WALLET_NOT_CONFIGURED,
             OrganizerPayramAccountDomainObjectAbstract::LAST_ERROR => null,
-        ];
+        ]);
+    }
 
-        // A retry after a failed attempt must update, not trip the unique key.
-        $existing = $this->findForOrganizer($organizerId);
+    /**
+     * Create-or-update the organizer's account row, keyed on the organizer.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private function persist(
+        int $organizerId,
+        ?OrganizerPayramAccountDomainObject $existing,
+        array $attributes,
+    ): OrganizerPayramAccountDomainObject {
+        $attributes[OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID] = $organizerId;
+
+        $existing ??= $this->findForOrganizer($organizerId);
+
         if ($existing !== null) {
             $this->accountsRepository->updateFromArray($existing->getId(), $attributes);
-
-            return $this->findForOrganizer($organizerId);
+        } else {
+            $this->accountsRepository->create($attributes);
         }
 
-        return $this->accountsRepository->create($attributes);
+        return $this->findForOrganizer($organizerId);
     }
 
     /**

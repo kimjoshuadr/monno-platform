@@ -98,11 +98,20 @@ class PayRamOperatorClient
      */
     public function createMember(string $name, string $email, string $password): void
     {
-        $this->request('post', '/api/v1/member', [
-            'name' => $name,
-            'email' => $email,
-            'password' => $password,
-        ], withToken: true);
+        try {
+            $this->request('post', '/api/v1/member', [
+                'name' => $name,
+                'email' => $email,
+                'password' => $password,
+            ], withToken: true);
+        } catch (PayRamApiException $exception) {
+            // PayRam answers a duplicate email with HTTP 500 and an ALREADY_EXIST
+            // body. That is a resume, not a failure: a previous attempt already
+            // created this member.
+            if (! str_contains((string) $exception->rawBody, 'ALREADY_EXIST')) {
+                throw $exception;
+            }
+        }
     }
 
     /**

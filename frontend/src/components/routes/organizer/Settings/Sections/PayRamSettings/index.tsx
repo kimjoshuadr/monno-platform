@@ -28,7 +28,7 @@ import {useGetPayRamAccount} from "../../../../../../queries/useGetPayRamAccount
 import {IdParam} from "../../../../../../types";
 import {CryptoConnectWizardModal} from "./CryptoConnectWizardModal";
 import {organizerPayRamClient} from "../../../../../../api/organizer-payram.client";
-import {showError} from "../../../../../../utilites/notifications";
+import {showInfo} from "../../../../../../utilites/notifications";
 
 interface PayRamSettingsProps {
     organizerId: IdParam;
@@ -60,7 +60,11 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
             const fragment = new URLSearchParams({code, exchange: exchange_url}).toString();
             window.open(`${dashboard_url}/sso.html#${fragment}`, '_blank', 'noopener,noreferrer');
         } catch {
-            showError(t`Could not open the payment gateway console. Please try again.`);
+            // We could not mint a session — most likely this merchant's login
+            // predates us storing its password. Open the console anyway so the
+            // organizer can use "Forgot password" instead of hitting a dead end.
+            showInfo(t`Could not sign you in automatically. Opening the console — use "Forgot password" if you don't have your login.`);
+            window.open(data?.dashboard_url || 'https://pay.monno.io', '_blank', 'noopener,noreferrer');
         } finally {
             setIsOpeningConsole(false);
         }

@@ -315,4 +315,42 @@ class PayRamMerchantProvisioningTest extends TestCase
             'A retry must update the row, not create a second one.',
         );
     }
+
+    public function test_provisioning_resumes_when_the_member_already_exists(): void
+    {
+        // PayRam answers a duplicate member email with 500 + ALREADY_EXIST. An
+        // earlier attempt got that far, so this is a resume, not a failure — and
+        // it must not mint another project.
+        $projectsCreated = 0;
+
+        Http::fake(function ($request) use (&$projectsCreated) {
+            $url = $request->url();
+
+            if (str_ends_with($url, '/api/v1/signin')) {
+                return Http::response(['accessToken' => 'operator-jwt-token']);
+            }
+
+            if (str_ends_with($url, '/api/v1/external-platform')) {
+                $projectsCreated++;
+
+                return Http::response(['id' => 77, 'name' => 'Acme Run']);
+            }
+
+            if (str_ends_with($url, '/api/v1/member')) {
+                return Http::response(['error' => ['code' => 'ALREADY_EXIST', 'message' => 'Already exist.']], 500);
+            }
+
+            if (str_contains($url, '/api-key')) {
+                return Http::response(['key' => self::ORGANIZER_KEY]);
+            }
+
+            return Http::response(['status' => 'ok']);
+        });
+
+        $account = $this->provisioningService()->provision($this->organizerId, 'Acme Run', 'organizer@example.com');
+
+        $this->assertSame('READY', $account->getStatus());
+        $this->assertSame(self::ORGANIZER_KEY, $account->getApiKey());
+        $this->assertSame(1, $projectsCreated, 'A resume must not create a second project.');
+    }
 }
