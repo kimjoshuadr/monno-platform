@@ -3,7 +3,6 @@
 namespace Tests\Feature\Services\Domain\Payment\PayRam;
 
 use HiEvents\DomainObjects\Status\OrderStatus;
-use HiEvents\Exceptions\ValidationException;
 use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamCancelAction;
 use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamReturnAction;
 use HiEvents\Http\Actions\Organizers\PayRam\ExchangePayRamSsoCodeAction;
@@ -11,12 +10,10 @@ use HiEvents\Models\Account;
 use HiEvents\Models\Order;
 use HiEvents\Models\User;
 use HiEvents\Services\Application\Handlers\Organizer\Payment\PayRam\CreatePayRamSsoTokenHandler;
-use HiEvents\Services\Application\Handlers\Organizer\Payment\PayRam\SetupPayRamCryptoConnectHandler;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class PayRamCryptoConnectTest extends TestCase
@@ -83,65 +80,6 @@ class PayRamCryptoConnectTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]));
-    }
-
-    public function test_setup_validates_evm_address_format(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $handler = app(SetupPayRamCryptoConnectHandler::class);
-        $handler->handle($this->organizerId, 'not-an-evm-address');
-    }
-
-    public function test_setup_provisions_account_and_saves_wallet(): void
-    {
-        Http::fake([
-            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'token123']),
-            'https://pay.test/api/v1/external-platform' => Http::response(['id' => 99]),
-            'https://pay.test/api/v1/member' => Http::response(['id' => 101]),
-            'https://pay.test/api/v1/member/*/roles' => Http::response(['status' => 'ok']),
-            'https://pay.test/api/v1/external-platform/99/api-key' => Http::response(['key' => 'key_xyz']),
-            'https://pay.test/api/v1/external-platform/99' => Http::response(['status' => 'ok']),
-            'https://pay.test/api/v1/project/99/addresses/balance' => Http::response([
-                ['walletName' => 'EVM Deposit Wallet 1', 'coldWalletConfigured' => true, 'defaultColdWalletSet' => true],
-            ]),
-        ]);
-
-        $coldWallet = '0x142e57a939aBeFb8D50Ab39A8aB58ef9572620ef';
-        $currencies = ['ETH', 'USDC', 'USDT', 'POL'];
-
-        $handler = app(SetupPayRamCryptoConnectHandler::class);
-        $response = $handler->handle($this->organizerId, $coldWallet, $currencies);
-
-        $this->assertEquals('READY', $response['status']);
-        $this->assertEquals('READY', $response['wallet_status']);
-        $this->assertEquals($coldWallet, $response['wallet_address']);
-        $this->assertEquals($currencies, $response['supported_currencies']);
-        $this->assertTrue($response['gateway']['available']);
-        $this->assertTrue($response['gateway']['cold_wallet_configured']);
-    }
-
-    public function test_wallet_status_reflects_the_gateway_not_our_own_optimism(): void
-    {
-        Http::fake([
-            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'token123']),
-            'https://pay.test/api/v1/external-platform' => Http::response(['id' => 99]),
-            'https://pay.test/api/v1/member' => Http::response(['id' => 101]),
-            'https://pay.test/api/v1/member/*/roles' => Http::response(['status' => 'ok']),
-            'https://pay.test/api/v1/external-platform/99/api-key' => Http::response(['key' => 'key_xyz']),
-            'https://pay.test/api/v1/external-platform/99' => Http::response(['status' => 'ok']),
-            // The gateway knows of no payout wallet, so we must not claim READY.
-            'https://pay.test/api/v1/project/99/addresses/balance' => Http::response([
-                ['walletName' => 'EVM Deposit Wallet 1', 'coldWalletConfigured' => false, 'defaultColdWalletSet' => false],
-            ]),
-        ]);
-
-        $handler = app(SetupPayRamCryptoConnectHandler::class);
-        $response = $handler->handle($this->organizerId, '0x142e57a939aBeFb8D50Ab39A8aB58ef9572620ef');
-
-        $this->assertEquals('READY', $response['status']);
-        $this->assertEquals('NOT_CONFIGURED', $response['wallet_status']);
-        $this->assertFalse($response['gateway']['cold_wallet_configured']);
     }
 
     public function test_return_action_redirects_to_summary_if_order_completed(): void

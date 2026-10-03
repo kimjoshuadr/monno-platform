@@ -196,7 +196,6 @@ use HiEvents\Http\Actions\Organizers\PayRam\CreatePayRamSsoTokenAction;
 use HiEvents\Http\Actions\Organizers\PayRam\ExchangePayRamSsoCodeAction;
 use HiEvents\Http\Actions\Organizers\PayRam\GetOrProvisionPayRamAccountAction;
 use HiEvents\Http\Actions\Organizers\PayRam\GetPayRamAccountAction;
-use HiEvents\Http\Actions\Organizers\PayRam\SetupPayRamCryptoConnectAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
 use HiEvents\Http\Actions\Organizers\Settings\PartialUpdateOrganizerSettingsAction;
@@ -413,7 +412,6 @@ $router->middleware(['auth:api', 'email.verified'])->group(
         // PayRam merchant account - organizer level
         $router->get('/organizers/{organizerId}/payram/account', GetPayRamAccountAction::class);
         $router->post('/organizers/{organizerId}/payram/account', GetOrProvisionPayRamAccountAction::class);
-        $router->post('/organizers/{organizerId}/payram/setup', SetupPayRamCryptoConnectAction::class);
         $router->post('/organizers/{organizerId}/payram/sso-token', CreatePayRamSsoTokenAction::class);
 
         $router->post('/organizers/{organizerId}/stripe/connect', CreateStripeConnectAccountAction::class);

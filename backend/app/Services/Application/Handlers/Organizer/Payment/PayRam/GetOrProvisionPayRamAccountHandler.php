@@ -64,8 +64,6 @@ class GetOrProvisionPayRamAccountHandler
             'member_email' => $account->getMemberEmail(),
             'external_platform_id' => $account->getExternalPlatformId(),
             'wallet_status' => $account->getWalletStatus(),
-            'wallet_address' => $account->getWalletAddress(),
-            'supported_currencies' => $account->getSupportedCurrencies(),
             'dashboard_url' => rtrim($dashboardUrl, '/'),
             'last_error' => $account->getLastError(),
             'gateway' => $this->gatewayStatusService->forProject($account->getExternalPlatformId()),

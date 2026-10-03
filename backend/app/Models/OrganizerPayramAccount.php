@@ -17,7 +17,6 @@ class OrganizerPayramAccount extends BaseModel
             // Credentials never leave the database in plain text.
             'api_key' => 'encrypted',
             'provisioned_password' => 'encrypted',
-            'supported_currencies' => 'array',
         ];
     }
 

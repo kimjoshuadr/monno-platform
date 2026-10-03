@@ -6,6 +6,7 @@ namespace HiEvents\Services\Domain\Event;
 
 use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\Exceptions\CannotPublishEventWithoutPaymentMethodException;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamGatewayStatusService;
 use Illuminate\Support\Facades\DB;
 
 class EventPublishingValidationService
@@ -59,17 +60,22 @@ class EventPublishingValidationService
 
         $hasPayRam = in_array(PaymentProviders::PAYRAM->value, $providers, true);
         if ($hasPayRam && $organizerId !== null) {
-            $payramReady = DB::table('organizer_payram_accounts')
+            // PayRam is the authority on whether money can actually move, and
+            // the organizer wires their wallets up in the PayRam console — not
+            // here. So the only evidence that counts is the gateway's own
+            // confirmation, read live rather than inferred from a stored field.
+            $account = DB::table('organizer_payram_accounts')
                 ->where('organizer_id', $organizerId)
                 ->where('status', 'READY')
-                ->where(function ($query) {
-                    $query->where('wallet_status', 'READY')
-                        ->orWhereNotNull('wallet_address');
-                })
-                ->exists();
+                ->first();
 
-            if ($payramReady) {
-                return;
+            if ($account !== null) {
+                $gatewayStatus = app(PayRamGatewayStatusService::class)
+                    ->forProject($account->external_platform_id ?? null);
+
+                if ($gatewayStatus['available'] && $gatewayStatus['cold_wallet_configured']) {
+                    return;
+                }
             }
         }
 

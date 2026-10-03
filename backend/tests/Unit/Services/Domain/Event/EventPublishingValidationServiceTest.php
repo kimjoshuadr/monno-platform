@@ -8,7 +8,9 @@ use HiEvents\Models\Account;
 use HiEvents\Models\User;
 use HiEvents\Services\Domain\Event\EventPublishingValidationService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class EventPublishingValidationServiceTest extends TestCase
@@ -107,19 +109,15 @@ class EventPublishingValidationServiceTest extends TestCase
         $this->validate();
     }
 
-    public function test_a_paid_event_with_crypto_selected_publishes_with_cards_off(): void
+    public function test_a_paid_event_with_crypto_selected_publishes_once_payram_confirms_the_wallet(): void
     {
         $this->addProduct(25);
         $this->setProviders(['PAYRAM']);
         config(['app.stripe_enabled' => false]);
 
-        DB::table('organizer_payram_accounts')->insert([
-            'organizer_id' => $this->organizerId,
-            'status' => 'READY',
-            'wallet_address' => '0x142e57a939aBeFb8D50Ab39A8aB58ef9572620ef',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $this->insertPayRamAccount();
+        $this->fakeGatewayStatus(coldWalletConfigured: true);
+        Cache::flush();
 
         $this->validate();
 
@@ -156,6 +154,7 @@ class EventPublishingValidationServiceTest extends TestCase
         DB::table('organizer_payram_accounts')->insert([
             'organizer_id' => $this->organizerId,
             'status' => 'READY',
+            'external_platform_id' => 99,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -165,22 +164,74 @@ class EventPublishingValidationServiceTest extends TestCase
         $this->validate();
     }
 
-    public function test_a_paid_event_with_crypto_publishes_once_the_wallet_is_set(): void
+    public function test_a_saved_wallet_address_alone_does_not_unlock_publishing(): void
+    {
+        // The address we used to store proved nothing — nothing on our side
+        // wires it up, so it must not satisfy the gate any more.
+        $this->addProduct(25);
+        $this->setProviders(['PAYRAM']);
+        config(['app.stripe_enabled' => true]);
+
+        $this->insertPayRamAccount();
+        $this->fakeGatewayStatus(coldWalletConfigured: false);
+        Cache::flush();
+
+        $this->expectException(CannotPublishEventWithoutPaymentMethodException::class);
+
+        $this->validate();
+    }
+
+    public function test_crypto_is_blocked_when_payram_cannot_be_reached(): void
     {
         $this->addProduct(25);
         $this->setProviders(['PAYRAM']);
         config(['app.stripe_enabled' => true]);
 
+        $this->insertPayRamAccount();
+        $this->fakeGatewayStatus(available: false, coldWalletConfigured: false);
+        Cache::flush();
+
+        $this->expectException(CannotPublishEventWithoutPaymentMethodException::class);
+
+        $this->validate();
+    }
+
+    private function insertPayRamAccount(): void
+    {
         DB::table('organizer_payram_accounts')->insert([
             'organizer_id' => $this->organizerId,
             'status' => 'READY',
-            'wallet_address' => '0x142e57a939aBeFb8D50Ab39A8aB58ef9572620ef',
+            'external_platform_id' => 99,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
 
-        $this->validate();
+    /**
+     * The gateway status service is readonly (unmockable), so answer it at the
+     * HTTP layer instead — which also exercises the real operator client.
+     */
+    private function fakeGatewayStatus(bool $available = true, bool $coldWalletConfigured = false): void
+    {
+        config([
+            'services.payram.base_url' => 'https://pay.test',
+            'services.payram.operator_email' => 'admin@monno.io',
+            'services.payram.operator_password' => 'secret',
+        ]);
 
-        $this->assertTrue(true);
+        if (! $available) {
+            Http::fake(['*' => Http::response(['error' => ['code' => 'DOWN']], 500)]);
+
+            return;
+        }
+
+        Http::fake([
+            '*signin*' => Http::response(['accessToken' => 'operator-token']),
+            '*addresses/balance*' => Http::response([[
+                'walletName' => 'EVM Deposit Wallet 1',
+                'coldWalletConfigured' => $coldWalletConfigured,
+                'defaultColdWalletSet' => $coldWalletConfigured,
+            ]]),
+        ]);
     }
 }
