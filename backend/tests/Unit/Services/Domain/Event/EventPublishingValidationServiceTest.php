@@ -225,12 +225,24 @@ class EventPublishingValidationServiceTest extends TestCase
             return;
         }
 
+        // The gate reads the gateway the same way the settings card does:
+        // /project/{id}/wallets, where a sweep destination on a walletScw is what
+        // "configured" means. Faking the old balance endpoint here is what let
+        // the wrong source survive.
         Http::fake([
             '*signin*' => Http::response(['accessToken' => 'operator-token']),
-            '*addresses/balance*' => Http::response([[
-                'walletName' => 'EVM Deposit Wallet 1',
-                'coldWalletConfigured' => $coldWalletConfigured,
-                'defaultColdWalletSet' => $coldWalletConfigured,
+            '*project/*/wallets*' => Http::response([[
+                'id' => 6,
+                'name' => 'EVM Deposit Wallet 1',
+                'family' => 'ETH_Family',
+                'walletType' => 'deposit_wallet',
+                'status' => 'active',
+                'walletScws' => [[
+                    'blockchainCode' => 'ETH',
+                    'family' => 'ETH_Family',
+                    'fundCollectorAddress' => $coldWalletConfigured ? '0x142e57a939abefb8d50ab39a8ab58ef9572620ef' : '',
+                ]],
+                'externalPlatformWallets' => [['externalPlatformID' => 99]],
             ]]),
         ]);
     }

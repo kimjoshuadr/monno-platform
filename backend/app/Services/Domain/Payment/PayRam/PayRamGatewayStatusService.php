@@ -9,12 +9,25 @@ use Illuminate\Support\Facades\Cache;
 use Throwable;
 
 /**
- * The gateway's own view of an organizer's project: whether a payout (cold)
- * wallet is configured, what is waiting to sweep, and the last sweep failure.
+ * The gateway's own view of an organizer's project: which networks can accept
+ * payments, what is waiting to sweep, and the last sweep failure.
  *
  * Nothing here is inferred from our database. If the gateway cannot be reached
  * we report `available: false` rather than guessing — an organizer should be
  * told the truth about where their money is, not a reassuring default.
+ *
+ * The source is /project/{id}/wallets, which is what the console itself lists
+ * from. An earlier version read /project/{id}/addresses/balance — a *sweep
+ * balance* that stays empty until money has actually moved — and inferred wallet
+ * configuration from it, so a freshly configured project looked unconfigured.
+ *
+ * The response shape matters and is not what it first appears:
+ *  - the endpoint returns wallets that are *shared*, so each row may belong to
+ *    several projects via `externalPlatformWallets[].externalPlatformID`;
+ *  - a deposit wallet that is live on a network carries one `walletScws` entry
+ *    per network, and the sweep destination is that entry's
+ *    `fundCollectorAddress`. No address means no payout wallet, which is what
+ *    PayRam refuses to deploy without.
  */
 readonly class PayRamGatewayStatusService
 {
@@ -62,7 +75,7 @@ readonly class PayRamGatewayStatusService
     private function fetch(int $projectId): array
     {
         try {
-            $rows = $this->operatorClient->getProjectAddressBalances($projectId);
+            $wallets = $this->operatorClient->getProjectWallets($projectId);
         } catch (Throwable $exception) {
             logger()->warning('Could not read PayRam gateway status', [
                 'project_id' => $projectId,
@@ -72,32 +85,38 @@ readonly class PayRamGatewayStatusService
             return $this->unavailable();
         }
 
-        $eligible = [];
-        $lastSweepError = null;
         $networks = [];
 
-        foreach ($rows as $row) {
-            $amount = (string) ($row['eligibleForSweepAmount'] ?? '0');
-            if ((float) $amount > 0) {
-                $eligible[] = [
-                    'wallet_name' => $row['walletName'] ?? null,
-                    'blockchain_code' => $row['blockchainCode'] ?? null,
-                    'currency_code' => $row['currencyCode'] ?? null,
-                    'amount' => $amount,
-                    'amount_usd' => $row['eligibleForSweepAmountUSD'] ?? null,
+        foreach ($wallets as $wallet) {
+            if (! is_array($wallet) || ! $this->belongsToProject($wallet, $projectId)) {
+                continue;
+            }
+
+            // Only deposit wallets receive buyer payments; hot wallets are the
+            // operator's machinery and say nothing about the organizer's setup.
+            if (($wallet['walletType'] ?? null) !== 'deposit_wallet') {
+                continue;
+            }
+
+            foreach (($wallet['walletScws'] ?? []) as $scw) {
+                if (! is_array($scw)) {
+                    continue;
+                }
+
+                $collector = trim((string) ($scw['fundCollectorAddress'] ?? ''));
+
+                $networks[] = [
+                    'wallet_name' => $wallet['name'] ?? null,
+                    'blockchain_code' => $scw['blockchainCode'] ?? null,
+                    'family' => $scw['family'] ?? ($wallet['family'] ?? null),
+                    // A sweep destination is exactly what "payout wallet
+                    // configured" means, and PayRam will not deploy a contract
+                    // without one.
+                    'cold_wallet_configured' => $collector !== '',
+                    'default_cold_wallet_set' => $collector !== '',
+                    'payout_address' => $collector !== '' ? $collector : null,
                 ];
             }
-
-            if (! empty($row['lastSweepError'])) {
-                $lastSweepError = $row['lastSweepError'];
-            }
-
-            $networks[] = [
-                'wallet_name' => $row['walletName'] ?? null,
-                'blockchain_code' => $row['blockchainCode'] ?? null,
-                'cold_wallet_configured' => (bool) ($row['coldWalletConfigured'] ?? false),
-                'default_cold_wallet_set' => (bool) ($row['defaultColdWalletSet'] ?? false),
-            ];
         }
 
         // A network that is configured can take money today, so ONE of them is
@@ -105,9 +124,6 @@ readonly class PayRamGatewayStatusService
         // every wallet, which meant adding a second network switched the first
         // one off — Monno reported "not ready" while PayRam was happily
         // accepting payments on the network that was already set up.
-        //
-        // The networks the organizer has not finished are still reported, so the
-        // card can say what is actually left rather than overstating readiness.
         $configuredNetworks = array_values(array_filter(
             $networks,
             static fn (array $network): bool => $network['cold_wallet_configured'],
@@ -117,13 +133,40 @@ readonly class PayRamGatewayStatusService
             'available' => true,
             'cold_wallet_configured' => $configuredNetworks !== [],
             'default_cold_wallet_set' => $networks !== []
-                && count($configuredNetworks) === count($networks)
-                && $configuredNetworks !== [],
+                && count($configuredNetworks) === count($networks),
             'networks' => $networks,
             'configured_networks' => $configuredNetworks,
-            'eligible_for_sweep' => $eligible,
-            'last_sweep_error' => $lastSweepError,
+            'eligible_for_sweep' => [],
+            'last_sweep_error' => null,
         ];
+    }
+
+    /**
+     * Wallets are shared objects: a row only counts for this project when the
+     * project appears in its assignment list.
+     *
+     * @param  array<string, mixed>  $wallet
+     */
+    private function belongsToProject(array $wallet, int $projectId): bool
+    {
+        $assignments = $wallet['externalPlatformWallets'] ?? null;
+
+        if (! is_array($assignments) || $assignments === []) {
+            // No assignment data: do not claim it.
+            return false;
+        }
+
+        foreach ($assignments as $assignment) {
+            if (! is_array($assignment)) {
+                continue;
+            }
+
+            if ((int) ($assignment['externalPlatformID'] ?? 0) === $projectId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

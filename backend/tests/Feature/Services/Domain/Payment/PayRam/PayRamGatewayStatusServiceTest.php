@@ -11,11 +11,13 @@ use Tests\TestCase;
 /**
  * The gateway's own view of a project, which is what Monno reports as "ready".
  *
- * The rule under test: each deposit wallet is a separate contract with its own
- * sweep destination, and the organizer chooses which networks to accept — so ONE
- * configured network means they can take money today. This used to be an AND
- * across every wallet, which meant adding a second network switched the first
- * one off.
+ * The source is /project/{id}/wallets — the same thing the console's own
+ * deposit-wallet page lists. Its shape is not obvious and both details matter:
+ * the endpoint returns *shared* wallets, so a row only belongs to this project
+ * when the project appears in `externalPlatformWallets`, and "payout wallet
+ * configured" is the presence of a `fundCollectorAddress` on a `walletScws`
+ * entry. An earlier version read /addresses/balance — a sweep balance, empty
+ * until money has moved — so a freshly configured project looked unconfigured.
  */
 class PayRamGatewayStatusServiceTest extends TestCase
 {
@@ -35,25 +37,56 @@ class PayRamGatewayStatusServiceTest extends TestCase
     }
 
     /**
+     * A deposit wallet, as the gateway really returns it.
+     *
+     * @param  array<int, string|null>  $collectorsByNetwork  blockchainCode => collector
+     * @param  array<int, int>  $assignedProjects
+     */
+    private function depositWallet(array $collectorsByNetwork, array $assignedProjects, string $type = 'deposit_wallet'): array
+    {
+        $scws = [];
+        foreach ($collectorsByNetwork as $code => $collector) {
+            $scws[] = [
+                'blockchainCode' => $code,
+                'family' => 'ETH_Family',
+                'fundCollectorAddress' => $collector,
+            ];
+        }
+
+        return [
+            'id' => 6,
+            'name' => 'EVM Deposit Wallet 1',
+            'family' => 'ETH_Family',
+            'walletType' => $type,
+            'status' => 'active',
+            'walletScws' => $scws,
+            'externalPlatformWallets' => array_map(
+                static fn (int $id): array => ['externalPlatformID' => $id],
+                $assignedProjects,
+            ),
+        ];
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $wallets
      */
     private function fakeWallets(array $wallets): void
     {
         Http::fake([
             '*signin*' => Http::response(['accessToken' => 'operator-token']),
-            '*addresses/balance*' => Http::response($wallets),
+            '*project/*/wallets*' => Http::response($wallets),
         ]);
     }
 
-    private function gatewayStatus(): array
+    private function gatewayStatus(int $projectId = 9): array
     {
-        return app(PayRamGatewayStatusService::class)->forProject(9);
+        return app(PayRamGatewayStatusService::class)->forProject($projectId);
     }
 
     public function test_a_configured_network_means_the_organizer_is_live(): void
     {
         $this->fakeWallets([
-            ['walletName' => 'EVM Deposit Wallet 1', 'blockchainCode' => 'ETH', 'coldWalletConfigured' => true],
+            $this->depositWallet(['ETH' => '0x142e57a939abefb8d50ab39a8ab58ef9572620ef'], [9]),
         ]);
 
         $status = $this->gatewayStatus();
@@ -61,31 +94,15 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertTrue($status['available']);
         $this->assertTrue($status['cold_wallet_configured']);
         $this->assertSame(1, count($status['configured_networks']));
+        $this->assertSame('0x142e57a939abefb8d50ab39a8ab58ef9572620ef', $status['networks'][0]['payout_address']);
     }
 
-    public function test_one_configured_network_is_enough_even_when_others_are_not(): void
+    public function test_a_wallet_with_no_sweep_destination_is_not_configured(): void
     {
-        // The exact shape the organizer reported: Ethereum done, Base and
-        // Polygon not. PayRam accepts payments on Ethereum today, and Monno
-        // must not claim otherwise.
+        // PayRam refuses to deploy a contract without a cold wallet, so a
+        // missing fundCollectorAddress is exactly "not set up".
         $this->fakeWallets([
-            ['walletName' => 'EVM Deposit Wallet 1', 'blockchainCode' => 'ETH', 'coldWalletConfigured' => true, 'defaultColdWalletSet' => true],
-            ['walletName' => 'EVM Deposit Wallet 2', 'blockchainCode' => 'BASE', 'coldWalletConfigured' => false],
-            ['walletName' => 'EVM Deposit Wallet 3', 'blockchainCode' => 'POLYGON', 'coldWalletConfigured' => false],
-        ]);
-
-        $status = $this->gatewayStatus();
-
-        $this->assertTrue($status['cold_wallet_configured'], 'One working network means crypto is live.');
-        $this->assertSame(1, count($status['configured_networks']));
-        $this->assertSame(3, count($status['networks']), 'As-yet-unconfigured networks are still reported.');
-        $this->assertFalse($status['default_cold_wallet_set'], 'Not every network is done, and that is stated.');
-    }
-
-    public function test_nothing_configured_is_not_ready(): void
-    {
-        $this->fakeWallets([
-            ['walletName' => 'EVM Deposit Wallet 1', 'blockchainCode' => 'ETH', 'coldWalletConfigured' => false],
+            $this->depositWallet(['ETH' => null], [9]),
         ]);
 
         $status = $this->gatewayStatus();
@@ -94,12 +111,54 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertSame([], $status['configured_networks']);
     }
 
+    public function test_one_configured_network_is_enough_even_when_others_are_not(): void
+    {
+        // Ethereum done, Base and Polygon not: PayRam accepts payments on
+        // Ethereum today and Monno must not claim otherwise.
+        $this->fakeWallets([
+            $this->depositWallet(['ETH' => '0xethcollector', 'BASE' => null, 'POLYGON' => null], [9]),
+        ]);
+
+        $status = $this->gatewayStatus();
+
+        $this->assertTrue($status['cold_wallet_configured'], 'One working network means crypto is live.');
+        $this->assertSame(1, count($status['configured_networks']));
+        $this->assertSame(3, count($status['networks']), 'Unconfigured networks are still reported.');
+        $this->assertFalse($status['default_cold_wallet_set'], 'Not every network is done, and that is stated.');
+    }
+
+    public function test_wallets_shared_from_another_project_are_not_counted(): void
+    {
+        // The endpoint returns shared wallets. A wallet assigned only to
+        // project 1 must not make project 9 look configured.
+        $this->fakeWallets([
+            $this->depositWallet(['ETH' => '0xsomething'], [1, 2]),
+        ]);
+
+        $status = $this->gatewayStatus(9);
+
+        $this->assertFalse($status['cold_wallet_configured']);
+        $this->assertSame(0, count($status['networks']));
+    }
+
+    public function test_hot_wallets_are_not_mistaken_for_the_organizers_setup(): void
+    {
+        $this->fakeWallets([
+            $this->depositWallet(['ETH' => '0xhot'], [9], type: 'hot_wallet'),
+        ]);
+
+        $status = $this->gatewayStatus();
+
+        $this->assertFalse($status['cold_wallet_configured'], 'Hot wallets are the operator machinery, not the organizer setup.');
+    }
+
     public function test_no_wallets_at_all_is_not_ready(): void
     {
         $this->fakeWallets([]);
 
         $status = $this->gatewayStatus();
 
+        $this->assertTrue($status['available']);
         $this->assertFalse($status['cold_wallet_configured']);
         $this->assertFalse($status['default_cold_wallet_set']);
     }
