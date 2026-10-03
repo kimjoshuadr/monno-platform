@@ -106,6 +106,23 @@ class PayRamCryptoConnectTest extends TestCase
         $this->assertStringContainsString('/checkout/'.$this->eventId.'/ORD12345/payment_return', $response->getTargetUrl());
     }
 
+    public function test_the_public_order_payload_carries_the_payment_provider(): void
+    {
+        // The checkout return page must be able to tell a crypto order from a
+        // Stripe one; it reads payment_provider from this response. Without the
+        // field it asked Stripe to confirm a crypto order, which can never
+        // succeed, and showed a false failure over a settled payment.
+        $this->order->update(['payment_provider' => 'PAYRAM']);
+
+        $response = $this->getJson(
+            '/public/events/'.$this->eventId.'/order/ORD12345?include=event&session_identifier=test-session-123',
+            ['Accept' => 'application/json']
+        );
+
+        $response->assertOk();
+        $response->assertJsonPath('data.payment_provider', 'PAYRAM');
+    }
+
     public function test_cancel_action_redirects_to_payment_with_canceled_flag(): void
     {
         $action = app(PayRamCancelAction::class);

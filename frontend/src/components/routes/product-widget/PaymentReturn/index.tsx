@@ -35,7 +35,12 @@ export const PaymentReturn = () => {
     const {data: order} = usePollGetOrderPublic(eventId, orderShortId, shouldPoll, ['event']);
     const navigate = useNavigate();
 
-    const isPayRam = order?.payment_provider === 'PAYRAM';
+    // Only a Stripe order may use the Stripe confirmation fallback. Crypto and
+    // offline orders settle by webhook/poll, and asking Stripe about them can
+    // never succeed — that is what showed a false failure over a settled
+    // payment. Treat any non-Stripe provider, and a provider we do not know
+    // yet, as "wait" rather than "failed".
+    const isStripe = order?.payment_provider === 'STRIPE';
 
     // Never ask Stripe about a crypto order: the endpoint is meaningless for it
     // and its failure is what produced the false "unable to confirm" screen.
@@ -43,7 +48,7 @@ export const PaymentReturn = () => {
     const paymentIntentQuery = useGetOrderStripePaymentIntentPublic(
         eventId,
         orderShortId,
-        attemptManualConfirmation && !isPayRam,
+        attemptManualConfirmation && isStripe,
     );
 
     const [cannotConfirmPayment, setCannotConfirmPayment] = useState(false);
@@ -53,20 +58,23 @@ export const PaymentReturn = () => {
     useEffect(
         () => {
             // Wait for the provider before choosing a window: the order arrives
-            // in the first poll, and a PayRam order must not be judged by the
+            // in the first poll, and a crypto order must not be judged by the
             // Stripe clock.
             if (order === undefined) {
                 return;
             }
 
-            const window = isPayRam ? PAYRAM_CONFIRM_WINDOW_MS : STRIPE_CONFIRM_WINDOW_MS;
+            const window = isStripe ? STRIPE_CONFIRM_WINDOW_MS : PAYRAM_CONFIRM_WINDOW_MS;
 
             const timeout = setTimeout(() => {
                 setShouldPoll(false);
-                if (isPayRam) {
-                    setStillPending(true);
-                } else {
+                if (isStripe) {
                     setAttemptManualConfirmation(true);
+                } else {
+                    // Crypto and offline orders settle server-side. Waiting is
+                    // the honest state — never a failure we cannot actually
+                    // determine here.
+                    setStillPending(true);
                 }
             }, window);
 
@@ -74,11 +82,11 @@ export const PaymentReturn = () => {
                 clearTimeout(timeout);
             };
         },
-        [order === undefined, isPayRam]
+        [order === undefined, isStripe]
     );
 
     useEffect(() => {
-        if (!attemptManualConfirmation || !paymentIntentQuery.isFetched) {
+        if (!attemptManualConfirmation || !isStripe || !paymentIntentQuery.isFetched) {
             return;
         }
         if (paymentIntentQuery.data?.status === 'succeeded') {
@@ -93,7 +101,7 @@ export const PaymentReturn = () => {
             // could be a network error on our end, or a problem with Stripe.
             setCannotConfirmPayment(true);
         }
-    }, [paymentIntentQuery.isFetched, attemptManualConfirmation]);
+    }, [paymentIntentQuery.isFetched, attemptManualConfirmation, isStripe]);
 
     useEffect(() => {
         if (isSsr() || !order) {

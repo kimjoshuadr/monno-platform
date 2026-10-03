@@ -32,6 +32,11 @@ class OrderResourcePublic extends BaseResource
             'refund_status' => $this->getRefundStatus(),
             /** @var 'NO_PAYMENT_REQUIRED'|'AWAITING_PAYMENT'|'AWAITING_OFFLINE_PAYMENT'|'PAYMENT_FAILED'|'PAYMENT_RECEIVED'|null */
             'payment_status' => $this->getPaymentStatus(),
+            // The checkout return page must know which provider took the
+            // payment so it does not ask Stripe to confirm a crypto order —
+            // Stripe can never confirm those and the page would show a false
+            // failure over a settled payment.
+            'payment_provider' => $this->getPaymentProvider(),
             'currency' => $this->getCurrency(),
             'reserved_until' => $this->getReservedUntil(),
             'is_expired' => $this->when(
