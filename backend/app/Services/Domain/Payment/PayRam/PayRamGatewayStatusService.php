@@ -54,11 +54,24 @@ readonly class PayRamGatewayStatusService
             return $this->unavailable();
         }
 
-        return Cache::remember(
-            'payram:gateway_status:'.$projectId,
-            self::CACHE_TTL_SECONDS,
-            fn (): array => $this->fetch($projectId),
-        );
+        $key = 'payram:gateway_status:'.$projectId;
+
+        if (($cached = Cache::get($key)) !== null) {
+            return $cached;
+        }
+
+        $status = $this->fetch($projectId);
+
+        // Never cache a failure. `available: false` means "we could not ask",
+        // which is a transient condition — a stale operator token or a blip.
+        // Remembering it for 20s turns one bad moment into the organizer being
+        // told their gateway is unreachable, and it also fails the publish gate.
+        // Only a real answer is worth keeping.
+        if (($status['available'] ?? false) === true) {
+            Cache::put($key, $status, self::CACHE_TTL_SECONDS);
+        }
+
+        return $status;
     }
 
     /**

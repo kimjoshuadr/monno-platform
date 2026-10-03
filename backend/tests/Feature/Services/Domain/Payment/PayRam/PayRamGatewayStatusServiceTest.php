@@ -163,6 +163,43 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertFalse($status['default_cold_wallet_set']);
     }
 
+    public function test_a_failure_is_never_cached(): void
+    {
+        // A transient failure must not be remembered: caching "unreachable" for
+        // 20s tells the organizer their gateway is down when it is not, and
+        // fails the publish gate on the strength of one bad moment.
+        // Http::fake() appends, so one stateful fake plays both moments:
+        // unreachable first, then recovered.
+        $down = true;
+        Http::fake(function ($request) use (&$down) {
+            if ($down) {
+                return Http::response(['error' => ['code' => 'DOWN']], 500);
+            }
+
+            if (str_ends_with($request->url(), '/api/v1/signin')) {
+                return Http::response(['accessToken' => 'operator-token']);
+            }
+
+            if (str_contains($request->url(), '/wallets')) {
+                return Http::response([
+                    $this->depositWallet(['ETH' => '0xcollector'], [9]),
+                ]);
+            }
+
+            return Http::response(['status' => 'ok']);
+        });
+
+        $first = $this->gatewayStatus();
+        $this->assertFalse($first['available']);
+
+        // The gateway recovers; the very next call must see that.
+        $down = false;
+        $second = $this->gatewayStatus();
+
+        $this->assertTrue($second['available'], 'A recovered gateway must not be masked by a cached failure.');
+        $this->assertTrue($second['cold_wallet_configured']);
+    }
+
     public function test_an_unreachable_gateway_says_so_rather_than_guessing(): void
     {
         Http::fake(['*' => Http::response(['error' => ['code' => 'DOWN']], 500)]);
