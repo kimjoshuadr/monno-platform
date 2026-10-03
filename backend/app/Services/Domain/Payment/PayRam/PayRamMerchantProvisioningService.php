@@ -87,6 +87,8 @@ class PayRamMerchantProvisioningService
                         'reason' => $reason,
                         'next' => $gatewayProjectName,
                     ]);
+
+                    return $gatewayProjectName;
                 });
 
                 // Checkpoint before the steps that can fail, so a retry resumes

@@ -407,6 +407,46 @@ class PayRamMerchantProvisioningTest extends TestCase
         );
     }
 
+    public function test_a_taken_name_is_retried_with_a_variant_not_fatal(): void
+    {
+        // PayRam has no delete endpoint, so a name used once is gone for good —
+        // including one squatted by a failed attempt. Failing on that would leave
+        // the organizer permanently unable to onboard.
+        $names = [];
+        Http::fake(function ($request) use (&$names) {
+            $url = $request->url();
+
+            if (str_ends_with($url, '/api/v1/signin')) {
+                return Http::response(['accessToken' => 'operator-jwt-token']);
+            }
+
+            if (str_ends_with($url, '/api/v1/external-platform')) {
+                $names[] = $request['name'];
+
+                // First choice is taken; the variant must be accepted.
+                if (count($names) === 1) {
+                    return Http::response(['error' => ['code' => 'DUPLICATE_PROJECT_NAME']], 409);
+                }
+
+                return Http::response(['id' => 77, 'name' => $request['name']]);
+            }
+
+            if (str_contains($url, '/api-key')) {
+                return Http::response(['key' => self::ORGANIZER_KEY]);
+            }
+
+            return Http::response(['id' => 11]);
+        });
+
+        $account = $this->provisioningService()->provision($this->organizerId, 'GN Club', 'gn@example.com');
+
+        $this->assertSame('READY', $account->getStatus());
+        $this->assertSame(77, $account->getExternalPlatformId());
+        $this->assertCount(2, $names, 'It must retry once, with a different name.');
+        $this->assertNotSame($names[0], $names[1], 'The retry must send a *different* name.');
+        $this->assertStringStartsWith('GN Club ', $names[1]);
+    }
+
     public function test_a_duplicate_name_is_never_adopted(): void
     {
         // Even when the gateway answers with a clash, we must not go looking for
