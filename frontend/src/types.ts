@@ -231,8 +231,27 @@ export interface PayRamSweepError {
 export interface PayRamGatewayStatus {
     /** False when the gateway could not be reached — never guess from this. */
     available: boolean;
+    /**
+     * True when at least ONE network can take money. Each deposit wallet is a
+     * separate contract with its own sweep destination, and the organizer
+     * chooses which networks to accept — so one configured network is live.
+     */
     cold_wallet_configured: boolean;
     default_cold_wallet_set: boolean;
+    /** Every deposit wallet the project has, configured or not. */
+    networks?: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        cold_wallet_configured: boolean;
+        default_cold_wallet_set: boolean;
+    }>;
+    /** The subset that can accept payments today. */
+    configured_networks?: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        cold_wallet_configured: boolean;
+        default_cold_wallet_set: boolean;
+    }>;
     eligible_for_sweep: Array<{
         wallet_name?: string | null;
         blockchain_code?: string | null;

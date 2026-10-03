@@ -40,6 +40,13 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const gateway = data?.gateway;
     const gatewayWalletReady = gateway?.available ? gateway.cold_wallet_configured : null;
 
+    // Which networks can take money, and which are still unfinished. Each
+    // deposit wallet is its own contract, and the organizer picks which to
+    // accept, so this is per-network rather than one global yes/no.
+    const networks = gateway?.networks ?? [];
+    const readyNetworks = networks.filter((n) => n.cold_wallet_configured);
+    const pendingNetworks = networks.filter((n) => !n.cold_wallet_configured);
+
     // Only the gateway's own confirmation means crypto is genuinely live. Our
     // saved address is a record of what the organizer asked for, not proof that
     // PayRam attached it, so it must never be enough on its own.
@@ -237,12 +244,27 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 )}
 
                                 {gateway?.available && gatewayWalletReady && (
-                                    <Group justify="space-between">
-                                        <Text size="xs" c="dimmed">{t`Gateway payout wallet`}</Text>
-                                        <Badge size="xs" variant="light" color="teal">
-                                            {t`Confirmed`}
-                                        </Badge>
-                                    </Group>
+                                    <Stack gap={4}>
+                                        <Group justify="space-between">
+                                            <Text size="xs" c="dimmed">{t`Accepting payments on`}</Text>
+                                            <Group gap={4}>
+                                                {readyNetworks.map((n, i) => (
+                                                    <Badge key={i} size="xs" variant="light" color="teal">
+                                                        {n.blockchain_code || n.wallet_name || t`Network`}
+                                                    </Badge>
+                                                ))}
+                                            </Group>
+                                        </Group>
+                                        {pendingNetworks.length > 0 && (
+                                            <Text size="xs" c="dimmed">
+                                                {t`Not set up (optional):`}{' '}
+                                                {pendingNetworks
+                                                    .map((n) => n.blockchain_code || n.wallet_name || '')
+                                                    .filter(Boolean)
+                                                    .join(', ')}
+                                            </Text>
+                                        )}
+                                    </Stack>
                                 )}
 
                                 {gateway?.available && gateway.eligible_for_sweep.length > 0 && (

@@ -29,6 +29,8 @@ readonly class PayRamGatewayStatusService
      *     available: bool,
      *     cold_wallet_configured: bool,
      *     default_cold_wallet_set: bool,
+     *     networks: array<int, array<string, mixed>>,
+     *     configured_networks: array<int, array<string, mixed>>,
      *     eligible_for_sweep: array<int, array<string, mixed>>,
      *     last_sweep_error: array<string, mixed>|null,
      * }
@@ -51,6 +53,8 @@ readonly class PayRamGatewayStatusService
      *     available: bool,
      *     cold_wallet_configured: bool,
      *     default_cold_wallet_set: bool,
+     *     networks: array<int, array<string, mixed>>,
+     *     configured_networks: array<int, array<string, mixed>>,
      *     eligible_for_sweep: array<int, array<string, mixed>>,
      *     last_sweep_error: array<string, mixed>|null,
      * }
@@ -70,8 +74,7 @@ readonly class PayRamGatewayStatusService
 
         $eligible = [];
         $lastSweepError = null;
-        $coldWalletConfigured = null;
-        $defaultColdWalletSet = null;
+        $networks = [];
 
         foreach ($rows as $row) {
             $amount = (string) ($row['eligibleForSweepAmount'] ?? '0');
@@ -89,17 +92,35 @@ readonly class PayRamGatewayStatusService
                 $lastSweepError = $row['lastSweepError'];
             }
 
-            // A project is only as ready as its least-ready wallet.
-            $rowCold = (bool) ($row['coldWalletConfigured'] ?? false);
-            $rowDefault = (bool) ($row['defaultColdWalletSet'] ?? false);
-            $coldWalletConfigured = $coldWalletConfigured === null ? $rowCold : ($coldWalletConfigured && $rowCold);
-            $defaultColdWalletSet = $defaultColdWalletSet === null ? $rowDefault : ($defaultColdWalletSet && $rowDefault);
+            $networks[] = [
+                'wallet_name' => $row['walletName'] ?? null,
+                'blockchain_code' => $row['blockchainCode'] ?? null,
+                'cold_wallet_configured' => (bool) ($row['coldWalletConfigured'] ?? false),
+                'default_cold_wallet_set' => (bool) ($row['defaultColdWalletSet'] ?? false),
+            ];
         }
+
+        // A network that is configured can take money today, so ONE of them is
+        // enough for the organizer to be live. This used to be an AND across
+        // every wallet, which meant adding a second network switched the first
+        // one off — Monno reported "not ready" while PayRam was happily
+        // accepting payments on the network that was already set up.
+        //
+        // The networks the organizer has not finished are still reported, so the
+        // card can say what is actually left rather than overstating readiness.
+        $configuredNetworks = array_values(array_filter(
+            $networks,
+            static fn (array $network): bool => $network['cold_wallet_configured'],
+        ));
 
         return [
             'available' => true,
-            'cold_wallet_configured' => (bool) $coldWalletConfigured,
-            'default_cold_wallet_set' => (bool) $defaultColdWalletSet,
+            'cold_wallet_configured' => $configuredNetworks !== [],
+            'default_cold_wallet_set' => $networks !== []
+                && count($configuredNetworks) === count($networks)
+                && $configuredNetworks !== [],
+            'networks' => $networks,
+            'configured_networks' => $configuredNetworks,
             'eligible_for_sweep' => $eligible,
             'last_sweep_error' => $lastSweepError,
         ];
@@ -110,6 +131,8 @@ readonly class PayRamGatewayStatusService
      *     available: bool,
      *     cold_wallet_configured: bool,
      *     default_cold_wallet_set: bool,
+     *     networks: array<int, array<string, mixed>>,
+     *     configured_networks: array<int, array<string, mixed>>,
      *     eligible_for_sweep: array<int, array<string, mixed>>,
      *     last_sweep_error: array<string, mixed>|null,
      * }
@@ -120,6 +143,8 @@ readonly class PayRamGatewayStatusService
             'available' => false,
             'cold_wallet_configured' => false,
             'default_cold_wallet_set' => false,
+            'networks' => [],
+            'configured_networks' => [],
             'eligible_for_sweep' => [],
             'last_sweep_error' => null,
         ];
