@@ -142,6 +142,8 @@ readonly class PayRamGatewayStatusService
             static fn (array $network): bool => $network['cold_wallet_configured'],
         ));
 
+        [$eligibleForSweep, $lastSweepError] = $this->sweepState($projectId);
+
         return [
             'available' => true,
             'cold_wallet_configured' => $configuredNetworks !== [],
@@ -149,9 +151,72 @@ readonly class PayRamGatewayStatusService
                 && count($configuredNetworks) === count($networks),
             'networks' => $networks,
             'configured_networks' => $configuredNetworks,
-            'eligible_for_sweep' => [],
-            'last_sweep_error' => null,
+            'eligible_for_sweep' => $eligibleForSweep,
+            'last_sweep_error' => $lastSweepError,
         ];
+    }
+
+    /**
+     * What is waiting to sweep, and the last reason a sweep failed.
+     *
+     * This is the difference between "sales settle to your cold wallet" as a
+     * claim and as a fact. It was hardcoded to empty/null, so the card told the
+     * organizer everything was fine while their funds sat un-swept and the
+     * gateway was failing every sweep (for example, no hot wallet assigned, so
+     * the sweep transaction cannot be funded). A balance call that fails must
+     * not take down the readiness report — it only removes the sweep detail.
+     *
+     * @return array{0: array<int, array<string, mixed>>, 1: array<string, mixed>|null}
+     */
+    private function sweepState(int $projectId): array
+    {
+        try {
+            $balances = $this->operatorClient->getProjectAddressBalances($projectId);
+        } catch (Throwable $exception) {
+            logger()->warning('Could not read PayRam sweep state', [
+                'project_id' => $projectId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return [[], null];
+        }
+
+        $eligible = [];
+        $lastError = null;
+
+        foreach ($balances as $balance) {
+            if (! is_array($balance)) {
+                continue;
+            }
+
+            $eligibleAmount = (float) ($balance['eligibleForSweepAmount'] ?? 0);
+            $eligibleCount = (int) ($balance['eligibleForSweepCount'] ?? 0);
+
+            if ($eligibleCount > 0 || $eligibleAmount > 0) {
+                $eligible[] = [
+                    'wallet_name' => $balance['walletName'] ?? null,
+                    'blockchain_code' => $balance['blockchainCode'] ?? null,
+                    'currency_code' => $balance['currencyCode'] ?? null,
+                    'amount' => (string) ($balance['eligibleForSweepAmount'] ?? '0'),
+                    'amount_usd' => $balance['eligibleForSweepAmountUSD'] ?? null,
+                ];
+            }
+
+            // The first concrete failure is the most useful thing to show; if
+            // several wallets are failing they are almost always failing for
+            // the same reason.
+            $error = $balance['lastSweepError'] ?? null;
+            if ($lastError === null && is_array($error) && ($error['reason'] ?? null)) {
+                $lastError = [
+                    'statusCode' => $error['statusCode'] ?? null,
+                    'category' => $error['category'] ?? null,
+                    'reason' => $error['reason'],
+                    'actionHint' => $error['actionHint'] ?? null,
+                ];
+            }
+        }
+
+        return [$eligible, $lastError];
     }
 
     /**

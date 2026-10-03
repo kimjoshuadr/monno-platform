@@ -69,12 +69,14 @@ class PayRamGatewayStatusServiceTest extends TestCase
 
     /**
      * @param  array<int, array<string, mixed>>  $wallets
+     * @param  array<int, array<string, mixed>>  $balances
      */
-    private function fakeWallets(array $wallets): void
+    private function fakeWallets(array $wallets, array $balances = []): void
     {
         Http::fake([
             '*signin*' => Http::response(['accessToken' => 'operator-token']),
             '*project/*/wallets*' => Http::response($wallets),
+            '*project/*/addresses/balance*' => Http::response($balances),
         ]);
     }
 
@@ -215,5 +217,84 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $status = app(PayRamGatewayStatusService::class)->forProject(null);
 
         $this->assertFalse($status['available']);
+    }
+
+    public function test_it_reports_what_is_awaiting_sweep(): void
+    {
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [[
+                'walletName' => 'EVM Deposit Wallet 1',
+                'blockchainCode' => 'ETH',
+                'currencyCode' => 'ETH',
+                'amount' => '0.5',
+                'amountUSD' => '1500',
+                'eligibleForSweepCount' => 2,
+                'eligibleForSweepAmount' => '0.12',
+                'eligibleForSweepAmountUSD' => '360',
+            ]],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertCount(1, $status['eligible_for_sweep']);
+        $this->assertSame('0.12', $status['eligible_for_sweep'][0]['amount']);
+        $this->assertSame('ETH', $status['eligible_for_sweep'][0]['currency_code']);
+        $this->assertSame('360', $status['eligible_for_sweep'][0]['amount_usd']);
+        $this->assertNull($status['last_sweep_error']);
+    }
+
+    public function test_it_reports_funds_that_cannot_sweep_and_why(): void
+    {
+        // The real incident: money in the deposit wallet, nothing eligible, and
+        // the sweep failing because no hot wallet is assigned to fund it. The
+        // card used to hardcode this away and claim sweeps were fine.
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [[
+                'walletName' => 'EVM Deposit Wallet 1',
+                'blockchainCode' => 'ETH',
+                'currencyCode' => 'ETH',
+                'amount' => '0.00138',
+                'amountUSD' => '3.63',
+                'eligibleForSweepCount' => 0,
+                'eligibleForSweepAmount' => '0',
+                'hotWalletActive' => false,
+                'action' => 'sweep_not_allowed',
+                'lastSweepError' => [
+                    'statusCode' => 'HOT_WALLET_MISSING',
+                    'category' => 'recoverable',
+                    'reason' => 'No hot wallet assigned for ETH_Family. Deployment cannot be funded.',
+                    'actionHint' => 'Assign a hot wallet for ETH_Family to enable deployments and sweeps.',
+                ],
+            ]],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertSame([], $status['eligible_for_sweep'], 'Nothing is eligible to sweep.');
+        $this->assertNotNull($status['last_sweep_error']);
+        $this->assertSame('HOT_WALLET_MISSING', $status['last_sweep_error']['statusCode']);
+        $this->assertStringContainsString('hot wallet', $status['last_sweep_error']['reason']);
+    }
+
+    public function test_a_failing_balance_read_does_not_break_readiness(): void
+    {
+        // Readiness comes from the wallets call; only the sweep detail is lost
+        // if the balance call fails, and it must not take the whole report down.
+        Http::fake([
+            '*signin*' => Http::response(['accessToken' => 'operator-token']),
+            '*project/*/wallets*' => Http::response([
+                $this->depositWallet(['ETH' => '0xcollector'], [9]),
+            ]),
+            '*project/*/addresses/balance*' => Http::response(['error' => 'boom'], 500),
+        ]);
+
+        $status = $this->gatewayStatus();
+
+        $this->assertTrue($status['available']);
+        $this->assertTrue($status['cold_wallet_configured']);
+        $this->assertSame([], $status['eligible_for_sweep']);
+        $this->assertNull($status['last_sweep_error']);
     }
 }
