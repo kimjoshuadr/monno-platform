@@ -73,8 +73,12 @@ export const PublishEventModal = ({opened, onClose, event, onSuccess}: PublishEv
     const enabledProviders = resolvePaymentProviders(eventSettings?.payment_providers);
     const hasOffline = enabledProviders.includes('OFFLINE');
     const hasPayRam = enabledProviders.includes('PAYRAM');
+    // Mirrors the backend gate: the only evidence that counts is PayRam's own
+    // confirmation that a payout wallet is attached. A stored address is not
+    // proof — nothing on our side wires it up.
     const isPayRamReady = payramAccount?.status === 'READY'
-        && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);
+        && payramAccount?.gateway?.available === true
+        && payramAccount.gateway.cold_wallet_configured === true;
     const hasStripe = STRIPE_ENABLED && enabledProviders.includes('STRIPE');
     const isStripeReady = hasStripe && (isSaasMode ? isStripeConnected : true);
     const hasActivePaymentMethod = hasOffline || (hasPayRam && isPayRamReady) || isStripeReady;

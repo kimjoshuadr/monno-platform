@@ -249,8 +249,6 @@ export interface OrganizerPayRamAccountResponse {
     member_email?: string | null;
     external_platform_id?: number | null;
     wallet_status?: string | null;
-    wallet_address?: string | null;
-    supported_currencies?: string[] | null;
     dashboard_url?: string;
     last_error?: string | null;
     /** The gateway's own view of the project — absent for unprovisioned accounts. */

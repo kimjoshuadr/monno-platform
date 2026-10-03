@@ -4,8 +4,6 @@ import {
     Alert,
     Badge,
     Button,
-    Code,
-    CopyButton,
     Group,
     Loader,
     Paper,
@@ -15,9 +13,6 @@ import {
 } from "@mantine/core";
 import {
     IconAlertCircle,
-    IconCheck,
-    IconCopy,
-    IconEdit,
     IconExternalLink,
     IconShieldCheck,
     IconWallet,
@@ -26,7 +21,6 @@ import {Card} from "../../../../../common/Card";
 import {HeadingWithDescription} from "../../../../../common/Card/CardHeading";
 import {useGetPayRamAccount} from "../../../../../../queries/useGetPayRamAccount";
 import {IdParam} from "../../../../../../types";
-import {CryptoConnectWizardModal} from "./CryptoConnectWizardModal";
 import {organizerPayRamClient} from "../../../../../../api/organizer-payram.client";
 import {showInfo} from "../../../../../../utilites/notifications";
 
@@ -36,7 +30,6 @@ interface PayRamSettingsProps {
 
 export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const {data, isPending} = useGetPayRamAccount(organizerId);
-    const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [isOpeningConsole, setIsOpeningConsole] = useState(false);
 
     const isConnected = data?.status === 'READY';
@@ -68,16 +61,12 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
             const redirect = needsWalletSetup ? '/manageWallet/deposit-wallet' : '/dashboard';
             const wallet = needsWalletSetup ? 'needs' : 'ok';
 
-            // Tell the console guide which chains this organizer enabled and
-            // where to send them back, so it tailors the steps instead of
-            // guessing (see monno-payram/public/monno-ui.js).
-            const coins = (data?.supported_currencies && data.supported_currencies.length > 0
-                ? data.supported_currencies
-                : ['ETH', 'USDC', 'USDT', 'POL']
-            ).join(',');
+            // Where to send them back. The console guide shows every chain when
+            // it has no selection (see monno-payram/public/monno-ui.js) — the
+            // chains an organizer accepts are configured in PayRam now, not here.
             const back = `${window.location.origin}/manage/organizer/${organizerId}/settings#crypto-payments`;
 
-            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect, coins, back, wallet}).toString();
+            const fragment = new URLSearchParams({code, exchange: exchange_url, redirect, back, wallet}).toString();
             window.open(`${dashboard_url}/sso.html#${fragment}`, '_blank', 'noopener,noreferrer');
         } catch {
             // We could not mint a session — most likely this merchant's login
@@ -165,37 +154,17 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 </Alert>
                             )}
 
-                            {data?.wallet_address && (
-                                <Group justify="space-between" wrap="nowrap">
-                                    <Text size="xs" c="dimmed">
-                                        {t`Payout wallet on record`}
-                                    </Text>
-                                    <Code style={{fontSize: 12, wordBreak: 'break-all'}}>
-                                        {data.wallet_address}
-                                    </Code>
-                                </Group>
-                            )}
-
                             <Group gap="xs" mt="xs">
                                 <Button
                                     leftSection={<IconShieldCheck size={16} />}
                                     color="indigo"
-                                    onClick={() => setIsWizardOpen(true)}
+                                    rightSection={<IconExternalLink size={16} />}
+                                    loading={isOpeningConsole}
+                                    onClick={handleOpenConsole}
                                     data-testid="payram-setup-button"
                                 >
-                                    {data?.wallet_address ? t`Edit setup` : t`Set up crypto payments`}
+                                    {t`Set up wallets in PayRam`}
                                 </Button>
-                                {isConnected && gatewayWalletReady !== true && (
-                                    <Button
-                                        variant="light"
-                                        color="orange"
-                                        rightSection={<IconExternalLink size={16} />}
-                                        loading={isOpeningConsole}
-                                        onClick={handleOpenConsole}
-                                    >
-                                        {t`Finish wallet setup in PayRam`}
-                                    </Button>
-                                )}
                             </Group>
                         </Stack>
                     </Paper>
@@ -221,14 +190,6 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 </Group>
                                 <Group gap="xs">
                                     <Button
-                                        variant="default"
-                                        size="xs"
-                                        leftSection={<IconEdit size={14} />}
-                                        onClick={() => setIsWizardOpen(true)}
-                                    >
-                                        {t`Edit setup`}
-                                    </Button>
-                                    <Button
                                         variant="subtle"
                                         size="xs"
                                         rightSection={<IconExternalLink size={14} />}
@@ -241,47 +202,6 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                             </Group>
 
                             <Stack gap="xs">
-                                {data?.wallet_address && (
-                                    <Group justify="space-between" wrap="nowrap">
-                                        <Text size="xs" c="dimmed">
-                                            {t`Payout cold wallet`}
-                                        </Text>
-                                        <Group gap={6} wrap="nowrap">
-                                            <Code style={{fontSize: 12, wordBreak: 'break-all'}}>
-                                                {data.wallet_address}
-                                            </Code>
-                                            <CopyButton value={data.wallet_address}>
-                                                {({copied, copy}) => (
-                                                    <Button
-                                                        size="compact-xs"
-                                                        variant="subtle"
-                                                        color={copied ? 'teal' : 'gray'}
-                                                        onClick={copy}
-                                                    >
-                                                        {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
-                                                    </Button>
-                                                )}
-                                            </CopyButton>
-                                        </Group>
-                                    </Group>
-                                )}
-
-                                <Group justify="space-between">
-                                    <Text size="xs" c="dimmed">
-                                        {t`Supported tokens`}
-                                    </Text>
-                                    <Group gap={4}>
-                                        {(data?.supported_currencies && data.supported_currencies.length > 0
-                                            ? data.supported_currencies
-                                            : ['USDC', 'USDT', 'ETH', 'POL']
-                                        ).map((token) => (
-                                            <Badge key={token} size="xs" variant="outline" color="gray">
-                                                {token}
-                                            </Badge>
-                                        ))}
-                                    </Group>
-                                </Group>
-
                                 <Group justify="space-between">
                                     <Text size="xs" c="dimmed">
                                         {t`Platform fee`}
@@ -308,10 +228,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         p="xs"
                                     >
                                         <Text size="xs" fw={500} mb={4}>
-                                            {t`One step remaining: connect your payout wallet`}
+                                            {t`One step remaining: set up your wallets in PayRam`}
                                         </Text>
                                         <Text size="xs" c="dimmed">
-                                            {t`Click "Finish wallet setup" above. You'll be taken directly to the wallet setup page in the PayRam console where you connect MetaMask and set your payout address. This takes about 2 minutes and only happens once.`}
+                                            {t`Open the PayRam console and set up your deposit wallet and the payout wallet your sales sweep to. That is where PayRam attaches them — Monno only reports what it confirms.`}
                                         </Text>
                                     </Alert>
                                 )}
@@ -352,13 +272,6 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                     </Paper>
                 )}
             </Stack>
-
-            <CryptoConnectWizardModal
-                opened={isWizardOpen}
-                onClose={() => setIsWizardOpen(false)}
-                organizerId={organizerId}
-                existingAccount={data}
-            />
         </Card>
     );
 };

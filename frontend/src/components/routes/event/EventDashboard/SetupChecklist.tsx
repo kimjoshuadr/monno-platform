@@ -123,7 +123,7 @@ export const SetupChecklist = ({
         ...(isSaasMode ? [{
             key: 'payouts',
             title: t`Set up payments`,
-            helperIncomplete: t`Connect crypto wallet or bank to receive ticket sales`,
+            helperIncomplete: t`Set up your wallets in the PayRam console to receive ticket sales`,
             helperComplete: isPayRamReady ? t`Crypto payments active` : t`Payment provider connected`,
             complete: isStripeConnected || !!isPayRamReady,
             actionLabel: (isStripeConnected || isPayRamReady) ? undefined : t`Set up payments`,

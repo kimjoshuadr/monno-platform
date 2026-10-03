@@ -79,7 +79,10 @@ export const EventDashboard = () => {
     const {data: organizer} = useGetOrganizer(organizerId);
     const isStripeConnected = !!organizer?.stripe_connect_setup_complete;
     const {data: payramAccount} = useGetPayRamAccount(organizerId);
-    const isPayRamReady = payramAccount?.status === 'READY' && (payramAccount?.wallet_status === 'READY' || !!payramAccount?.wallet_address);
+    // PayRam is the only thing that can tell us a payout wallet is attached.
+    const isPayRamReady = payramAccount?.status === 'READY'
+        && payramAccount?.gateway?.available === true
+        && payramAccount.gateway.cold_wallet_configured === true;
     const {data: productCategoriesResponse} = useGetEventProductCategories(eventId);
     const productCount = productCategoriesResponse?.data?.reduce(
         (sum, category) => sum + (category.products?.length ?? 0),
