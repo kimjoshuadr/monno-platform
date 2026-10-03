@@ -29,30 +29,17 @@ class PayRamOperatorClient
      */
     public function createProject(string $name): int
     {
-        try {
-            $body = $this->request('post', '/api/v1/external-platform', [
-                'name' => $name,
-                'successEndpoint' => $this->returnUrl('/public/payram/return'),
-                'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
-            ], withToken: true);
-        } catch (PayRamApiException $exception) {
-            // PayRam enforces unique project names. A previous attempt already
-            // created this one — adopt it rather than failing the organizer.
-            if (! str_contains((string) $exception->rawBody, 'DUPLICATE_PROJECT_NAME')) {
-                throw $exception;
-            }
-
-            $existingId = $this->findProjectIdByName($name);
-
-            if ($existingId === null) {
-                throw $exception;
-            }
-
-            // It may predate the return/cancel endpoints; make it ours properly.
-            $this->updateProject($existingId, $name);
-
-            return $existingId;
-        }
+        // PayRam enforces unique project names, and a name is not an identity:
+        // two organizers can legitimately be called "GN Club". Adopting a
+        // project by name would hand one organizer a project belonging to the
+        // other — and all their money with it. So the project name we send is
+        // always made unique for this merchant, and a name clash is never used
+        // as a signal that a project is ours.
+        $body = $this->request('post', '/api/v1/external-platform', [
+            'name' => $name,
+            'successEndpoint' => $this->returnUrl('/public/payram/return'),
+            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
+        ], withToken: true);
 
         $projectId = (int) ($body['id'] ?? 0);
         if ($projectId <= 0) {
@@ -60,22 +47,6 @@ class PayRamOperatorClient
         }
 
         return $projectId;
-    }
-
-    /**
-     * @throws PayRamApiException
-     */
-    private function findProjectIdByName(string $name): ?int
-    {
-        $target = trim($name);
-        foreach ($this->requestList('/api/v1/external-platform/all') as $project) {
-            $projectName = trim((string) ($project['name'] ?? ''));
-            if (strcasecmp($projectName, $target) === 0) {
-                return (int) $project['id'];
-            }
-        }
-
-        return null;
     }
 
     /**

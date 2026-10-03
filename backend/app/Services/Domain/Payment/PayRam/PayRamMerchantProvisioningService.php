@@ -63,15 +63,25 @@ class PayRamMerchantProvisioningService
         }
         $projectId = $existing?->getExternalPlatformId();
 
+        // The display name people recognise, kept for our own records.
+        $projectDisplayName = $organizerName;
+
+        // What PayRam actually gets. Names there must be unique and are not an
+        // identity: two organizers can both be called "GN Club", and adopting
+        // the other one's project would route this organizer's money into it.
+        // So the gateway name is always qualified with something only this
+        // merchant has.
+        $gatewayProjectName = self::gatewayProjectName($organizerName, $organizerId);
+
         try {
             if ($projectId === null) {
-                $projectId = $this->operatorClient->createProject($organizerName);
+                $projectId = $this->operatorClient->createProject($gatewayProjectName);
 
                 // Checkpoint before the steps that can fail, so a retry resumes
                 // from here instead of minting another project.
                 $existing = $this->persist($organizerId, $existing, [
                     OrganizerPayramAccountDomainObjectAbstract::EXTERNAL_PLATFORM_ID => $projectId,
-                    OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $organizerName,
+                    OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $projectDisplayName,
                     OrganizerPayramAccountDomainObjectAbstract::MEMBER_EMAIL => $email,
                     OrganizerPayramAccountDomainObjectAbstract::PROVISIONED_PASSWORD => $password,
                     OrganizerPayramAccountDomainObjectAbstract::STATUS => self::STATUS_PROVISIONING,
@@ -94,7 +104,7 @@ class PayRamMerchantProvisioningService
 
         return $this->persist($organizerId, $existing, [
             OrganizerPayramAccountDomainObjectAbstract::EXTERNAL_PLATFORM_ID => $projectId,
-            OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $organizerName,
+            OrganizerPayramAccountDomainObjectAbstract::PROJECT_NAME => $projectDisplayName,
             OrganizerPayramAccountDomainObjectAbstract::MEMBER_EMAIL => $email,
             OrganizerPayramAccountDomainObjectAbstract::API_KEY => $apiKey,
             OrganizerPayramAccountDomainObjectAbstract::PROVISIONED_PASSWORD => $password,
@@ -135,6 +145,37 @@ class PayRamMerchantProvisioningService
         return $this->accountsRepository->findFirstWhere([
             OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID => $organizerId,
         ]);
+    }
+
+    /**
+     * The project name PayRam will accept for this merchant.
+     *
+     * PayRam validates project names strictly and enforces uniqueness, and it
+     * treats a name as an identity we must never rely on. Measured against the
+     * live API: `[`, `]`, `#` and `!` are rejected; one character is too short
+     * and 80 is too long; spaces, parentheses, hyphens and unicode are fine.
+     *
+     * So: keep the organizer's own name, add a discriminator that cannot collide,
+     * and strip anything the gateway refuses.
+     */
+    public static function gatewayProjectName(string $organizerName, int $organizerId): string
+    {
+        $clean = trim(preg_replace('/[\x00-\x1F\x7F\[\]#!]+/u', '', $organizerName) ?? '');
+        $clean = trim(preg_replace('/\s+/u', ' ', $clean) ?? '');
+
+        if ($clean === '' || mb_strlen($clean) < 2) {
+            $clean = 'Organizer';
+        }
+
+        // Reserve room for the suffix within PayRam's length limit.
+        $suffix = sprintf(' (%d)', $organizerId);
+        $maxBase = 60 - mb_strlen($suffix);
+
+        if (mb_strlen($clean) > $maxBase) {
+            $clean = mb_substr($clean, 0, $maxBase);
+        }
+
+        return $clean.$suffix;
     }
 
     public static function generatePassword(): string

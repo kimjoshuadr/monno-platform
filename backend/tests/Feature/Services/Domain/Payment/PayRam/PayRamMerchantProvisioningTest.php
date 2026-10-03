@@ -140,7 +140,7 @@ class PayRamMerchantProvisioningTest extends TestCase
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/api/v1/signin')
             && $request['email'] === self::OPERATOR_EMAIL);
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/api/v1/external-platform')
-            && $request['name'] === 'Acme Run');
+            && $request['name'] === sprintf('Acme Run (%d)', $this->organizerId));
         Http::assertSent(fn ($request) => str_contains($request->url(), '/api/v1/member')
             && ! str_contains($request->url(), 'roles')
             && $request['email'] === 'organizer@example.com');
@@ -354,10 +354,64 @@ class PayRamMerchantProvisioningTest extends TestCase
         $this->assertSame(1, $projectsCreated, 'A resume must not create a second project.');
     }
 
-    public function test_provisioning_adopts_a_project_that_already_has_this_name(): void
+    public function test_the_gateway_project_name_is_unique_to_this_merchant(): void
     {
-        // PayRam enforces unique project names, so an earlier attempt's project
-        // is returned as DUPLICATE_PROJECT_NAME rather than a new one.
+        // Two organizers can legitimately share a display name ("GN Club"), and
+        // PayRam requires unique project names. If we sent the display name, a
+        // clash would either fail provisioning or — far worse — adopt the other
+        // organizer's project and route this one's money into it.
+        $this->fakeSuccessfulProvisioning();
+
+        $this->provisioningService()->provision($this->organizerId, 'GN Club', 'gn@example.com');
+
+        Http::assertSent(function ($request) {
+            if (! str_ends_with($request->url(), '/api/v1/external-platform')) {
+                return false;
+            }
+            $name = $request['name'] ?? '';
+
+            // qualified with the organizer id, so it cannot collide
+            return $name === sprintf('GN Club (%d)', $this->organizerId);
+        });
+    }
+
+    public function test_the_gateway_name_respects_payrams_real_validation_rules(): void
+    {
+        // Measured against the live API, not assumed: `[`, `]`, `#` and `!` are
+        // rejected outright; 1 character is too short and 80 too long. Getting
+        // this wrong fails provisioning with "Project name is invalid.", which
+        // is exactly what happened when this was first written.
+        $cases = [
+            ['GN Club', 26],
+            ['Test!Org #1 [x]', 8],
+            ['a', 5],
+            ['', 7],
+        ];
+
+        foreach ($cases as [$name, $organizerId]) {
+            $gateway = PayRamMerchantProvisioningService::gatewayProjectName($name, $organizerId);
+
+            $this->assertStringNotContainsString('[', $gateway);
+            $this->assertStringNotContainsString(']', $gateway);
+            $this->assertStringNotContainsString('#', $gateway);
+            $this->assertStringNotContainsString('!', $gateway);
+            $this->assertGreaterThanOrEqual(2, mb_strlen($gateway), "too short: {$gateway}");
+            $this->assertLessThanOrEqual(64, mb_strlen($gateway), "too long: {$gateway}");
+            $this->assertStringEndsWith("({$organizerId})", $gateway, "must be unique per merchant: {$gateway}");
+        }
+
+        // Two organizers with the same display name must never collide.
+        $this->assertNotSame(
+            PayRamMerchantProvisioningService::gatewayProjectName('GN Club', 26),
+            PayRamMerchantProvisioningService::gatewayProjectName('GN Club', 29),
+        );
+    }
+
+    public function test_a_duplicate_name_is_never_adopted(): void
+    {
+        // Even when the gateway answers with a clash, we must not go looking for
+        // a project by that name and claim it — that is how one organizer would
+        // end up being paid into another organizer's wallet.
         Http::fake(function ($request) {
             $url = $request->url();
 
@@ -369,27 +423,24 @@ class PayRamMerchantProvisioningTest extends TestCase
                 return Http::response(['error' => ['code' => 'DUPLICATE_PROJECT_NAME']], 409);
             }
 
+            // If the code ever tries to look projects up by name, hand it a
+            // project that is NOT ours and see whether it dares to use it.
             if (str_ends_with($url, '/api/v1/external-platform/all')) {
-                return Http::response([
-                    ['id' => 55, 'name' => 'Someone Else'],
-                    ['id' => 77, 'name' => 'Acme Run'],
-                ]);
-            }
-
-            if (str_ends_with($url, '/api/v1/member')) {
-                return Http::response(['id' => 9]);
-            }
-
-            if (str_contains($url, '/api-key')) {
-                return Http::response(['key' => self::ORGANIZER_KEY]);
+                return Http::response([['id' => 77, 'name' => 'GN Club [org 999]']]);
             }
 
             return Http::response(['status' => 'ok']);
         });
 
-        $account = $this->provisioningService()->provision($this->organizerId, 'Acme Run', 'organizer@example.com');
+        try {
+            $this->provisioningService()->provision($this->organizerId, 'GN Club', 'gn@example.com');
+            $this->fail('A rejected project creation must not silently resolve to another project.');
+        } catch (PayRamApiException) {
+            // expected
+        }
 
-        $this->assertSame('READY', $account->getStatus());
-        $this->assertSame(77, $account->getExternalPlatformId(), 'It must adopt the project by name, not just any project.');
+        // and it must not have adopted anything
+        $account = DB::table('organizer_payram_accounts')->where('organizer_id', $this->organizerId)->first();
+        $this->assertNull($account?->external_platform_id, 'No project may be adopted from a name clash.');
     }
 }
