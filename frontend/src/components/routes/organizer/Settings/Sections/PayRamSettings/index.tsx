@@ -133,7 +133,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Wallet setup not confirmed`}
                                     </Text>
                                     <Text size="xs" c="dimmed">
-                                        {t`We could not reach PayRam to confirm your payout wallet, so crypto is not live yet. Finish (or recheck) the wallet step in the PayRam console — it also needs a deposit wallet before buyers can pay.`}
+                                        {t`We could not reach PayRam to confirm your wallets, so crypto is not live yet. Set up (or recheck) the networks you accept in the PayRam console — one is enough to start.`}
                                     </Text>
                                 </Alert>
                             )}
@@ -146,10 +146,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     p="xs"
                                 >
                                     <Text size="xs" fw={500} mb={4}>
-                                        {t`One step remaining: connect your payout wallet`}
+                                        {t`One step remaining: finish your wallets in PayRam`}
                                     </Text>
                                     <Text size="xs" c="dimmed">
-                                        {t`Configure the payout wallet in the PayRam console. It takes about two minutes and only happens once.`}
+                                        {t`Creating a deposit wallet also sets the cold wallet your sales sweep to, so it is one flow per network. Only set up the networks you want to accept — one is enough.`}
                                     </Text>
                                 </Alert>
                             )}
