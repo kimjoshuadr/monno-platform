@@ -68,6 +68,12 @@ return [
         // their sticker price.
         'fee_bps' => (int) env('PAYRAM_FEE_BPS', 250),
 
+        // The shared operator hot wallet (EVM family). Every new project is
+        // attached to it at provisioning so buyer funds can sweep to the
+        // organizer's cold wallet. One wallet serves every project: it only pays
+        // gas, so sharing it does not commingle anyone's funds. 0 = disabled.
+        'hot_wallet_id' => (int) env('PAYRAM_HOT_WALLET_ID', 0),
+
         // Smallest crypto invoice we will create, in USD.
         //
         // PayRam invoices a USD amount but the buyer pays in a coin it chooses,

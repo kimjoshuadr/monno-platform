@@ -3,6 +3,7 @@
 namespace HiEvents\Services\Infrastructure\Payment\PayRam;
 
 use HiEvents\Exceptions\PayRam\PayRamApiException;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -217,6 +218,86 @@ class PayRamOperatorClient
                 'roleName' => $roleName,
             ]],
         ], withToken: true);
+    }
+
+    /**
+     * Attach the shared operator hot wallet to a project.
+     *
+     * Every project needs a hot wallet for the networks it accepts — it pays the
+     * gas that sweeps buyer funds to the organizer's cold wallet, and PayRam has
+     * no fallback to a shared one. This is the step that stops funds stranding.
+     *
+     * The assignment is a *replace* (`PUT /wallets/{id}/projects` takes the full
+     * list), so we read the current set first and append. A cache lock serialises
+     * concurrent sign-ups so two organizers cannot lose each other's assignment.
+     *
+     * @throws PayRamApiException
+     */
+    public function assignHotWallet(int $projectId, int $hotWalletId): void
+    {
+        if ($projectId <= 0 || $hotWalletId <= 0) {
+            return;
+        }
+
+        try {
+            Cache::lock('payram:hot_wallet_assign:'.$hotWalletId, 15)
+                ->block(10, fn () => $this->writeHotWalletProjects($projectId, $hotWalletId));
+        } catch (LockTimeoutException) {
+            // Could not take the lock in time: do the work anyway rather than
+            // silently skip it. The repair command reconciles any lost update.
+            $this->writeHotWalletProjects($projectId, $hotWalletId);
+        }
+    }
+
+    /**
+     * @throws PayRamApiException
+     */
+    private function writeHotWalletProjects(int $projectId, int $hotWalletId): void
+    {
+        $assigned = $this->assignedProjectIdsForHotWallet($hotWalletId);
+
+        if (in_array($projectId, $assigned, true)) {
+            return; // idempotent — already assigned
+        }
+
+        $assigned[] = $projectId;
+
+        $this->request(
+            'put',
+            sprintf('/api/v1/wallets/%d/projects', $hotWalletId),
+            ['projectIds' => array_values($assigned)],
+            withToken: true,
+        );
+    }
+
+    /**
+     * The projects a wallet is currently attached to. There is no GET on the
+     * assignment endpoint, so the assignable-projects list (which carries a
+     * status per project) is the source.
+     *
+     * @return array<int, int>
+     *
+     * @throws PayRamApiException
+     */
+    private function assignedProjectIdsForHotWallet(int $hotWalletId): array
+    {
+        $body = $this->request(
+            'get',
+            sprintf('/api/v1/project/all/wallets/%d/assignable-projects', $hotWalletId),
+            [],
+            withToken: true,
+        );
+
+        $ids = [];
+        foreach (($body['projects'] ?? []) as $project) {
+            if (is_array($project)
+                && ($project['status'] ?? null) === 'currently_assigned'
+                && isset($project['projectID'])) {
+                $ids[] = (int) $project['projectID'];
+            }
+        }
+
+        return $ids;
     }
 
     /**

@@ -105,6 +105,8 @@ class PayRamMerchantProvisioningService
             $this->operatorClient->createMember($organizerName, $email, $password);
             $this->operatorClient->assignMemberRole($email, $projectId, 'project_admin');
             $apiKey = $existing?->getApiKey() ?: $this->operatorClient->createApiKey($projectId, sprintf('monno server key for %s', $organizerName));
+
+            $this->assignSharedHotWallet($projectId, $organizerId);
         } catch (Throwable $exception) {
             $this->logger->error('PayRam merchant provisioning failed', [
                 'organizer_id' => $organizerId,
@@ -126,6 +128,33 @@ class PayRamMerchantProvisioningService
             OrganizerPayramAccountDomainObjectAbstract::WALLET_STATUS => self::WALLET_NOT_CONFIGURED,
             OrganizerPayramAccountDomainObjectAbstract::LAST_ERROR => null,
         ]);
+    }
+
+    /**
+     * Attach the shared operator hot wallet so the project can sweep.
+     *
+     * Best effort: without it the organizer's funds cannot sweep, but failing
+     * the whole provisioning would leave them unable to accept crypto at all.
+     * A failure is logged and reconciled by the repair command.
+     */
+    private function assignSharedHotWallet(int $projectId, int $organizerId): void
+    {
+        $hotWalletId = (int) config('services.payram.hot_wallet_id', 0);
+
+        if ($hotWalletId <= 0) {
+            return;
+        }
+
+        try {
+            $this->operatorClient->assignHotWallet($projectId, $hotWalletId);
+        } catch (Throwable $exception) {
+            $this->logger->error('Could not assign the shared PayRam hot wallet', [
+                'organizer_id' => $organizerId,
+                'project_id' => $projectId,
+                'hot_wallet_id' => $hotWalletId,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     /**
