@@ -40,15 +40,17 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const [isOpeningConsole, setIsOpeningConsole] = useState(false);
 
     const isConnected = data?.status === 'READY';
-    const isWalletConfigured = Boolean(
-        data?.wallet_status === 'READY' || data?.wallet_address
-    );
 
     // The gateway is authoritative about whether a payout wallet is actually
-    // attached. Our own record can say READY while PayRam disagrees, and the
-    // organizer deserves to see the difference.
+    // attached. Our own record can say READY while PayRam disagrees — or while
+    // we simply cannot reach PayRam — and the organizer deserves the difference.
     const gateway = data?.gateway;
     const gatewayWalletReady = gateway?.available ? gateway.cold_wallet_configured : null;
+
+    // Only the gateway's own confirmation means crypto is genuinely live. Our
+    // saved address is a record of what the organizer asked for, not proof that
+    // PayRam attached it, so it must never be enough on its own.
+    const isLive = isConnected && gatewayWalletReady === true;
 
     // Hand the gateway a one-time code via the URL fragment; its /sso.html page
     // (shipped in our PayRam image) redeems it and signs the organizer in, so
@@ -98,7 +100,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
             <Stack gap="md" mt="sm">
                 {isPending && <Loader size="sm" />}
 
-                {!isPending && (!isConnected || !isWalletConfigured) && (
+                {!isPending && !isLive && data?.status !== 'FAILED' && (
                     <Paper
                         p="lg"
                         withBorder
@@ -131,6 +133,49 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 {t`Choose the currencies you accept and record the wallet your sales settle to. Settling to that wallet needs one wallet connection in the PayRam console — we never ask for or hold your private keys.`}
                             </Text>
 
+                            {isConnected && gatewayWalletReady === null && (
+                                <Alert
+                                    color="orange"
+                                    variant="light"
+                                    icon={<IconAlertCircle size={14} />}
+                                    p="xs"
+                                >
+                                    <Text size="xs" fw={500} mb={4}>
+                                        {t`Wallet setup not confirmed`}
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                        {t`We could not reach PayRam to confirm your payout wallet, so crypto is not live yet. Finish (or recheck) the wallet step in the PayRam console — it also needs a deposit wallet before buyers can pay.`}
+                                    </Text>
+                                </Alert>
+                            )}
+
+                            {isConnected && gatewayWalletReady === false && (
+                                <Alert
+                                    color="orange"
+                                    variant="light"
+                                    icon={<IconAlertCircle size={14} />}
+                                    p="xs"
+                                >
+                                    <Text size="xs" fw={500} mb={4}>
+                                        {t`One step remaining: connect your payout wallet`}
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                        {t`Configure the payout wallet in the PayRam console. It takes about two minutes and only happens once.`}
+                                    </Text>
+                                </Alert>
+                            )}
+
+                            {data?.wallet_address && (
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Text size="xs" c="dimmed">
+                                        {t`Payout wallet on record`}
+                                    </Text>
+                                    <Code style={{fontSize: 12, wordBreak: 'break-all'}}>
+                                        {data.wallet_address}
+                                    </Code>
+                                </Group>
+                            )}
+
                             <Group gap="xs" mt="xs">
                                 <Button
                                     leftSection={<IconShieldCheck size={16} />}
@@ -138,8 +183,19 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     onClick={() => setIsWizardOpen(true)}
                                     data-testid="payram-setup-button"
                                 >
-                                    {t`Set up crypto payments`}
+                                    {data?.wallet_address ? t`Edit setup` : t`Set up crypto payments`}
                                 </Button>
+                                {isConnected && gatewayWalletReady !== true && (
+                                    <Button
+                                        variant="light"
+                                        color="orange"
+                                        rightSection={<IconExternalLink size={16} />}
+                                        loading={isOpeningConsole}
+                                        onClick={handleOpenConsole}
+                                    >
+                                        {t`Finish wallet setup in PayRam`}
+                                    </Button>
+                                )}
                             </Group>
                         </Stack>
                     </Paper>
@@ -151,7 +207,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                     </Alert>
                 )}
 
-                {!isPending && isConnected && isWalletConfigured && (
+                {!isPending && isLive && (
                     <Paper p="md" withBorder>
                         <Stack gap="md">
                             <Group justify="space-between" align="center">
@@ -173,16 +229,13 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Edit setup`}
                                     </Button>
                                     <Button
-                                        variant={gatewayWalletReady === false ? 'filled' : 'subtle'}
-                                        color={gatewayWalletReady === false ? 'orange' : undefined}
+                                        variant="subtle"
                                         size="xs"
                                         rightSection={<IconExternalLink size={14} />}
                                         loading={isOpeningConsole}
                                         onClick={handleOpenConsole}
                                     >
-                                        {gatewayWalletReady === false
-                                            ? t`Finish wallet setup ↗`
-                                            : t`PayRam console`}
+                                        {t`PayRam console`}
                                     </Button>
                                 </Group>
                             </Group>
