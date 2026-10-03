@@ -125,6 +125,14 @@ readonly class CreatePayRamPaymentHandler
             PayramPaymentDomainObjectAbstract::EXPIRES_AT => $expiresAt->toDateTimeString(),
         ]);
 
+        // Stamp the provider now, not only at settlement. The buyer is about to
+        // be handed a crypto checkout, so the return page must be able to tell
+        // this order is PayRam before it is paid — otherwise it asks Stripe,
+        // which can never confirm a crypto order, and shows a false failure.
+        $this->orderRepository->updateFromArray($order->getId(), [
+            OrderDomainObjectAbstract::PAYMENT_PROVIDER => PaymentProviders::PAYRAM->value,
+        ]);
+
         return new CreatePayRamPaymentResponseDTO(
             referenceId: $session->referenceId,
             checkoutUrl: $session->checkoutUrl,

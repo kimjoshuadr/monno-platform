@@ -4,6 +4,7 @@ namespace Tests\Unit\Services\Application\Handlers\Order\Payment\PayRam;
 
 use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\DomainObjects\EventSettingDomainObject;
+use HiEvents\DomainObjects\Generated\OrderDomainObjectAbstract;
 use HiEvents\DomainObjects\OrderDomainObject;
 use HiEvents\DomainObjects\PayramPaymentDomainObject;
 use HiEvents\DomainObjects\Status\OrderPaymentStatus;
@@ -169,6 +170,51 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         // 25.00 / (1 - 0.025) = 25.6410... -> rounds up to the cent
         $this->assertSame(25.65, $response->amountInUsd);
         $this->assertSame(0.65, $response->platformFeeUsd);
+    }
+
+    public function test_it_stamps_the_order_as_payram_when_the_session_is_created(): void
+    {
+        // The provider must be known before payment, not only at settlement:
+        // the return page uses it to avoid asking Stripe about a crypto order,
+        // which can never confirm and used to show a false failure.
+        $order = $this->makeOrder(currency: 'USD', totalGross: 25.00);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+
+        // updateFromArray is also used to stretch the reservation, so record
+        // every call and assert the provider stamp is among them.
+        $updates = [];
+        $this->orderRepository->shouldReceive('updateFromArray')
+            ->andReturnUsing(function (int $id, array $attributes) use (&$updates, $order) {
+                $updates[] = $attributes;
+
+                return $order;
+            });
+
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO(
+                referenceId: 'ref-1',
+                checkoutUrl: 'https://pay.monno.io/payments?reference_id=ref-1',
+                host: 'https://pay.monno.io',
+            ));
+
+        $this->handler()->handle('ORDSHORT');
+
+        $providers = array_filter(
+            array_map(fn (array $attributes) => $attributes[OrderDomainObjectAbstract::PAYMENT_PROVIDER] ?? null, $updates)
+        );
+
+        $this->assertContains(
+            PaymentProviders::PAYRAM->value,
+            $providers,
+            'Creating a PayRam session must stamp the order as PayRam.'
+        );
     }
 
     public function test_it_grosses_the_fee_up_to_the_cent_so_we_never_under_collect(): void
