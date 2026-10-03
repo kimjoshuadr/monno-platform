@@ -25,28 +25,59 @@ class PayRamOperatorClient
     ) {}
 
     /**
+     * PayRam enforces unique project names, and a name is not an identity: two
+     * organizers can legitimately be called "GN Club". Adopting a project by
+     * name would hand one organizer a project belonging to the other — and all
+     * their money with it — so a clash is never resolved by looking a name up.
+     *
+     * Instead the caller may supply a fresh name and we try again. Names cannot
+     * be reclaimed at PayRam (there is no delete endpoint), so the only way past
+     * a taken name is a different one.
+     *
+     * @param  callable(int, string, string): string|null  $onNameTaken
+     *                                                                   receives (attempt, rejectedName, reason) and returns the next name;
+     *                                                                   returning null aborts
+     *
      * @throws PayRamApiException
      */
-    public function createProject(string $name): int
+    public function createProject(string $name, ?callable $onNameTaken = null, int $maxAttempts = 5): int
     {
-        // PayRam enforces unique project names, and a name is not an identity:
-        // two organizers can legitimately be called "GN Club". Adopting a
-        // project by name would hand one organizer a project belonging to the
-        // other — and all their money with it. So the project name we send is
-        // always made unique for this merchant, and a name clash is never used
-        // as a signal that a project is ours.
-        $body = $this->request('post', '/api/v1/external-platform', [
-            'name' => $name,
-            'successEndpoint' => $this->returnUrl('/public/payram/return'),
-            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
-        ], withToken: true);
+        $attempt = 1;
+        $current = $name;
 
-        $projectId = (int) ($body['id'] ?? 0);
-        if ($projectId <= 0) {
-            throw new PayRamApiException(__('PayRam did not return a project id.'));
+        while (true) {
+            try {
+                $body = $this->request('post', '/api/v1/external-platform', [
+                    'name' => $current,
+                    'successEndpoint' => $this->returnUrl('/public/payram/return'),
+                    'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
+                ], withToken: true);
+
+                $projectId = (int) ($body['id'] ?? 0);
+                if ($projectId <= 0) {
+                    throw new PayRamApiException(__('PayRam did not return a project id.'));
+                }
+
+                return $projectId;
+            } catch (PayRamApiException $exception) {
+                $body = (string) $exception->rawBody;
+                $retryable = str_contains($body, 'DUPLICATE_PROJECT_NAME')
+                    || str_contains($body, 'Project name is invalid');
+
+                if (! $retryable || $onNameTaken === null || $attempt >= $maxAttempts) {
+                    throw $exception;
+                }
+
+                $attempt++;
+                $next = $onNameTaken($attempt, $current, $exception->getMessage());
+
+                if ($next === null || $next === '' || $next === $current) {
+                    throw $exception;
+                }
+
+                $current = $next;
+            }
         }
-
-        return $projectId;
     }
 
     /**

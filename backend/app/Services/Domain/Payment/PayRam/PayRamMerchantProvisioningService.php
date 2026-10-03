@@ -75,7 +75,19 @@ class PayRamMerchantProvisioningService
 
         try {
             if ($projectId === null) {
-                $projectId = $this->operatorClient->createProject($gatewayProjectName);
+                $projectId = $this->operatorClient->createProject($gatewayProjectName, function (int $attempt, string $rejected, string $reason) use ($organizerName, $organizerId, &$gatewayProjectName) {
+                    // Names are unique at PayRam and cannot be reclaimed (there is
+                    // no delete endpoint), so a taken name must never be fatal —
+                    // it just means this merchant needs a different one.
+                    $gatewayProjectName = self::gatewayProjectName($organizerName, $organizerId, $attempt);
+
+                    $this->logger->warning('PayRam project name unavailable, retrying with a variant', [
+                        'organizer_id' => $organizerId,
+                        'rejected' => $rejected,
+                        'reason' => $reason,
+                        'next' => $gatewayProjectName,
+                    ]);
+                });
 
                 // Checkpoint before the steps that can fail, so a retry resumes
                 // from here instead of minting another project.
@@ -158,7 +170,7 @@ class PayRamMerchantProvisioningService
      * So: keep the organizer's own name, add a discriminator that cannot collide,
      * and strip anything the gateway refuses.
      */
-    public static function gatewayProjectName(string $organizerName, int $organizerId): string
+    public static function gatewayProjectName(string $organizerName, int $organizerId, int $attempt = 1): string
     {
         $clean = trim(preg_replace('/[\x00-\x1F\x7F\[\]#!]+/u', '', $organizerName) ?? '');
         $clean = trim(preg_replace('/\s+/u', ' ', $clean) ?? '');
@@ -168,7 +180,9 @@ class PayRamMerchantProvisioningService
         }
 
         // Reserve room for the suffix within PayRam's length limit.
-        $suffix = sprintf(' (%d)', $organizerId);
+        $suffix = $attempt === 1
+            ? sprintf(' (%d)', $organizerId)
+            : sprintf(' (%d-%d)', $organizerId, $attempt);
         $maxBase = 60 - mb_strlen($suffix);
 
         if (mb_strlen($clean) > $maxBase) {
