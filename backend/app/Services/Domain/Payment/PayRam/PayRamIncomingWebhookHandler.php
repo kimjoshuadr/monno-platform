@@ -119,6 +119,29 @@ class PayRamIncomingWebhookHandler
                 'reference_id' => $referenceId,
                 'status' => $status->value,
             ]);
+
+            return;
+        }
+
+        // A partial fill is terminal: the on-chain transfer confirmed but did
+        // not cover the invoice, and PayRam offers no way to top it up. The
+        // money is real and the order will never settle, so this needs a human
+        // rather than a quiet status write. It most often happens at tiny
+        // amounts, where the quantity PayRam displays is rounded too coarsely
+        // for the invoice to be matched exactly.
+        if ($status === PayRamPaymentStatus::PARTIALLY_FILLED) {
+            $expected = isset($payload['amount']) ? (float) $payload['amount'] : null;
+            $received = isset($payload['filled_amount_in_usd']) ? (float) $payload['filled_amount_in_usd'] : null;
+
+            $this->logger->error('PayRam payment was only partially filled and is stranded on-chain', [
+                'reference_id' => $referenceId,
+                'invoice_id' => $payload['invoice_id'] ?? null,
+                'expected_usd' => $expected,
+                'received_usd' => $received,
+                'shortfall_usd' => $expected !== null && $received !== null ? round($expected - $received, 6) : null,
+                'transaction_hash' => $firstDeposit['transaction_hash'] ?? null,
+                'action' => 'manual review: the buyer paid but the order cannot settle automatically',
+            ]);
         }
     }
 }

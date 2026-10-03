@@ -168,4 +168,43 @@ class PayRamReconcileTest extends TestCase
             'A cancelled payment must not be polled again.',
         );
     }
+
+    public function test_a_partially_filled_payment_is_flagged_and_not_settled(): void
+    {
+        // The exact shape of the real incident: the buyer sent the amount the
+        // checkout displayed, but it did not cover the invoice.
+        Http::fake(['*' => Http::response([
+            'referenceID' => self::REFERENCE,
+            'invoiceID' => 'oRECON0001',
+            'customerID' => 'oRECON0001',
+            'paymentState' => 'PARTIALLY_FILLED',
+            'amountInUSD' => '0.17',
+            'filledAmount' => '0.00006',
+            'filledAmountInUSD' => '0.157725',
+            'confirmationCurrent' => 12,
+            'confirmationRequired' => 12,
+            'blockchainSymbol' => 'ETH',
+            'depositAddress' => '0xf90341927f0238CaFF8986421B1D0d0eE87E1367',
+            'explorerTransaction' => 'https://etherscan.io/tx/0xpartial',
+        ])]);
+
+        $exit = Artisan::call('monno:payram-reconcile');
+        $output = Artisan::output();
+
+        // A shortfall needs a human, so the run must not report success.
+        $this->assertSame(1, $exit, 'A shortfall must fail the reconcile run so it is noticed.');
+        $this->assertStringContainsString('SHORTFALL', $output);
+        $this->assertStringContainsString(self::REFERENCE, $output);
+
+        // The transfer is recorded — the money is real and worth keeping.
+        $payment = DB::table('payram_payments')->where('reference_id', self::REFERENCE)->first();
+        $this->assertSame('PARTIALLY_FILLED', $payment->status);
+        $this->assertEqualsWithDelta(0.00006, (float) $payment->filled_amount, 1e-9);
+        $this->assertSame('https://etherscan.io/tx/0xpartial', $payment->transaction_hash);
+
+        // But the order must not be completed on a short payment.
+        $order = DB::table('orders')->where('short_id', 'oRECON0001')->first();
+        $this->assertSame('RESERVED', $order->status);
+        $this->assertSame('AWAITING_PAYMENT', $order->payment_status);
+    }
 }

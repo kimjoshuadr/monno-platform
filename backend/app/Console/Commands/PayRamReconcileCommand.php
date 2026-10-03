@@ -57,6 +57,7 @@ class PayRamReconcileCommand extends Command
         $checked = 0;
         $settled = 0;
         $failed = 0;
+        $shortfalls = 0;
 
         foreach ($openPayments->slice(0, $limit) as $payment) {
             $referenceId = $payment->getReferenceId();
@@ -86,6 +87,25 @@ class PayRamReconcileCommand extends Command
                     || $payload['status'] === PayRamPaymentStatus::OVER_FILLED->value) {
                     $settled++;
                     $this->info(sprintf('Settled %s (order %s)', $referenceId, $payload['invoice_id'] ?? '?'));
+
+                    continue;
+                }
+
+                // A partial fill is a confirmed on-chain transfer that did not
+                // cover the invoice, and it cannot be topped up. It will never
+                // settle on its own, so call it out rather than silently leaving
+                // it open forever.
+                if ($payload['status'] === PayRamPaymentStatus::PARTIALLY_FILLED->value) {
+                    $shortfalls++;
+                    $expected = isset($payload['amount']) ? (float) $payload['amount'] : null;
+                    $received = isset($payload['filled_amount_in_usd']) ? (float) $payload['filled_amount_in_usd'] : null;
+                    $this->error(sprintf(
+                        'SHORTFALL %s (order %s): received $%s of $%s — needs manual review, cannot settle automatically',
+                        $referenceId,
+                        $payload['invoice_id'] ?? '?',
+                        $received !== null ? number_format($received, 6) : '?',
+                        $expected !== null ? number_format($expected, 6) : '?',
+                    ));
                 }
             } catch (PayRamApiException $exception) {
                 $failed++;
@@ -101,14 +121,15 @@ class PayRamReconcileCommand extends Command
         }
 
         $this->info(sprintf(
-            'Reconciled: %d checked, %d settled, %d failed, %d open total.',
+            'Reconciled: %d checked, %d settled, %d short, %d failed, %d open total.',
             $checked,
             $settled,
+            $shortfalls,
             $failed,
             $openPayments->count(),
         ));
 
-        return self::SUCCESS;
+        return $shortfalls > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**

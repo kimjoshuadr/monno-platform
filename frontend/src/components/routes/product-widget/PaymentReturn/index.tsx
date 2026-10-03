@@ -11,38 +11,74 @@ import {isSsr} from "../../../../utilites/helpers.ts";
 import {trackEvent, AnalyticsEvents} from "../../../../utilites/analytics.ts";
 
 /**
- * This component is responsible for handling the return from the payment provider.
- * Stripe should send a webhook to the backend to update the order status to 'COMPLETED'
- * However, if this fails, we will poll the order status to check if the payment has been processed.
- * This is a rare occurrence, but we should handle it gracefully.
- * It will also make local development easier in times when the webhook is not configured correctly.
+ * Handles the return from the payment provider.
+ *
+ * Stripe sends a webhook that marks the order COMPLETED, but the return can
+ * land first, so we poll the order and (for Stripe) fall back to reading the
+ * PaymentIntent directly.
+ *
+ * Crypto is different: PayRam has no "intent" to read, and an on-chain transfer
+ * takes real time to confirm, so the only thing worth polling is the order
+ * itself. Asking Stripe for a PayRam order can never succeed, and used to show
+ * a false failure after ten seconds.
  **/
+const STRIPE_CONFIRM_WINDOW_MS = 10000;
+
+// On-chain confirmation is not instant. PayRam asks for a dozen block
+// confirmations, so give the reference a realistic window before we stop
+// waiting and let the buyer know it is still pending rather than failed.
+const PAYRAM_CONFIRM_WINDOW_MS = 120000;
+
 export const PaymentReturn = () => {
-    const [shouldPoll, setShouldPoll] = useState(true);
     const {eventId, orderShortId} = useParams();
+    const [shouldPoll, setShouldPoll] = useState(true);
     const {data: order} = usePollGetOrderPublic(eventId, orderShortId, shouldPoll, ['event']);
     const navigate = useNavigate();
+
+    const isPayRam = order?.payment_provider === 'PAYRAM';
+
+    // Never ask Stripe about a crypto order: the endpoint is meaningless for it
+    // and its failure is what produced the false "unable to confirm" screen.
     const [attemptManualConfirmation, setAttemptManualConfirmation] = useState(false);
-    const paymentIntentQuery = useGetOrderStripePaymentIntentPublic(eventId, orderShortId, attemptManualConfirmation);
+    const paymentIntentQuery = useGetOrderStripePaymentIntentPublic(
+        eventId,
+        orderShortId,
+        attemptManualConfirmation && !isPayRam,
+    );
+
     const [cannotConfirmPayment, setCannotConfirmPayment] = useState(false);
+    const [stillPending, setStillPending] = useState(false);
     const hasTrackedPurchase = useRef(false);
 
     useEffect(
         () => {
+            // Wait for the provider before choosing a window: the order arrives
+            // in the first poll, and a PayRam order must not be judged by the
+            // Stripe clock.
+            if (order === undefined) {
+                return;
+            }
+
+            const window = isPayRam ? PAYRAM_CONFIRM_WINDOW_MS : STRIPE_CONFIRM_WINDOW_MS;
+
             const timeout = setTimeout(() => {
                 setShouldPoll(false);
-                setAttemptManualConfirmation(true);
-            }, 10000); //todo - this should be a env variable
+                if (isPayRam) {
+                    setStillPending(true);
+                } else {
+                    setAttemptManualConfirmation(true);
+                }
+            }, window);
 
             return () => {
                 clearTimeout(timeout);
             };
         },
-        []
+        [order === undefined, isPayRam]
     );
 
     useEffect(() => {
-        if (!paymentIntentQuery.isFetched) {
+        if (!attemptManualConfirmation || !paymentIntentQuery.isFetched) {
             return;
         }
         if (paymentIntentQuery.data?.status === 'succeeded') {
@@ -53,19 +89,18 @@ export const PaymentReturn = () => {
             }
             navigate(eventCheckoutPath(eventId, orderShortId, 'summary'));
         } else {
-            // At this point we've tried multiple times to confirm the payment and failed.
-            // This could be due to a network error on our end, or a problem with the payment provider (Stripe).
-            // This should be a rare occurrence, but we should handle it gracefully.
+            // We tried repeatedly to confirm a Stripe payment and failed. This
+            // could be a network error on our end, or a problem with Stripe.
             setCannotConfirmPayment(true);
         }
-    }, [paymentIntentQuery.isFetched]);
+    }, [paymentIntentQuery.isFetched, attemptManualConfirmation]);
 
     useEffect(() => {
         if (isSsr() || !order) {
             return;
         }
 
-        if (order?.status === 'COMPLETED') {
+        if (order.status === 'COMPLETED') {
             if (!hasTrackedPurchase.current) {
                 hasTrackedPurchase.current = true;
                 const totalCents = Math.round((order.total_gross || 0) * 100);
@@ -73,15 +108,17 @@ export const PaymentReturn = () => {
             }
             navigate(eventCheckoutPath(eventId, orderShortId, 'summary'));
         }
-        if (order?.payment_status === 'PAYMENT_FAILED' || (typeof window !== 'undefined' && window?.location.search.includes('failed'))) {
+        if (order.payment_status === 'PAYMENT_FAILED' || (typeof window !== 'undefined' && window?.location.search.includes('failed'))) {
             navigate(eventCheckoutPath(eventId, orderShortId, 'payment') + '?payment_failed=true');
         }
     }, [order]);
 
+    const showError = cannotConfirmPayment;
+
     return (
         <CheckoutContent>
             <div className={classes.container}>
-                {!cannotConfirmPayment && (
+                {!showError && !stillPending && (
                     <HomepageInfoMessage
                         status="processing"
                         message={(
@@ -94,7 +131,14 @@ export const PaymentReturn = () => {
                     />
                 )}
 
-                {cannotConfirmPayment && (
+                {!showError && stillPending && (
+                    <HomepageInfoMessage
+                        status="processing"
+                        message={t`We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed.`}
+                    />
+                )}
+
+                {showError && (
                     <HomepageInfoMessage
                         status="error"
                         message={t`We were unable to confirm your payment. Please try again or contact support.`}
