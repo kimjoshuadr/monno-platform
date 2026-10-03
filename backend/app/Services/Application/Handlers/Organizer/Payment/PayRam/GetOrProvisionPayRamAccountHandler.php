@@ -2,7 +2,9 @@
 
 namespace HiEvents\Services\Application\Handlers\Organizer\Payment\PayRam;
 
+use HiEvents\DomainObjects\Generated\OrganizerPayramAccountDomainObjectAbstract;
 use HiEvents\DomainObjects\OrganizerPayramAccountDomainObject;
+use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamGatewayStatusService;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamMerchantProvisioningService;
@@ -18,6 +20,7 @@ class GetOrProvisionPayRamAccountHandler
         private readonly PayRamMerchantProvisioningService $provisioningService,
         private readonly OrganizerRepositoryInterface $organizerRepository,
         private readonly PayRamGatewayStatusService $gatewayStatusService,
+        private readonly OrganizerPayRamAccountsRepositoryInterface $accountsRepository,
     ) {}
 
     public const STATUS_NOT_CONNECTED = 'NOT_CONNECTED';
@@ -58,15 +61,24 @@ class GetOrProvisionPayRamAccountHandler
     {
         $dashboardUrl = (string) config('services.payram.base_url', '');
 
+        $gateway = $this->gatewayStatusService->forProject($account->getExternalPlatformId());
+
+        // The stored wallet_status is written once at provisioning and nothing
+        // else refreshes it, so it goes stale the moment the organizer configures
+        // a network. Report the gateway's answer instead — and write it back, so
+        // the database cannot keep disagreeing with what we just told the
+        // organizer (or with the publish gate, which reads this column).
+        $walletStatus = $this->walletStatusFrom($account, $gateway);
+
         $payload = [
             'status' => $account->getStatus(),
             'project_name' => $account->getProjectName(),
             'member_email' => $account->getMemberEmail(),
             'external_platform_id' => $account->getExternalPlatformId(),
-            'wallet_status' => $account->getWalletStatus(),
+            'wallet_status' => $walletStatus,
             'dashboard_url' => rtrim($dashboardUrl, '/'),
             'last_error' => $account->getLastError(),
-            'gateway' => $this->gatewayStatusService->forProject($account->getExternalPlatformId()),
+            'gateway' => $gateway,
         ];
 
         if ($includeCredentials && $account->getProvisionedPassword() !== null) {
@@ -77,5 +89,28 @@ class GetOrProvisionPayRamAccountHandler
         }
 
         return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $gateway
+     */
+    private function walletStatusFrom(OrganizerPayramAccountDomainObject $account, array $gateway): ?string
+    {
+        // Unknown stays unknown: we never overwrite a fact with a guess.
+        if (($gateway['available'] ?? false) !== true) {
+            return $account->getWalletStatus();
+        }
+
+        $status = ($gateway['cold_wallet_configured'] ?? false)
+            ? PayRamMerchantProvisioningService::WALLET_READY
+            : PayRamMerchantProvisioningService::WALLET_NOT_CONFIGURED;
+
+        if ($account->getWalletStatus() !== $status) {
+            $this->accountsRepository->updateFromArray($account->getId(), [
+                OrganizerPayramAccountDomainObjectAbstract::WALLET_STATUS => $status,
+            ]);
+        }
+
+        return $status;
     }
 }
