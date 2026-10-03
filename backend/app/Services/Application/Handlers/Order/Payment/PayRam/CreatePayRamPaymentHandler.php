@@ -78,6 +78,8 @@ readonly class CreatePayRamPaymentHandler
 
         [$amountInUsd, $platformFeeUsd, $fxRate] = $this->quote($order);
 
+        $this->assertInvoiceClearsTheFloor($amountInUsd);
+
         $expiresAt = $this->determineExpiry($order);
         $this->keepReservationAlive($order, $expiresAt);
 
@@ -158,6 +160,31 @@ readonly class CreatePayRamPaymentHandler
 
         if (! in_array(PaymentProviders::PAYRAM->value, $providers, true)) {
             throw new UnauthorizedException(__('Crypto payments are not enabled for this event'));
+        }
+    }
+
+    /**
+     * Refuse a crypto invoice so small that the rounding of the crypto amount
+     * the buyer is shown can be a material fraction of the invoice.
+     *
+     * PayRam invoices in USD but the buyer pays in a coin, and its checkout
+     * displays the coin amount at that coin's precision. At tiny amounts the
+     * rounding is not cosmetic: a $0.17 invoice shown as "0.00006 ETH" arrives
+     * as $0.1578, PayRam marks it PARTIALLY_FILLED, and a partial can never be
+     * topped up or settled — the buyer's money is taken and no ticket is issued.
+     * Better to not offer crypto than to take money that cannot settle.
+     *
+     * @throws PayRamConfigurationException
+     */
+    private function assertInvoiceClearsTheFloor(float $amountInUsd): void
+    {
+        $floor = (float) config('services.payram.min_invoice_usd', 0);
+
+        if ($floor > 0 && $amountInUsd < $floor) {
+            throw new PayRamConfigurationException(__(
+                'Crypto payments are only available for orders of at least :amount, because smaller crypto amounts cannot be matched exactly. Please choose another payment method.',
+                ['amount' => '$'.number_format($floor, 2)],
+            ));
         }
     }
 

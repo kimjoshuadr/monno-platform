@@ -322,4 +322,83 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         $this->expectException(ResourceConflictException::class);
         $this->handler()->handle('ORDSHORT');
     }
+
+    public function test_it_refuses_an_invoice_below_the_crypto_floor(): void
+    {
+        // $0.17 is the real incident: the buyer sent the displayed 0.00006 ETH
+        // and was judged short, and a partial can never settle. Below the floor
+        // we must not create the invoice at all.
+        config(['services.payram.min_invoice_usd' => 1.00]);
+
+        $order = $this->makeOrder(currency: 'USD', totalGross: 0.17);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+
+        // No invoice may be created.
+        $this->payramClient->shouldReceive('createPayment')->never();
+        $this->payramPaymentsRepository->shouldReceive('create')->never();
+
+        $this->expectException(PayRamConfigurationException::class);
+        $this->handler()->handle('ORDSHORT');
+    }
+
+    public function test_it_allows_an_invoice_at_the_crypto_floor(): void
+    {
+        config(['services.payram.min_invoice_usd' => 1.00]);
+
+        $order = $this->makeOrder(currency: 'USD', totalGross: 1.00);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->once()
+            ->andReturn(new PayRamPaymentSessionDTO(
+                referenceId: 'ref-floor',
+                checkoutUrl: 'https://pay.monno.io/payments?reference_id=ref-floor',
+                host: 'https://pay.monno.io',
+            ));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        $this->assertSame('ref-floor', $response->referenceId);
+    }
+
+    public function test_the_floor_does_not_apply_to_a_usd_order_above_it(): void
+    {
+        // A normal crypto order is unaffected: the residual rounding risk is
+        // only material at very small amounts.
+        config(['services.payram.min_invoice_usd' => 1.00]);
+
+        $order = $this->makeOrder(currency: 'USD', totalGross: 50.00);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->once()
+            ->andReturn(new PayRamPaymentSessionDTO(
+                referenceId: 'ref-big',
+                checkoutUrl: 'https://pay.monno.io/payments?reference_id=ref-big',
+                host: 'https://pay.monno.io',
+            ));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        $this->assertSame('ref-big', $response->referenceId);
+    }
 }

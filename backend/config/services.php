@@ -68,6 +68,22 @@ return [
         // their sticker price.
         'fee_bps' => (int) env('PAYRAM_FEE_BPS', 250),
 
+        // Smallest crypto invoice we will create, in USD.
+        //
+        // PayRam invoices a USD amount but the buyer pays in a coin it chooses,
+        // and its checkout displays the coin quantity rounded to a precision we
+        // can neither predict nor pin (the `currency` parameter is accepted and
+        // ignored — every invoice comes back in native ETH). At tiny amounts one
+        // display step is a material share of the invoice, so the buyer can send
+        // exactly what they are shown and still be judged short: a $0.17 invoice
+        // shown as "0.00006 ETH" arrives as ~$0.1578, PayRam marks it
+        // PARTIALLY_FILLED, and a partial can never be topped up or settled.
+        //
+        // This floor keeps that error small without blocking small orders. It is
+        // deliberately low — the shortfall is caught by the worklist and logs if
+        // it still happens, rather than by refusing the sale.
+        'min_invoice_usd' => (float) env('PAYRAM_MIN_INVOICE_USD', 1.00),
+
         // Operator account: used only to provision organizer merchant accounts
         // (project, dashboard login, role, API key). Never used for payments.
         'operator_email' => env('PAYRAM_OPERATOR_EMAIL'),

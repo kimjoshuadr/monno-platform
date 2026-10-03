@@ -77,7 +77,7 @@ export const PayRamPaymentMethod = ({enabled, setSubmitHandler}: PayRamPaymentMe
                 <div>
                     <Text fw={600} mb={4}>{t`Pay with crypto`}</Text>
                     <Text size="sm" c="dimmed">
-                        {t`You'll choose the coin and network on the next screen (USDT or USDC). Your tickets are confirmed automatically once the payment confirms.`}
+                        {t`You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms.`}
                     </Text>
                 </div>
 
