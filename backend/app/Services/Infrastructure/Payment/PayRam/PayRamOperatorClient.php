@@ -105,11 +105,27 @@ class PayRamOperatorClient
      */
     public function updateProjectProfile(int $projectId, string $name, ?string $website = null, ?string $supportEmail = null): void
     {
-        $payload = [
-            'name' => $name,
-            'successEndpoint' => $this->returnUrl('/public/payram/return'),
-            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
-        ];
+        $payload = ['name' => $name];
+
+        // The gateway's checkout sends the buyer back to these URLs. A local
+        // run (APP_URL=http://localhost:8080) must never write a localhost URL
+        // into a SHARED project: it strands every real buyer on a developer's
+        // machine. Only a public https base may set them — otherwise leave
+        // PayRam's existing values alone and say so loudly.
+        $successEndpoint = $this->returnUrl('/public/payram/return');
+        $cancelEndpoint = $this->returnUrl('/public/payram/cancel');
+
+        if ($this->isPublicEndpoint($successEndpoint) && $this->isPublicEndpoint($cancelEndpoint)) {
+            $payload['successEndpoint'] = $successEndpoint;
+            $payload['cancelEndpoint'] = $cancelEndpoint;
+        } else {
+            logger()->warning('Refusing to write non-public PayRam return URLs', [
+                'project_id' => $projectId,
+                'success_endpoint' => $successEndpoint,
+                'cancel_endpoint' => $cancelEndpoint,
+                'hint' => 'Set APP_API_PUBLIC_URL (or APP_URL) to the public https base.',
+            ]);
+        }
 
         if ($website !== null) {
             $payload['website'] = $website;
@@ -121,6 +137,27 @@ class PayRamOperatorClient
         }
 
         $this->request('put', sprintf('/api/v1/external-platform/%d', $projectId), $payload, withToken: true);
+    }
+
+    /**
+     * A return URL the gateway can actually send a buyer to: https on a real
+     * public host. Localhost, loopback and .local/.test are development bases.
+     */
+    private function isPublicEndpoint(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https') {
+            return false;
+        }
+
+        $host = strtolower((string) ($parts['host'] ?? ''));
+
+        if ($host === '' || in_array($host, ['localhost', '127.0.0.1', '0.0.0.0', '::1'], true)) {
+            return false;
+        }
+
+        return ! str_ends_with($host, '.local') && ! str_ends_with($host, '.test');
     }
 
     /**

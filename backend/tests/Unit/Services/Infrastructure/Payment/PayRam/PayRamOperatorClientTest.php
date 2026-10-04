@@ -159,6 +159,49 @@ class PayRamOperatorClientTest extends TestCase
         });
     }
 
+    public function test_it_sets_public_return_endpoints_on_the_project(): void
+    {
+        config(['app.api_public_url' => 'https://staging.app.monno.io/api']);
+
+        Http::fake([
+            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'operator-token']),
+            'https://pay.test/api/v1/external-platform/9' => Http::response(['id' => 9]),
+        ]);
+
+        $this->client->updateProjectProfile(9, 'Acme Run (9)');
+
+        Http::assertSent(function ($request) {
+            $data = $request->data();
+
+            return str_ends_with($request->url(), '/api/v1/external-platform/9')
+                && ($data['successEndpoint'] ?? null) === 'https://staging.app.monno.io/api/public/payram/return'
+                && ($data['cancelEndpoint'] ?? null) === 'https://staging.app.monno.io/api/public/payram/cancel';
+        });
+    }
+
+    public function test_it_never_writes_a_localhost_return_url_into_a_shared_project(): void
+    {
+        // A developer running the app locally must not point the gateway's
+        // checkout at their own machine: the project is shared, and every real
+        // buyer would be stranded on localhost.
+        config(['app.api_public_url' => 'http://localhost:8080']);
+
+        Http::fake([
+            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'operator-token']),
+            'https://pay.test/api/v1/external-platform/9' => Http::response(['id' => 9]),
+        ]);
+
+        $this->client->updateProjectProfile(9, 'Acme Run (9)');
+
+        Http::assertSent(function ($request) {
+            $data = $request->data();
+
+            return str_ends_with($request->url(), '/api/v1/external-platform/9')
+                && ! array_key_exists('successEndpoint', $data)
+                && ! array_key_exists('cancelEndpoint', $data);
+        });
+    }
+
     public function test_it_uploads_the_project_logo_as_a_multipart_put(): void
     {
         Http::fake([
