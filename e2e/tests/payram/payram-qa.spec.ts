@@ -119,6 +119,49 @@ test.describe('PayRam · Monno card', () => {
     expect(card, card).not.toMatch(/Monno fee\s+Set in PayRam/i);
   });
 
+  test('the card asks for a hot wallet when payments cannot sweep yet', async ({ page, request }) => {
+    // The organizer provides the hot wallet that pays the gas for sweeps. With a
+    // deposit wallet but no hot wallet, payments land and then sit there — the
+    // card must say so instead of showing a plain "ready".
+    await request.post(`${BASE_URL}/api/auth/login`, {
+      data: { email: configured.email, password: configured.password },
+      headers: { Accept: 'application/json' },
+    });
+
+    // Registered before login: the app may fetch the account as soon as it has a
+    // session, and a cached response would never hit the route. Fulfil with a
+    // clean JSON response — reusing the fetched headers can carry content-encoding
+    // that no longer matches the rewritten body, which hangs the query.
+    await page.route(`**/api/organizers/${configured.id}/payram/account**`, async (route) => {
+      const resp = await route.fetch();
+      const json = await resp.json();
+      if (json?.gateway) {
+        json.gateway.hot_wallet_configured = false;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(json),
+      });
+    });
+
+    await loginUi(page, configured);
+
+    await page.goto(`${BASE_URL}/manage/organizer/${configured.id}/settings#crypto-payments`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
+    // The account endpoint asks the gateway, and the route adds a round trip;
+    // give it time to resolve rather than reading a still-loading card.
+    await page.waitForResponse((response) => /payram\/account/.test(response.url())).catch(() => {});
+    await page.waitForTimeout(3000);
+
+    const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
+
+    expect(card, card).toMatch(/Action needed/i);
+    expect(card, card).toMatch(/One more step: add a hot wallet/i);
+  });
+
   test('a settlement on the card is broken into its fee legs', async ({ page, request }) => {
     await request.post(`${BASE_URL}/api/auth/login`, {
       data: { email: configured.email, password: configured.password },
