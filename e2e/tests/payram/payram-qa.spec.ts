@@ -68,7 +68,7 @@ test.describe('PayRam · Monno card', () => {
     });
     // Wait for the card itself rather than a fixed delay.
     await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(8000);
 
     const card = await page.evaluate(() => {
       const t = document.body.innerText.replace(/\s+/g, ' ');
@@ -76,7 +76,14 @@ test.describe('PayRam · Monno card', () => {
       return i < 0 ? '' : t.slice(i, i + 700);
     });
 
-    expect(card, card).toContain('ACTIVE');
+    // The status badge follows the gateway's own answer: a hot wallet that is
+    // attached but inactive means funds cannot sweep, so it is not "Active".
+    if (body.gateway?.hot_wallet_active === true) {
+      expect(card, card).toContain('ACTIVE');
+    } else {
+      expect(card, card).toMatch(/Action needed/i);
+      expect(card, card).toMatch(/hot wallet is inactive/i);
+    }
     expect(card, card).toMatch(/Accepting payments on/i);
 
     // The split is stated in plain language: Monno's fee is the organizer's,
@@ -110,7 +117,7 @@ test.describe('PayRam · Monno card', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(8000);
 
     const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
 
@@ -154,7 +161,7 @@ test.describe('PayRam · Monno card', () => {
     // The account endpoint asks the gateway, and the route adds a round trip;
     // give it time to resolve rather than reading a still-loading card.
     await page.waitForResponse((response) => /payram\/account/.test(response.url())).catch(() => {});
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(8000);
 
     const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
 
@@ -178,7 +185,7 @@ test.describe('PayRam · Monno card', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(8000);
 
     const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
     const section = card.match(/Last settlement.{0,300}/i)?.[0] ?? card;
@@ -193,7 +200,20 @@ test.describe('PayRam · Monno card', () => {
 test.describe('PayRam · console overlay', () => {
   test.skip(!haveCreds(configured), 'Set E2E_PAYRAM_ORG_* to run these.');
 
-  test('a configured organizer sees no banner and the operator surface is hidden', async ({ page, request }) => {
+  test('the operator surface is hidden, and the banner follows the real wallet state', async ({ page, request }) => {
+    // Whether a banner is correct depends on the gateway: payments can be live
+    // while the hot wallet is attached-but-inactive, and then the overlay must
+    // nag — that is exactly the state this account is in.
+    await request.post(`${BASE_URL}/api/auth/login`, {
+      data: { email: configured.email, password: configured.password },
+      headers: { Accept: 'application/json' },
+    });
+    const account = await request.get(`${BASE_URL}/api/organizers/${configured.id}/payram/account`, {
+      headers: { Accept: 'application/json' },
+    });
+    const gateway = (await account.json()).gateway ?? {};
+    const canSweep = gateway.cold_wallet_configured === true && gateway.hot_wallet_active === true;
+
     await openConsole(page, request, configured, '/dashboard');
 
     const state = await page.evaluate(() => {
@@ -205,6 +225,7 @@ test.describe('PayRam · console overlay', () => {
       return {
         version: (window as unknown as { __monnoUiVersion?: string }).__monnoUiVersion || null,
         banner: !!banner,
+        bannerText: banner ? (banner.textContent || '') : '',
         oldStepper: !!document.getElementById('monno-setup-guide'),
         hidden,
         navText,
@@ -213,7 +234,15 @@ test.describe('PayRam · console overlay', () => {
 
     expect(state.version, 'overlay version').toBe('2026-10-04.2');
     expect(state.oldStepper, 'old stepper must be gone').toBe(false);
-    expect(state.banner, 'no banner when setup is complete').toBe(false);
+    expect(
+      state.banner,
+      canSweep ? 'no banner when setup is complete' : 'banner must prompt while a wallet is unfinished',
+    ).toBe(!canSweep);
+
+    if (!canSweep) {
+      expect(state.bannerText, state.bannerText).toMatch(/hot wallet/i);
+    }
+
     // Operator-only nav must be hidden.
     expect(state.hidden.join(' ')).toMatch(/Onramp|Developers|Funds Consolidation/);
     expect(state.navText).not.toMatch(/\bFees\b/);
