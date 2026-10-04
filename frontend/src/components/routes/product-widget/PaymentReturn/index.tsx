@@ -66,6 +66,12 @@ export const PaymentReturn = () => {
     const isUnderpaid = payment?.underpaid === true;
     const isOverpaid = payment?.overpaid === true;
 
+    // A short crypto payment can outlive its reservation. The order stays
+    // RESERVED after it expires (only a non-expired order can be abandoned),
+    // so `is_expired` is what tells us the ticket will not come automatically.
+    const orderExpired =
+        order?.status === 'ABANDONED' || order?.status === 'CANCELLED' || order?.is_expired === true;
+
     useEffect(
         () => {
             // Wait for the provider before choosing a window: the order arrives
@@ -142,7 +148,7 @@ export const PaymentReturn = () => {
     return (
         <CheckoutContent>
             <div className={classes.container}>
-                {!showError && !stillPending && !isUnderpaid && (
+                {!showError && !orderExpired && !stillPending && !isUnderpaid && (
                     <HomepageInfoMessage
                         status="processing"
                         message={(
@@ -155,14 +161,23 @@ export const PaymentReturn = () => {
                     />
                 )}
 
-                {!showError && isUnderpaid && (
+                {!showError && isUnderpaid && !orderExpired && (
                     <HomepageInfoMessage
                         status="processing"
                         message={t`We received ${receivedLabel} of ${expectedLabel} for this order. That is less than the total, so it cannot be confirmed automatically yet. We will take you to your ticket as soon as it is resolved — you can safely close this page.`}
                     />
                 )}
 
-                {!showError && stillPending && !isUnderpaid && (
+                {!showError && orderExpired && (
+                    <HomepageInfoMessage
+                        status="processing"
+                        message={isUnderpaid
+                            ? t`We received ${receivedLabel} of ${expectedLabel}, a shortfall, and this order has now expired. The organizer has been notified of the shortfall and will be in touch about your ticket.`
+                            : t`This order has expired. If a payment left your wallet, it did not reach us in time — contact the organizer with your transaction details.`}
+                    />
+                )}
+
+                {!showError && !orderExpired && stillPending && !isUnderpaid && (
                     <HomepageInfoMessage
                         status="processing"
                         message={isOverpaid
