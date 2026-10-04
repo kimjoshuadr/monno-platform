@@ -33,6 +33,15 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // Backfill the organizer profile (name, website, support address, logo)
+        // onto their PayRam project. Settings saves and logo uploads push it
+        // immediately; this catches anything that slipped through, e.g. a change
+        // made before the project was linked.
+        $schedule->command('monno:payram-sync-project-profile')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         $schedule->call(function (): void {
             $count = DB::table('failed_jobs')->count();
             if ($count > 0) {
