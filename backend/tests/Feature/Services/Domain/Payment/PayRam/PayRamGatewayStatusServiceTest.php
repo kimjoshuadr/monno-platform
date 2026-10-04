@@ -454,6 +454,42 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertTrue($this->gatewayStatus()['hot_wallet_configured']);
     }
 
+    public function test_an_inactive_hot_wallet_is_not_reported_as_active(): void
+    {
+        // The trap the live card fell into: a hot wallet is attached, so it looks
+        // configured, but PayRam says it is not active on the chain that takes
+        // payments — nothing can pay the gas and funds sit still.
+        $this->fakeWallets(
+            [
+                $this->depositWallet(['ETH' => '0xcollector'], [9]),
+                $this->depositWallet([], [9], 'hot_wallet'),
+            ],
+            [
+                ['walletName' => 'EVM Deposit Wallet 1', 'blockchainCode' => 'ETH', 'coldWalletConfigured' => true, 'hotWalletActive' => false],
+            ],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertTrue($status['hot_wallet_configured'], 'A hot wallet is attached.');
+        $this->assertFalse($status['hot_wallet_active'], 'But it is not active for the chain that takes payments.');
+    }
+
+    public function test_an_active_hot_wallet_on_the_configured_chain_is_reported(): void
+    {
+        $this->fakeWallets(
+            [
+                $this->depositWallet(['ETH' => '0xcollector'], [9]),
+                $this->depositWallet([], [9], 'hot_wallet'),
+            ],
+            [
+                ['walletName' => 'EVM Deposit Wallet 1', 'blockchainCode' => 'ETH', 'coldWalletConfigured' => true, 'hotWalletActive' => true],
+            ],
+        );
+
+        $this->assertTrue($this->gatewayStatus()['hot_wallet_active']);
+    }
+
     public function test_a_cache_failure_does_not_break_the_status(): void
     {
         // A cache store that cannot be read or written (bad permissions) must

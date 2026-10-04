@@ -118,6 +118,32 @@ class PayRamHealthCommandTest extends TestCase
         $this->assertStringContainsString('sweep_failed', Artisan::output());
     }
 
+    public function test_an_inactive_hot_wallet_is_flagged(): void
+    {
+        // A hot wallet that is attached but inactive pays no gas, so funds sit
+        // still while the console makes everything look set up.
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9),
+            $this->hotWallet(5, 9),
+        ]);
+        $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([
+            [
+                'walletName' => 'EVM Deposit Wallet 1',
+                'blockchainCode' => 'ETH',
+                'coldWalletConfigured' => true,
+                'hotWalletActive' => false,
+                'lastSweepError' => null,
+            ],
+        ]);
+        $this->bind([$this->account(9, 'GN Club')], $client);
+
+        $exit = Artisan::call('monno:payram-health');
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('inactive_hot_wallet', Artisan::output());
+    }
+
     public function test_fee_drift_between_the_quote_and_the_last_sweep_is_flagged(): void
     {
         // PayRam can move its settlement rate. If the last sweep charged 4% but

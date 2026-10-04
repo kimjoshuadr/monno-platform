@@ -118,7 +118,11 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     // The organizer provides the hot wallet too — the gas that sweeps their
     // funds. A deposit wallet alone means payments land but never reach the
     // cold wallet, so this is the difference between "accepting" and "settling".
-    const hotWalletReady = gateway?.available ? (gateway.hot_wallet_configured ?? false) : null;
+    // `hot_wallet_active` is the authoritative per-project flag from the
+    // gateway's balance endpoint: an attached hot wallet can still be inactive,
+    // which looks configured in the console while sweeping nothing.
+    const hotWalletReady = gateway?.available ? (gateway.hot_wallet_active ?? false) : null;
+    const hotWalletMissing = gateway?.available ? gateway.hot_wallet_configured === false : false;
     // What PayRam will actually take from this merchant, per chain — read, not
     // configured by us.
     const operatorFeeLabel = describeOperatorFees(gateway?.fees);
@@ -338,10 +342,14 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         p="xs"
                                     >
                                         <Text size="xs" fw={500} mb={4}>
-                                            {t`One more step: add a hot wallet`}
+                                            {hotWalletMissing
+                                                ? t`One more step: add a hot wallet`
+                                                : t`Action needed: your hot wallet is inactive`}
                                         </Text>
                                         <Text size="xs" c="dimmed">
-                                            {t`Payments are landing, but they cannot sweep to your payout wallet yet. A hot wallet pays the gas for the sweep — add one in the PayRam console.`}
+                                            {hotWalletMissing
+                                                ? t`Payments are landing, but they cannot sweep to your payout wallet yet. A hot wallet pays the gas for the sweep — add one in the PayRam console.`
+                                                : t`Payments are landing, but they cannot sweep to your payout wallet: the hot wallet attached to you is not active. Activate it, or add an active one, in the PayRam console.`}
                                         </Text>
                                         <Button
                                             variant="light"
@@ -353,7 +361,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                             onClick={handleOpenConsole}
                                             data-testid="payram-hot-wallet-button"
                                         >
-                                            {t`Add a hot wallet`}
+                                            {hotWalletMissing ? t`Add a hot wallet` : t`Fix my hot wallet`}
                                         </Button>
                                     </Alert>
                                 )}

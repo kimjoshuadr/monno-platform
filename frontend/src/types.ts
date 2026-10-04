@@ -285,6 +285,12 @@ export interface PayRamGatewayStatus {
      */
     hot_wallet_configured?: boolean;
     /**
+     * Whether that hot wallet is actually active for every chain that can take
+     * payments. An attached-but-inactive hot wallet looks configured in the
+     * console while sweeping nothing.
+     */
+    hot_wallet_active?: boolean;
+    /**
      * The operator fee actually in force per chain, read from PayRam. The
      * operator sets it there, per merchant; Monno does not configure it.
      */

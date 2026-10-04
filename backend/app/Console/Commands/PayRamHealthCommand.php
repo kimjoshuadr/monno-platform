@@ -77,7 +77,31 @@ class PayRamHealthCommand extends Command
 
             try {
                 foreach ($this->operatorClient->getProjectAddressBalances($projectId) as $balance) {
-                    $error = is_array($balance) ? ($balance['lastSweepError'] ?? null) : null;
+                    if (! is_array($balance)) {
+                        continue;
+                    }
+
+                    // The sneaky failure: a hot wallet is attached, the console
+                    // lists it, but it is not active for this chain — so nothing
+                    // can pay the gas and funds sit still. Only meaningful when a
+                    // deposit wallet can actually take money.
+                    if (
+                        $hasHotWallet
+                        && ($balance['coldWalletConfigured'] ?? false) === true
+                        && ($balance['hotWalletActive'] ?? false) !== true
+                    ) {
+                        $issues[] = [
+                            'project' => $projectId,
+                            'label' => $label,
+                            'type' => 'inactive_hot_wallet',
+                            'detail' => sprintf(
+                                '%s: the hot wallet is attached but not active — funds cannot sweep',
+                                $balance['blockchainCode'] ?? 'a chain',
+                            ),
+                        ];
+                    }
+
+                    $error = $balance['lastSweepError'] ?? null;
                     if (is_array($error) && ($error['reason'] ?? null)) {
                         $issues[] = [
                             'project' => $projectId,

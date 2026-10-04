@@ -181,7 +181,7 @@ readonly class PayRamGatewayStatusService
             static fn (array $network): bool => $network['cold_wallet_configured'],
         ));
 
-        [$eligibleForSweep, $lastSweepError] = $this->sweepState($projectId);
+        [$eligibleForSweep, $lastSweepError, $hotWalletActive] = $this->sweepState($projectId);
 
         return [
             'available' => true,
@@ -197,6 +197,11 @@ readonly class PayRamGatewayStatusService
             // gas to sweep their funds. Without it payments are accepted but
             // never reach the cold wallet.
             'hot_wallet_configured' => $hotWalletConfigured,
+            // ...and whether that hot wallet is actually ACTIVE for each chain
+            // that can take payments. An attached-but-inactive hot wallet looks
+            // configured in the console while sweeping nothing. Falls back to
+            // "configured" when the gateway gave us no chain to judge.
+            'hot_wallet_active' => $hotWalletActive ?? $hotWalletConfigured,
             // What PayRam will actually take from this merchant, per chain.
             // Read, not configured: the operator sets it in PayRam.
             'fees' => $this->feeService->resolvedFees($projectId),
@@ -423,11 +428,13 @@ readonly class PayRamGatewayStatusService
                 'error' => $exception->getMessage(),
             ]);
 
-            return [[], null];
+            return [[], null, null];
         }
 
         $eligible = [];
         $lastError = null;
+        $configuredChains = 0;
+        $chainsWithActiveHotWallet = 0;
 
         foreach ($balances as $balance) {
             if (! is_array($balance)) {
@@ -437,6 +444,17 @@ readonly class PayRamGatewayStatusService
             $eligibleAmount = (float) ($balance['eligibleForSweepAmount'] ?? 0);
             $eligibleCount = (int) ($balance['eligibleForSweepCount'] ?? 0);
             $heldAmount = (float) ($balance['amount'] ?? 0);
+
+            // A chain that can take payments needs an ACTIVE hot wallet to pay
+            // the gas for its sweep. PayRam reports this per chain, and a hot
+            // wallet can be attached but inactive — the wallet exists, the
+            // console shows it, and nothing can move.
+            if (($balance['coldWalletConfigured'] ?? false) === true) {
+                $configuredChains++;
+                if (($balance['hotWalletActive'] ?? false) === true) {
+                    $chainsWithActiveHotWallet++;
+                }
+            }
 
             if ($eligibleCount > 0 || $eligibleAmount > 0) {
                 $eligible[] = [
@@ -469,7 +487,13 @@ readonly class PayRamGatewayStatusService
             }
         }
 
-        return [$eligible, $lastError];
+        // Null when there is no chain to judge: the caller falls back to whether
+        // a hot wallet is attached at all.
+        $hotWalletActive = $configuredChains > 0
+            ? $chainsWithActiveHotWallet === $configuredChains
+            : null;
+
+        return [$eligible, $lastError, $hotWalletActive];
     }
 
     /**
@@ -523,6 +547,7 @@ readonly class PayRamGatewayStatusService
             'last_sweep_error' => null,
             'recent_settlements' => [],
             'hot_wallet_configured' => false,
+            'hot_wallet_active' => false,
             'fees' => [],
         ];
     }
