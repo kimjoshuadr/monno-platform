@@ -60,11 +60,11 @@ export const PaymentReturn = () => {
     const [stillPending, setStillPending] = useState(false);
     const hasTrackedPurchase = useRef(false);
 
-    // The crypto payment, when this is a PayRam order: what was asked for, what
-    // arrived, and whether it came up short.
+    // The crypto payment, when this is a PayRam order: what was asked for and
+    // whether it came up short. An overpayment is deliberately not surfaced to
+    // the buyer — it settles as complete and is the organizer's to reconcile.
     const payment = order?.payment;
     const isUnderpaid = payment?.underpaid === true;
-    const isOverpaid = payment?.overpaid === true;
 
     // A short crypto payment can outlive its reservation. The order stays
     // RESERVED after it expires (only a non-expired order can be abandoned),
@@ -180,9 +180,7 @@ export const PaymentReturn = () => {
                 {!showError && !orderExpired && stillPending && !isUnderpaid && (
                     <HomepageInfoMessage
                         status="processing"
-                        message={isOverpaid
-                            ? t`We're still confirming your crypto payment. You paid more than the total — the extra is shown to the organizer in PayRam to refund or apply. You can safely close this page; your ticket will be emailed once it confirms.`
-                            : t`We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed.`}
+                        message={t`We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed.`}
                     />
                 )}
 

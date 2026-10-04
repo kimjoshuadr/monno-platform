@@ -43,10 +43,11 @@ with just the primary organizer.
 - **Buyer return** — a completed crypto order returns without ever asking Stripe
   (no false "unable to confirm").
 - **Crypto payment state** — the public order exposes the gateway state (expected
-  vs received, `underpaid`/`overpaid`), an overpaid order shows the surplus note
-  on the summary, and the return page states a shortfall plainly — waiting on a
-  live order but not promising a ticket once it has expired. The backend
-  `payment` block and the 30-minute wait are covered by backend tests.
+  vs received, `underpaid`/`overpaid`), the return page states a shortfall
+  plainly — waiting on a live order but not promising a ticket once it has
+  expired — and an overpaid order deliberately shows the buyer nothing on Monno
+  (PayRam reconciles the surplus with the organizer). The backend `payment` block
+  and the 30-minute wait are covered by backend tests.
 - **Fee disclosure** — the organizer card states who pays which fee (Monno's
   operator fee on the organizer, PayRam's 1–5% on the buyer) and breaks the last
   settlement into its on-chain legs (collected → PayRam fee → Monno fee → net).

@@ -278,11 +278,14 @@ test.describe('PayRam · crypto payment state', () => {
     expect(typeof payment.overpaid).toBe('boolean');
   });
 
-  test('an overpaid order shows the surplus note on the summary', async ({ page }) => {
+  test('an overpaid order does not tell the buyer on Monno', async ({ page }) => {
+    // PayRam reconciles an overpayment with the organizer. The buyer is not
+    // told about the surplus on Monno — that statement was removed deliberately.
     await page.goto(`${BASE_URL}/checkout/${eventId}/${orderShortId}/summary`, {
       waitUntil: 'domcontentloaded',
     });
-    await expect(page.getByText(/paid more than the total/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/you're going to/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/paid more than the total/i)).toHaveCount(0);
   });
 
   test('a short crypto payment is stated plainly, and an expired one is not promised a ticket', async ({ page }) => {
