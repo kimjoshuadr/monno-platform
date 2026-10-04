@@ -34,10 +34,11 @@ readonly class PayRamGatewayStatusService
     private const CACHE_TTL_SECONDS = 20;
 
     /**
-     * Decimal places used when summing on-chain amounts. Coins go to 18
-     * decimals, so this keeps every legacy of a leg without inventing any.
+     * Cap on the decimal places we render a summed amount to. Coins go to 18
+     * decimals; beyond that there is nothing economically meaningful, and the
+     * gateway never sends more.
      */
-    private const AMOUNT_SCALE = 18;
+    private const MAX_AMOUNT_DECIMALS = 18;
 
     public function __construct(
         private readonly PayRamOperatorClient $operatorClient,
@@ -200,47 +201,54 @@ readonly class PayRamGatewayStatusService
         try {
             // 40 rows covers a handful of sweeps; each sweep is several rows.
             $sweeps = $this->operatorClient->getProjectSweeps($projectId, 40);
-        } catch (Throwable) {
+
+            $legsByTx = [];
+            foreach ($sweeps as $sweep) {
+                if (! is_array($sweep)) {
+                    continue;
+                }
+
+                $txHash = (string) ($sweep['txHash'] ?? '');
+                if ($txHash !== '') {
+                    $legsByTx[$txHash][] = $sweep;
+                }
+            }
+
+            $settlements = [];
+            $seen = [];
+
+            foreach ($sweeps as $sweep) {
+                if (! is_array($sweep)) {
+                    continue;
+                }
+
+                $txHash = (string) ($sweep['txHash'] ?? '');
+                if ($txHash === '' || isset($seen[$txHash])) {
+                    continue;
+                }
+                $seen[$txHash] = true;
+
+                $settlement = $this->summariseSweep($txHash, $legsByTx[$txHash] ?? []);
+                if ($settlement !== null) {
+                    $settlements[] = $settlement;
+                }
+
+                if (count($settlements) >= 3) {
+                    break;
+                }
+            }
+
+            return $settlements;
+        } catch (Throwable $exception) {
+            // Readiness must not depend on being able to describe a sweep. Drop
+            // the detail rather than turn the money-path status into a 500.
+            logger()->warning('Could not summarise PayRam settlements', [
+                'project_id' => $projectId,
+                'error' => $exception->getMessage(),
+            ]);
+
             return [];
         }
-
-        $legsByTx = [];
-        foreach ($sweeps as $sweep) {
-            if (! is_array($sweep)) {
-                continue;
-            }
-
-            $txHash = (string) ($sweep['txHash'] ?? '');
-            if ($txHash !== '') {
-                $legsByTx[$txHash][] = $sweep;
-            }
-        }
-
-        $settlements = [];
-        $seen = [];
-
-        foreach ($sweeps as $sweep) {
-            if (! is_array($sweep)) {
-                continue;
-            }
-
-            $txHash = (string) ($sweep['txHash'] ?? '');
-            if ($txHash === '' || isset($seen[$txHash])) {
-                continue;
-            }
-            $seen[$txHash] = true;
-
-            $settlement = $this->summariseSweep($txHash, $legsByTx[$txHash] ?? []);
-            if ($settlement !== null) {
-                $settlements[] = $settlement;
-            }
-
-            if (count($settlements) >= 3) {
-                break;
-            }
-        }
-
-        return $settlements;
     }
 
     /**
@@ -251,14 +259,15 @@ readonly class PayRamGatewayStatusService
      */
     private function summariseSweep(string $txHash, array $legs): ?array
     {
-        $gross = '0';
-        $payramFee = '0';
-        $operatorFee = '0';
-        $net = '0';
+        $gross = 0.0;
+        $payramFee = 0.0;
+        $operatorFee = 0.0;
+        $net = 0.0;
         $hasGross = false;
         $hasPayramFee = false;
         $hasOperatorFee = false;
         $hasNet = false;
+        $decimals = 0;
         $destination = null;
         $currency = null;
         $blockchain = null;
@@ -266,34 +275,39 @@ readonly class PayRamGatewayStatusService
 
         foreach ($legs as $leg) {
             $status = (string) ($leg['status'] ?? '');
-            $amount = $this->toAmountString($leg['amount'] ?? null);
+            $amountString = $this->toAmountString($leg['amount'] ?? null);
+            $amount = (float) $amountString;
+
+            // Render to the precision the gateway actually reported, so a float
+            // sum cannot invent trailing digits (and 0.1 + 0.2 reads as 0.3).
+            $decimals = max($decimals, $this->decimalPlaces($amountString));
 
             $currency ??= $leg['currencyCode'] ?? null;
             $blockchain ??= $leg['blockchainCode'] ?? null;
             $at ??= $leg['timestamp'] ?? ($leg['createdAt'] ?? null);
 
             // A sweep can batch several deposit addresses into one transaction,
-            // so there may be more than one leg of a given kind. Sum them,
-            // exactly; never keep only the last, or the breakdown will not add
-            // up (and the rate will read as nonsense).
+            // so there may be more than one leg of a given kind. Sum them; never
+            // keep only the last, or the breakdown will not add up (and the rate
+            // will read as nonsense).
             switch ($status) {
                 case 'fund_collect':
                 case 'fund_collect_processed':
-                    $gross = bcadd($gross, $amount, self::AMOUNT_SCALE);
+                    $gross += $amount;
                     $hasGross = true;
                     break;
                 case 'fee_transfer':
                 case 'fee_transfer_processed':
-                    $payramFee = bcadd($payramFee, $amount, self::AMOUNT_SCALE);
+                    $payramFee += $amount;
                     $hasPayramFee = true;
                     break;
                 case 'operator_fee_transfer':
                 case 'operator_fee_transfer_processed':
-                    $operatorFee = bcadd($operatorFee, $amount, self::AMOUNT_SCALE);
+                    $operatorFee += $amount;
                     $hasOperatorFee = true;
                     break;
                 case 'fund_transfer':
-                    $net = bcadd($net, $amount, self::AMOUNT_SCALE);
+                    $net += $amount;
                     $hasNet = true;
                     $destination ??= $leg['toAddress'] ?? null;
                     break;
@@ -308,16 +322,15 @@ readonly class PayRamGatewayStatusService
         }
 
         $realisedRateBps = null;
-        if ($hasGross && bccomp($gross, '0', self::AMOUNT_SCALE) > 0 && $hasPayramFee) {
-            $ratio = bcdiv($payramFee, $gross, 8);
-            $realisedRateBps = (int) round((float) $ratio * 10000);
+        if ($hasGross && $gross > 0 && $hasPayramFee) {
+            $realisedRateBps = (int) round(($payramFee / $gross) * 10000);
         }
 
         return [
-            'gross' => $hasGross ? $this->trimAmount($gross) : null,
-            'payram_fee' => $hasPayramFee ? $this->trimAmount($payramFee) : null,
-            'operator_fee' => $hasOperatorFee ? $this->trimAmount($operatorFee) : null,
-            'net' => $this->trimAmount($net),
+            'gross' => $hasGross ? $this->formatAmount($gross, $decimals) : null,
+            'payram_fee' => $hasPayramFee ? $this->formatAmount($payramFee, $decimals) : null,
+            'operator_fee' => $hasOperatorFee ? $this->formatAmount($operatorFee, $decimals) : null,
+            'net' => $this->formatAmount($net, $decimals),
             'realised_rate_bps' => $realisedRateBps,
             'currency_code' => $currency,
             'blockchain_code' => $blockchain,
@@ -328,8 +341,8 @@ readonly class PayRamGatewayStatusService
     }
 
     /**
-     * Normalise a leg amount to a decimal string bcmath can parse. The gateway
-     * sends them as strings, but a float would arrive in exponent form.
+     * Normalise a leg amount to a plain decimal string. The gateway sends them
+     * as strings, but a float would arrive in exponent form.
      */
     private function toAmountString(mixed $value): string
     {
@@ -338,20 +351,33 @@ readonly class PayRamGatewayStatusService
         }
 
         if (is_int($value) || is_float($value)) {
-            return rtrim(rtrim(number_format((float) $value, 18, '.', ''), '0'), '.') ?: '0';
+            return sprintf('%.18F', (float) $value);
         }
 
         return '0';
     }
 
-    /** "0.000001500000000000" -> "0.0000015". */
-    private function trimAmount(string $amount): string
+    private function decimalPlaces(string $amount): int
     {
-        if (! str_contains($amount, '.')) {
-            return $amount;
+        $point = strpos($amount, '.');
+
+        if ($point === false) {
+            return 0;
         }
 
-        return rtrim(rtrim($amount, '0'), '.') ?: '0';
+        return min(self::MAX_AMOUNT_DECIMALS, strlen($amount) - $point - 1);
+    }
+
+    /** "0.001320000000000000" -> "0.00132". */
+    private function formatAmount(float $amount, int $decimals): string
+    {
+        $formatted = number_format($amount, min($decimals, self::MAX_AMOUNT_DECIMALS), '.', '');
+
+        if (str_contains($formatted, '.')) {
+            $formatted = rtrim(rtrim($formatted, '0'), '.');
+        }
+
+        return $formatted === '' ? '0' : $formatted;
     }
 
     /**
