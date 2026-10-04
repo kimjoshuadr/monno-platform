@@ -46,6 +46,9 @@ test.describe('PayRam · Monno card', () => {
     expect(body.status).toBe('READY');
     expect(body.gateway?.available).toBe(true);
     expect(body.gateway?.cold_wallet_configured).toBe(true);
+    // The organizer provides the hot wallet too; this organizer has one, so the
+    // card must not warn about settlement being blocked.
+    expect(body.gateway?.hot_wallet_configured).toBe(true);
     expect(Array.isArray(body.gateway?.recent_settlements)).toBe(true);
 
     // A settlement is a breakdown, not a bare figure: what was collected, what

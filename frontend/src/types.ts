@@ -279,6 +279,12 @@ export interface PayRamGatewayStatus {
     }>;
     last_sweep_error: PayRamSweepError | null;
     /**
+     * Whether the organizer has provided the hot wallet that pays the gas to
+     * sweep their funds. Without it payments are accepted but never reach the
+     * cold wallet.
+     */
+    hot_wallet_configured?: boolean;
+    /**
      * The operator fee actually in force per chain, read from PayRam. The
      * operator sets it there, per merchant; Monno does not configure it.
      */

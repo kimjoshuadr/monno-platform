@@ -36,7 +36,9 @@ with just the primary organizer.
   surface is hidden; the buyer `/payments` page never shows the organizer banner;
   an unreadable/expired session degrades safely (no nag).
 - **Incomplete setup** — the banner prompts (with a deposit-wallet link) and the
-  organizer can add their own hot wallet (model A).
+  organizer can add their own hot wallet (model A). The account payload reports
+  `hot_wallet_configured`, so the card can warn when payments are landing but
+  cannot sweep yet.
 - **Resilience** — the account endpoint stays 200 through gateway/cache trouble.
 - **Sync effect** — the organizer's qualified name and support email are reflected
   on their PayRam project.

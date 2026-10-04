@@ -435,6 +435,25 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertSame('default', $status['fees']['BTC']['source']);
     }
 
+    public function test_a_project_with_only_a_deposit_wallet_has_no_hot_wallet(): void
+    {
+        // Payments land, but nothing pays the gas to sweep them — the funds are
+        // stuck, and the card has to be able to say so.
+        $this->fakeWallets([$this->depositWallet(['ETH' => '0xcollector'], [9])]);
+
+        $this->assertFalse($this->gatewayStatus()['hot_wallet_configured']);
+    }
+
+    public function test_a_project_with_a_hot_wallet_reports_it(): void
+    {
+        $this->fakeWallets([
+            $this->depositWallet(['ETH' => '0xcollector'], [9]),
+            $this->depositWallet([], [9], 'hot_wallet'),
+        ]);
+
+        $this->assertTrue($this->gatewayStatus()['hot_wallet_configured']);
+    }
+
     public function test_a_cache_failure_does_not_break_the_status(): void
     {
         // A cache store that cannot be read or written (bad permissions) must

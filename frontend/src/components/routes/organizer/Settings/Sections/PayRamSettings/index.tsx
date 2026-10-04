@@ -115,6 +115,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     // we simply cannot reach PayRam — and the organizer deserves the difference.
     const gateway = data?.gateway;
     const gatewayWalletReady = gateway?.available ? gateway.cold_wallet_configured : null;
+    // The organizer provides the hot wallet too — the gas that sweeps their
+    // funds. A deposit wallet alone means payments land but never reach the
+    // cold wallet, so this is the difference between "accepting" and "settling".
+    const hotWalletReady = gateway?.available ? (gateway.hot_wallet_configured ?? false) : null;
     // What PayRam will actually take from this merchant, per chain — read, not
     // configured by us.
     const operatorFeeLabel = describeOperatorFees(gateway?.fees);
@@ -135,17 +139,22 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     // (shipped in our PayRam image) redeems it and signs the organizer in, so
     // they never see a password or a forced reset.
     //
-    // Deep-link to the wallet setup page for organizers whose gateway payout
-    // wallet isn't confirmed yet — they need to complete exactly one action
-    // there and we don't want them hunting for it.
+    // Deep-link to exactly the page that is still unfinished — the deposit
+    // wallet (which also sets the payout wallet) first, then the hot wallet that
+    // pays the gas for sweeps — rather than dropping them on the dashboard to
+    // hunt for it. The console's own banner tracks the same two facts.
     const handleOpenConsole = async () => {
         try {
             setIsOpeningConsole(true);
             const {code, dashboard_url, exchange_url} = await organizerPayRamClient.createSsoToken(organizerId);
 
-            const needsWalletSetup = !gatewayWalletReady;
-            const redirect = needsWalletSetup ? '/manageWallet/deposit-wallet' : '/dashboard';
-            const wallet = needsWalletSetup ? 'needs' : 'ok';
+            const needsDepositSetup = gatewayWalletReady !== true;
+            const needsHotWallet = gatewayWalletReady === true && hotWalletReady === false;
+
+            const redirect = needsDepositSetup
+                ? '/manageWallet/deposit-wallet'
+                : (needsHotWallet ? '/manageWallet/hot-wallet' : '/dashboard');
+            const wallet = (needsDepositSetup || needsHotWallet) ? 'needs' : 'ok';
 
             // Where to send them back. The console guide shows every chain when
             // it has no selection (see monno-payram/public/monno-ui.js) — the
@@ -236,10 +245,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     p="xs"
                                 >
                                     <Text size="xs" fw={500} mb={4}>
-                                        {t`One step remaining: finish your wallets in PayRam`}
+                                        {t`Finish your wallets in PayRam`}
                                     </Text>
                                     <Text size="xs" c="dimmed">
-                                        {t`Creating a deposit wallet also sets the cold wallet your sales sweep to, so it is one flow per network. Only set up the networks you want to accept — one is enough.`}
+                                        {t`Creating a deposit wallet also sets the cold wallet your sales sweep to. You also need a hot wallet — it pays the gas that moves your sales to your payout wallet. Set up only the networks you want to accept; one is enough.`}
                                     </Text>
                                 </Alert>
                             )}
@@ -271,11 +280,11 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                         <Stack gap="md">
                             <Group justify="space-between" align="center">
                                 <Group gap="xs">
-                                    <Badge color="teal" variant="filled" size="sm">
-                                        {t`Active`}
+                                    <Badge color={hotWalletReady === false ? 'orange' : 'teal'} variant="filled" size="sm">
+                                        {hotWalletReady === false ? t`Action needed` : t`Active`}
                                     </Badge>
                                     <Text fw={600} size="sm">
-                                        {t`Crypto payments are ready`}
+                                        {hotWalletReady === false ? t`Accepting payments` : t`Crypto payments are ready`}
                                     </Text>
                                 </Group>
                                 <Group gap="xs">
@@ -321,7 +330,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     </Text>
                                 </Group>
 
-                                {gateway?.available && !gatewayWalletReady && (
+                                {gateway?.available && hotWalletReady === false && (
                                     <Alert
                                         color="orange"
                                         variant="light"
@@ -329,11 +338,23 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         p="xs"
                                     >
                                         <Text size="xs" fw={500} mb={4}>
-                                            {t`One step remaining: set up your wallets in PayRam`}
+                                            {t`One more step: add a hot wallet`}
                                         </Text>
                                         <Text size="xs" c="dimmed">
-                                            {t`Open the PayRam console and set up your deposit wallet and the payout wallet your sales sweep to. That is where PayRam attaches them — Monno only reports what it confirms.`}
+                                            {t`Payments are landing, but they cannot sweep to your payout wallet yet. A hot wallet pays the gas for the sweep — add one in the PayRam console.`}
                                         </Text>
+                                        <Button
+                                            variant="light"
+                                            color="orange"
+                                            size="xs"
+                                            mt={8}
+                                            rightSection={<IconExternalLink size={12}/>}
+                                            loading={isOpeningConsole}
+                                            onClick={handleOpenConsole}
+                                            data-testid="payram-hot-wallet-button"
+                                        >
+                                            {t`Add a hot wallet`}
+                                        </Button>
                                     </Alert>
                                 )}
 

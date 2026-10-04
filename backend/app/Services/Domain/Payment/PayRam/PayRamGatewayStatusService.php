@@ -125,15 +125,28 @@ readonly class PayRamGatewayStatusService
         }
 
         $networks = [];
+        $hotWalletConfigured = false;
 
         foreach ($wallets as $wallet) {
             if (! is_array($wallet) || ! $this->belongsToProject($wallet, $projectId)) {
                 continue;
             }
 
-            // Only deposit wallets receive buyer payments; hot wallets are the
-            // operator's machinery and say nothing about the organizer's setup.
-            if (($wallet['walletType'] ?? null) !== 'deposit_wallet') {
+            $type = $wallet['walletType'] ?? null;
+
+            // The organizer provides the hot wallet too — it pays the gas that
+            // sweeps their funds — so its absence is part of their setup, not
+            // our machinery. A deposit wallet alone means money is accepted but
+            // stuck short of the cold wallet.
+            if ($type === 'hot_wallet') {
+                $hotWalletConfigured = true;
+
+                continue;
+            }
+
+            // Only deposit wallets receive buyer payments; other wallet types
+            // say nothing about the organizer's setup.
+            if ($type !== 'deposit_wallet') {
                 continue;
             }
 
@@ -180,6 +193,10 @@ readonly class PayRamGatewayStatusService
             'eligible_for_sweep' => $eligibleForSweep,
             'last_sweep_error' => $lastSweepError,
             'recent_settlements' => $this->recentSettlements($projectId),
+            // Whether the organizer has provided the hot wallet that pays the
+            // gas to sweep their funds. Without it payments are accepted but
+            // never reach the cold wallet.
+            'hot_wallet_configured' => $hotWalletConfigured,
             // What PayRam will actually take from this merchant, per chain.
             // Read, not configured: the operator sets it in PayRam.
             'fees' => $this->feeService->resolvedFees($projectId),
@@ -505,6 +522,7 @@ readonly class PayRamGatewayStatusService
             'eligible_for_sweep' => [],
             'last_sweep_error' => null,
             'recent_settlements' => [],
+            'hot_wallet_configured' => false,
             'fees' => [],
         ];
     }
