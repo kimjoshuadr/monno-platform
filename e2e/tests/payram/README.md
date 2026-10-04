@@ -42,6 +42,10 @@ with just the primary organizer.
   on their PayRam project.
 - **Buyer return** — a completed crypto order returns without ever asking Stripe
   (no false "unable to confirm").
+- **Crypto payment state** — the public order exposes the gateway state (expected
+  vs received, `underpaid`/`overpaid`), and an overpaid order shows the surplus
+  note on the summary. The backend `payment` block and the return page's
+  wait-and-redirect (30 min) are covered by backend tests + the return test above.
 
 ## Not here (covered elsewhere)
 

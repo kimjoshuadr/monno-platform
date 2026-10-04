@@ -182,6 +182,35 @@ test.describe('PayRam · buyer return', () => {
   });
 });
 
+test.describe('PayRam · crypto payment state', () => {
+  const eventId = process.env.E2E_PAYRAM_EVENT_ID ?? '106';
+  const orderShortId = process.env.E2E_PAYRAM_COMPLETED_ORDER ?? 'o_9VA7mcailtre3';
+
+  test('the public order exposes the crypto payment state and flags the shortfall/surplus', async ({ request }) => {
+    const res = await request.get(
+      `${BASE_URL}/api/public/events/${eventId}/order/${orderShortId}?include=event`,
+      { headers: { Accept: 'application/json' } },
+    );
+    expect(res.ok(), `order fetch returned ${res.status()}`).toBeTruthy();
+
+    const payment = (await res.json()).data.payment;
+    expect(payment, 'a PayRam order must expose its crypto payment state').toBeTruthy();
+    expect(payment.provider).toBe('PAYRAM');
+    expect(typeof payment.state).toBe('string');
+    expect(payment).toHaveProperty('expected_usd');
+    expect(payment).toHaveProperty('received_usd');
+    expect(typeof payment.underpaid).toBe('boolean');
+    expect(typeof payment.overpaid).toBe('boolean');
+  });
+
+  test('an overpaid order shows the surplus note on the summary', async ({ page }) => {
+    await page.goto(`${BASE_URL}/checkout/${eventId}/${orderShortId}/summary`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(page.getByText(/paid more than the total/i)).toBeVisible({ timeout: 20_000 });
+  });
+});
+
 test.describe('PayRam · resilience', () => {
   test.skip(!haveCreds(configured), 'Set E2E_PAYRAM_ORG_* to run these.');
 
