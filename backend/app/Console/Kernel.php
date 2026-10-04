@@ -25,6 +25,14 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // Watches for money that cannot move: a project on the wrong hot wallet,
+        // or a failed sweep (PayRam reports low gas / missing hot wallet this
+        // way). Exits non-zero, so the scheduler run is the alarm.
+        $schedule->command('monno:payram-health')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         $schedule->call(function (): void {
             $count = DB::table('failed_jobs')->count();
             if ($count > 0) {
