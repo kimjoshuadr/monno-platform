@@ -48,6 +48,16 @@ test.describe('PayRam · Monno card', () => {
     expect(body.gateway?.cold_wallet_configured).toBe(true);
     expect(Array.isArray(body.gateway?.recent_settlements)).toBe(true);
 
+    // A settlement is a breakdown, not a bare figure: what was collected, what
+    // each fee took, and what reached the cold wallet.
+    const settlement = body.gateway?.recent_settlements?.[0];
+    if (settlement) {
+      expect(settlement).toHaveProperty('net');
+      expect(settlement).toHaveProperty('payram_fee');
+      expect(settlement).toHaveProperty('operator_fee');
+      expect(typeof settlement.realised_rate_bps === 'number' || settlement.realised_rate_bps === null).toBe(true);
+    }
+
     // And the card renders it.
     await loginUi(page, configured);
     await page.goto(`${BASE_URL}/manage/organizer/${configured.id}/settings#crypto-payments`, {
@@ -60,12 +70,44 @@ test.describe('PayRam · Monno card', () => {
     const card = await page.evaluate(() => {
       const t = document.body.innerText.replace(/\s+/g, ' ');
       const i = t.indexOf('Crypto payments');
-      return i < 0 ? '' : t.slice(i, i + 500);
+      return i < 0 ? '' : t.slice(i, i + 700);
     });
 
     expect(card, card).toContain('ACTIVE');
     expect(card, card).toMatch(/Accepting payments on/i);
-    expect(card, card).toContain('Last settled');
+
+    // The split is stated in plain language: Monno's fee is the organizer's,
+    // PayRam's is the buyer's.
+    expect(card, card).toMatch(/Monno fee/i);
+    expect(card, card).toMatch(/PayRam settlement fee/i);
+    expect(card, card).toMatch(/paid by your buyer/i);
+  });
+
+  test('a settlement on the card is broken into its fee legs', async ({ page, request }) => {
+    await request.post(`${BASE_URL}/api/auth/login`, {
+      data: { email: configured.email, password: configured.password },
+      headers: { Accept: 'application/json' },
+    });
+    const account = await request.get(`${BASE_URL}/api/organizers/${configured.id}/payram/account`, {
+      headers: { Accept: 'application/json' },
+    });
+    const settlements = (await account.json()).gateway?.recent_settlements ?? [];
+    test.skip(settlements.length === 0, 'No settled sweep yet to break down.');
+
+    await loginUi(page, configured);
+    await page.goto(`${BASE_URL}/manage/organizer/${configured.id}/settings#crypto-payments`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
+    await page.waitForTimeout(3000);
+
+    const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
+    const section = card.match(/Last settlement.{0,300}/i)?.[0] ?? card;
+
+    expect(section, section).toMatch(/Collected/i);
+    expect(section, section).toMatch(/PayRam fee/i);
+    expect(section, section).toMatch(/Monno fee/i);
+    expect(section, section).toMatch(/Swept to your cold wallet/i);
   });
 });
 
@@ -275,6 +317,72 @@ test.describe('PayRam · resilience', () => {
     });
     // A cache-permission or transient gateway problem must not 500 the money path.
     expect(res.status()).toBe(200);
+  });
+});
+
+test.describe('PayRam · buyer fee disclosure', () => {
+  const eventId = process.env.E2E_PAYRAM_EVENT_ID ?? '106';
+
+  type Product = { id: number; price?: number; prices?: Array<{ id: number }> };
+
+  test('the crypto checkout names PayRam as the fee the buyer pays', async ({ page, request }) => {
+    // Resolve a real product at run time, so this survives a reseed.
+    const eventResponse = await request.get(`${BASE_URL}/api/public/events/${eventId}/products`, {
+      headers: { Accept: 'application/json' },
+    });
+    test.skip(!eventResponse.ok(), `event fetch returned ${eventResponse.status()}`);
+
+    const eventData = (await eventResponse.json()).data ?? {};
+    const products: Product[] = (eventData.product_categories ?? [])
+      .flatMap((category: { products?: Product[] }) => category.products ?? [])
+      .filter((product: Product) => (product.prices ?? []).length > 0)
+      // The priciest product is the safest bet to clear the crypto invoice floor.
+      .sort((a: Product, b: Product) => (b.price ?? 0) - (a.price ?? 0));
+
+    test.skip(products.length === 0, 'No priced product on the event.');
+
+    const product = products[0];
+    const priceId = product.prices![0].id;
+    const occurrenceId = eventData.occurrences?.[0]?.id;
+    const sessionId = `e2e-fee-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    const created = await request.post(
+      `${BASE_URL}/api/public/events/${eventId}/order?session_identifier=${sessionId}`,
+      {
+        data: {
+          products: [{
+            product_id: product.id,
+            quantities: [{ quantity: 1, price_id: priceId }],
+            ...(occurrenceId ? { event_occurrence_id: occurrenceId } : {}),
+          }],
+        },
+        headers: { Accept: 'application/json' },
+      },
+    );
+    expect(created.ok(), `create order returned ${created.status()}`).toBeTruthy();
+
+    const orderShortId = (await created.json()).data.short_id;
+    expect(orderShortId, 'created order must have a short id').toBeTruthy();
+
+    // The checkout session is a cookie; the payment step verifies it.
+    await page.context().addCookies([{
+      name: 'session_identifier',
+      value: sessionId,
+      domain: new URL(BASE_URL).hostname,
+      path: '/',
+      secure: true,
+      httpOnly: true,
+      sameSite: 'None',
+    }]);
+
+    await page.goto(`${BASE_URL}/checkout/${eventId}/${orderShortId}/payment`, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    // The buyer is told, by name and rate, which fee they are paying.
+    const feeLine = page.getByText(/PayRam settlement fee/i).first();
+    await expect(feeLine).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/PayRam settlement fee \(/i).first()).toBeVisible();
   });
 });
 
