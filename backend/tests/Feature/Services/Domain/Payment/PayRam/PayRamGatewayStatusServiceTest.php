@@ -380,6 +380,33 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertSame(250, $settlement['realised_rate_bps']);
     }
 
+    public function test_it_sums_a_batched_sweep_rather_than_keeping_one_leg(): void
+    {
+        // A sweep can consolidate several deposit addresses into one
+        // transaction, so more than one collect leg shares the hash. Keeping
+        // only the last made the gross smaller than the net and the rate
+        // nonsense (55%), which is exactly what the live card first showed.
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [],
+            [
+                ['status' => 'operator_fee_transfer_processed', 'amount' => '0.000033', 'currencyCode' => 'ETH', 'txHash' => '0xmulti', 'timestamp' => '2026-10-03T14:27:53Z'],
+                ['status' => 'fee_transfer_processed', 'amount' => '0.000033', 'currencyCode' => 'ETH', 'txHash' => '0xmulti', 'timestamp' => '2026-10-03T14:27:53Z'],
+                ['status' => 'fund_transfer', 'amount' => '0.001254', 'currencyCode' => 'ETH', 'toAddress' => '0xcold', 'txHash' => '0xmulti', 'timestamp' => '2026-10-03T14:27:53Z'],
+                ['status' => 'fund_collect_processed', 'amount' => '0.00006', 'currencyCode' => 'ETH', 'txHash' => '0xmulti', 'timestamp' => '2026-10-03T14:27:53Z'],
+                ['status' => 'fund_collect_processed', 'amount' => '0.00126', 'currencyCode' => 'ETH', 'txHash' => '0xmulti', 'timestamp' => '2026-10-03T14:27:53Z'],
+            ],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $settlement = $status['recent_settlements'][0];
+        $this->assertSame('0.00132', $settlement['gross'], 'Batched collects must be summed.');
+        $this->assertSame('0.001254', $settlement['net']);
+        // 0.000033 / 0.00132 = 2.5%.
+        $this->assertSame(250, $settlement['realised_rate_bps']);
+    }
+
     public function test_a_cache_failure_does_not_break_the_status(): void
     {
         // A cache store that cannot be read or written (bad permissions) must

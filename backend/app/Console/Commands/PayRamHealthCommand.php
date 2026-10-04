@@ -158,25 +158,32 @@ class PayRamHealthCommand extends Command
                 continue;
             }
 
-            $gross = null;
-            $payramFee = null;
+            $gross = 0.0;
+            $payramFee = 0.0;
+            $hasGross = false;
+            $hasPayramFee = false;
             foreach ($legsByTx[$txHash] as $leg) {
                 $status = (string) ($leg['status'] ?? '');
+                $amount = (float) ($leg['amount'] ?? 0);
+
+                // A batched sweep has more than one collect leg; sum them.
                 if (in_array($status, ['fund_collect', 'fund_collect_processed'], true)) {
-                    $gross = $leg['amount'] ?? null;
+                    $gross += $amount;
+                    $hasGross = true;
                 }
                 if (in_array($status, ['fee_transfer', 'fee_transfer_processed'], true)) {
-                    $payramFee = $leg['amount'] ?? null;
+                    $payramFee += $amount;
+                    $hasPayramFee = true;
                 }
             }
 
             unset($legsByTx[$txHash]);
 
-            if ($gross === null || $payramFee === null || (float) $gross <= 0) {
+            if (! $hasGross || ! $hasPayramFee || $gross <= 0) {
                 continue;
             }
 
-            $realised = (int) round(((float) $payramFee / (float) $gross) * 10000);
+            $realised = (int) round(($payramFee / $gross) * 10000);
 
             if (abs($realised - $configured) > self::FEE_DRIFT_TOLERANCE_BPS) {
                 $issues[] = [
