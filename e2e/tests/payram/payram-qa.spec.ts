@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Route } from '@playwright/test';
 import {
   BASE_URL,
   PAYRAM_URL,
@@ -208,6 +208,57 @@ test.describe('PayRam · crypto payment state', () => {
       waitUntil: 'domcontentloaded',
     });
     await expect(page.getByText(/paid more than the total/i)).toBeVisible({ timeout: 20_000 });
+  });
+
+  test('a short crypto payment is stated plainly, and an expired one is not promised a ticket', async ({ page }) => {
+    // Force a pending, short crypto order so both return-page branches are
+    // exercised without moving real funds. The order starts un-expired: the
+    // page waits and promises the ticket once resolved. Once expired, it must
+    // stop promising a ticket and point at the shortfall instead.
+    let isExpired = false;
+
+    const fulfillOrder = async (route: Route) => {
+      const resp = await route.fetch();
+      const json = await resp.json();
+      json.data = {
+        ...json.data,
+        status: 'RESERVED',
+        payment_status: 'AWAITING_PAYMENT',
+        payment_provider: 'PAYRAM',
+        is_expired: isExpired,
+        payment: {
+          provider: 'PAYRAM',
+          state: 'PARTIALLY_FILLED',
+          expected_usd: 9.99,
+          expected_amount: 9.99,
+          received_amount: 0.001,
+          received_usd: 1.23,
+          currency: 'ETH',
+          reference_id: 'e2e-short',
+          underpaid: true,
+          overpaid: false,
+        },
+      };
+      await route.fulfill({
+        response: resp,
+        body: JSON.stringify(json),
+        headers: { ...resp.headers(), 'content-type': 'application/json' },
+      });
+    };
+
+    // One handler, toggled — re-routing the same pattern mid-test registers a
+    // second handler and the gateway request gets fulfilled twice.
+    await page.route('**/api/public/events/**/order/**', fulfillOrder);
+    await page.goto(`${BASE_URL}/checkout/${eventId}/${orderShortId}/payment_return`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(page.getByText(/take you to your ticket as soon as it is resolved/i)).toBeVisible({
+      timeout: 20_000,
+    });
+
+    isExpired = true;
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByText(/order has now expired/i)).toBeVisible({ timeout: 20_000 });
   });
 });
 
