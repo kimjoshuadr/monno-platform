@@ -8,6 +8,7 @@ use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerSettingsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Organizer\DTO\PartialUpdateOrganizerSettingsDTO;
 use HiEvents\Services\Application\Handlers\Organizer\Settings\PartialUpdateOrganizerSettingsHandler;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamProjectProfileSyncService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Tests\TestCase;
@@ -29,9 +30,13 @@ class PartialUpdateOrganizerSettingsHandlerTest extends TestCase
         $this->settingsRepository = Mockery::mock(OrganizerSettingsRepositoryInterface::class);
         $this->organizerRepository = Mockery::mock(OrganizerRepositoryInterface::class);
 
+        $profileSync = Mockery::mock(PayRamProjectProfileSyncService::class);
+        $profileSync->shouldReceive('syncForOrganizer')->andReturnNull();
+
         $this->handler = new PartialUpdateOrganizerSettingsHandler(
             organizerSettingsRepository: $this->settingsRepository,
             organizerRepository: $this->organizerRepository,
+            payRamProfileSync: $profileSync,
         );
     }
 

@@ -7,12 +7,14 @@ use HiEvents\DomainObjects\OrganizerSettingDomainObject;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerSettingsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Organizer\DTO\PartialUpdateOrganizerSettingsDTO;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamProjectProfileSyncService;
 
 class PartialUpdateOrganizerSettingsHandler
 {
     public function __construct(
         private readonly OrganizerSettingsRepositoryInterface $organizerSettingsRepository,
         private readonly OrganizerRepositoryInterface $organizerRepository,
+        private readonly PayRamProjectProfileSyncService $payRamProfileSync,
     ) {}
 
     public function handle(PartialUpdateOrganizerSettingsDTO $dto): OrganizerSettingDomainObject
@@ -89,6 +91,10 @@ class PartialUpdateOrganizerSettingsHandler
             'organizer_id' => $dto->organizerId,
             'id' => $organizerSettings->getId(),
         ]);
+
+        // Monno is the source of truth for the organizer's profile; reflect the
+        // change on their PayRam project. Best-effort and cannot fail the save.
+        $this->payRamProfileSync->syncForOrganizer($dto->organizerId);
 
         return $this->organizerSettingsRepository->findFirst($organizerSettings->getId());
     }

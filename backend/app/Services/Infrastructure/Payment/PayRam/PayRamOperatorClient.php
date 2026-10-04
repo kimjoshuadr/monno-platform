@@ -94,6 +94,36 @@ class PayRamOperatorClient
     }
 
     /**
+     * Push the organizer-owned profile fields onto their PayRam project.
+     *
+     * Only the fields PayRam actually accepts are sent — the name, the website,
+     * and the support address that appears on its emails. The brand image is
+     * uploaded separately (a JSON `logoPath` is ignored), so it is not handled
+     * here.
+     *
+     * @throws PayRamApiException
+     */
+    public function updateProjectProfile(int $projectId, string $name, ?string $website = null, ?string $supportEmail = null): void
+    {
+        $payload = [
+            'name' => $name,
+            'successEndpoint' => $this->returnUrl('/public/payram/return'),
+            'cancelEndpoint' => $this->returnUrl('/public/payram/cancel'),
+        ];
+
+        if ($website !== null) {
+            $payload['website'] = $website;
+        }
+
+        if ($supportEmail !== null) {
+            $payload['emailSendRequestFrom'] = $supportEmail;
+            $payload['emailSendRequestReplyTo'] = $supportEmail;
+        }
+
+        $this->request('put', sprintf('/api/v1/external-platform/%d', $projectId), $payload, withToken: true);
+    }
+
+    /**
      * Where PayRam should send a buyer back to. Built from the public API base,
      * not APP_URL, because the deployed app sits behind an /api prefix.
      */

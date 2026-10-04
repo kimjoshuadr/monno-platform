@@ -123,4 +123,39 @@ class PayRamOperatorClientTest extends TestCase
 
         Http::assertNothingSent();
     }
+
+    public function test_it_syncs_the_project_profile_fields(): void
+    {
+        Http::fake([
+            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'operator-token']),
+            'https://pay.test/api/v1/external-platform/9' => Http::response(['id' => 9]),
+        ]);
+
+        $this->client->updateProjectProfile(9, 'Acme Run (9)', 'https://acme.test', 'support@acme.test');
+
+        Http::assertSent(fn ($request) => $request->method() === 'PUT'
+            && str_ends_with($request->url(), '/api/v1/external-platform/9')
+            && $request['name'] === 'Acme Run (9)'
+            && $request['website'] === 'https://acme.test'
+            && $request['emailSendRequestFrom'] === 'support@acme.test'
+            && $request['emailSendRequestReplyTo'] === 'support@acme.test');
+    }
+
+    public function test_it_omits_blank_profile_fields(): void
+    {
+        Http::fake([
+            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'operator-token']),
+            'https://pay.test/api/v1/external-platform/9' => Http::response(['id' => 9]),
+        ]);
+
+        $this->client->updateProjectProfile(9, 'Acme Run (9)');
+
+        Http::assertSent(function ($request) {
+            $data = $request->data();
+
+            return str_ends_with($request->url(), '/api/v1/external-platform/9')
+                && ! array_key_exists('website', $data)
+                && ! array_key_exists('emailSendRequestFrom', $data);
+        });
+    }
 }
