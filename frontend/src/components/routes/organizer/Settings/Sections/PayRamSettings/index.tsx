@@ -36,6 +36,26 @@ const shortAddress = (address: string): string => `${address.slice(0, 6)}…${ad
 const formatRate = (bps?: number | null): string | null => (bps ? `${Number((bps / 100).toFixed(2))}%` : null);
 
 /**
+ * The merchant's operator fee, as read from PayRam. It is per chain and Monno
+ * does not set it, so show each chain only when the rates actually differ.
+ */
+const describeOperatorFees = (fees?: PayRamGatewayStatus['fees']): string | null => {
+    const entries = Object.entries(fees ?? {});
+    if (entries.length === 0) {
+        return null;
+    }
+
+    const rates = new Set(entries.map(([, fee]) => fee.bps));
+    if (rates.size === 1) {
+        return formatRate(entries[0][1].bps);
+    }
+
+    return entries
+        .map(([chain, fee]) => `${chain} ${formatRate(fee.bps)}`)
+        .join(', ');
+};
+
+/**
  * One sweep transaction, broken into the legs PayRam recorded on-chain. The
  * organizer can see exactly what was collected, what each fee took, and what
  * actually reached their cold wallet — rather than one figure they have to
@@ -95,6 +115,9 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     // we simply cannot reach PayRam — and the organizer deserves the difference.
     const gateway = data?.gateway;
     const gatewayWalletReady = gateway?.available ? gateway.cold_wallet_configured : null;
+    // What PayRam will actually take from this merchant, per chain — read, not
+    // configured by us.
+    const operatorFeeLabel = describeOperatorFees(gateway?.fees);
 
     // Which networks can take money, and which are still unfinished. Each
     // deposit wallet is its own contract, and the organizer picks which to
@@ -186,7 +209,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                             </Text>
 
                             <Text size="xs" c="dimmed">
-                                {t`Two fees apply when your sales settle: PayRam's 1–5% settlement fee, which your buyer pays as a visible markup at checkout, and Monno's 2.5%, which comes out of what you receive.`}
+                                {t`Two fees apply when your sales settle: PayRam's 1–5% settlement fee, which your buyer pays as a visible markup at checkout, and Monno's operator fee, which comes out of what you receive.`}
                             </Text>
 
                             {isConnected && gatewayWalletReady === null && (
@@ -274,7 +297,9 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Monno fee`}
                                     </Text>
                                     <Text size="xs" fw={500}>
-                                        {t`2.5% — paid by you`}
+                                        {operatorFeeLabel
+                                            ? `${operatorFeeLabel} — ${t`paid by you`}`
+                                            : t`Set in PayRam`}
                                     </Text>
                                 </Group>
 

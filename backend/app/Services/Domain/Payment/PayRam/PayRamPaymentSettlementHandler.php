@@ -3,8 +3,10 @@
 namespace HiEvents\Services\Domain\Payment\PayRam;
 
 use HiEvents\DomainObjects\Enums\PaymentProviders;
+use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\Generated\EventSettingDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\OrderDomainObjectAbstract;
+use HiEvents\DomainObjects\Generated\OrganizerPayramAccountDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\PayramPaymentDomainObjectAbstract;
 use HiEvents\DomainObjects\OrderDomainObject;
 use HiEvents\DomainObjects\OrderItemDomainObject;
@@ -22,6 +24,7 @@ use HiEvents\Repository\Interfaces\AffiliateRepositoryInterface;
 use HiEvents\Repository\Interfaces\AttendeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
+use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Domain\Order\OccurrenceStatusValidator;
 use HiEvents\Services\Domain\Order\OrderApplicationFeeService;
@@ -52,6 +55,8 @@ class PayRamPaymentSettlementHandler
         private readonly EventSettingsRepositoryInterface $eventSettingsRepository,
         private readonly DomainEventDispatcherService $domainEventDispatcherService,
         private readonly OccurrenceStatusValidator $occurrenceStatusValidator,
+        private readonly OrganizerPayRamAccountsRepositoryInterface $organizerPayRamAccountsRepository,
+        private readonly PayRamProjectFeeService $projectFeeService,
         private readonly DatabaseManager $databaseManager,
         private readonly CacheRepository $cache,
         private readonly LoggerInterface $logger,
@@ -79,6 +84,9 @@ class PayRamPaymentSettlementHandler
             $payment = $this->payramPaymentsRepository
                 ->loadRelation(new Relationship(OrderDomainObject::class, name: 'order', nested: [
                     new Relationship(OrderItemDomainObject::class),
+                    // For the organizer, so we can read the merchant's own
+                    // PayRam fee when recording what Monno earns.
+                    new Relationship(EventDomainObject::class, name: 'event'),
                 ]))
                 ->findFirstWhere([
                     PayramPaymentDomainObjectAbstract::REFERENCE_ID => $referenceId,
@@ -260,17 +268,18 @@ class PayRamPaymentSettlementHandler
      */
     private function recordApplicationFee(PayramPaymentDomainObject $payment, OrderDomainObject $updatedOrder): void
     {
-        // What we record here is Monno's own revenue: the operator fee taken
-        // on-chain at sweep time. The stored platform_fee_usd is the *buyer's*
-        // markup, which pays PayRam's settlement fee — a different party's cut.
-        // The two are only equal while both rates happen to match, so derive
-        // ours from the operator rate rather than reusing the buyer's markup.
-        $operatorBps = max(0, (int) config('services.payram.operator_fee_bps', 0));
-        if ($operatorBps === 0) {
-            return;
-        }
+        // What we record here is Monno's own revenue: the operator fee on the
+        // merchant's own PayRam project, for the chain the buyer actually paid
+        // on. It is read from PayRam, not a global guess — the operator sets the
+        // rate per merchant and per chain there. The stored platform_fee_usd is
+        // the *buyer's* markup, which pays PayRam's settlement fee; that is a
+        // different party's cut, not our revenue.
+        $feeUsd = $this->projectFeeService->operatorFeeUsd(
+            projectId: $this->resolveProjectId($updatedOrder),
+            chainCode: $payment->getCurrency(),
+            amountUsd: (float) $payment->getAmountInUsd(),
+        );
 
-        $feeUsd = (float) $payment->getAmountInUsd() * $operatorBps / 10000;
         if ($feeUsd <= 0) {
             return;
         }
@@ -295,5 +304,25 @@ class PayRamPaymentSettlementHandler
             paymentMethod: PaymentProviders::PAYRAM,
             currency: $updatedOrder->getCurrency(),
         );
+    }
+
+    /**
+     * The merchant's PayRam project id, so their own fee can be read. Null when
+     * the organizer has no linked account — callers fall back to the configured
+     * rate rather than guessing.
+     */
+    private function resolveProjectId(OrderDomainObject $order): ?int
+    {
+        $organizerId = $order->getEvent()?->getOrganizerId();
+
+        if ($organizerId === null) {
+            return null;
+        }
+
+        $account = $this->organizerPayRamAccountsRepository->findFirstWhere([
+            OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID => $organizerId,
+        ]);
+
+        return $account?->getExternalPlatformId();
     }
 }

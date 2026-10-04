@@ -73,7 +73,17 @@ return [
         // contract, but the organizer bears it — it is never grossed up onto
         // the buyer. The settlement record shows it as its own leg so the
         // organizer can see exactly what left and what arrived.
+        //
+        // This is only a FALLBACK: the effective per-merchant, per-chain rate is
+        // read from PayRam, where the operator configures it. This value covers
+        // the case where the gateway has no answer for the chain.
         'operator_fee_bps' => (int) env('PAYRAM_OPERATOR_FEE_BPS', env('PAYRAM_FEE_BPS', 250)),
+
+        // Minimum operator fee in USD. The effective fee is the greater of the
+        // percentage and this floor. PayRam can only take a percentage on-chain,
+        // so any part of the floor above the percentage is Monno's to collect
+        // outside the sweep — see PayRamProjectFeeService. 0 disables the floor.
+        'operator_fee_min_usd' => (float) env('PAYRAM_OPERATOR_FEE_MIN_USD', 0),
 
         // The shared operator hot wallet (EVM family). Every new project is
         // attached to it at provisioning so buyer funds can sweep to the

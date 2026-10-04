@@ -42,6 +42,7 @@ readonly class PayRamGatewayStatusService
 
     public function __construct(
         private readonly PayRamOperatorClient $operatorClient,
+        private readonly PayRamProjectFeeService $feeService,
     ) {}
 
     /**
@@ -179,6 +180,9 @@ readonly class PayRamGatewayStatusService
             'eligible_for_sweep' => $eligibleForSweep,
             'last_sweep_error' => $lastSweepError,
             'recent_settlements' => $this->recentSettlements($projectId),
+            // What PayRam will actually take from this merchant, per chain.
+            // Read, not configured: the operator sets it in PayRam.
+            'fees' => $this->feeService->resolvedFees($projectId),
         ];
     }
 
@@ -501,6 +505,7 @@ readonly class PayRamGatewayStatusService
             'eligible_for_sweep' => [],
             'last_sweep_error' => null,
             'recent_settlements' => [],
+            'fees' => [],
         ];
     }
 }

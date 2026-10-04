@@ -72,13 +72,15 @@ class PayRamGatewayStatusServiceTest extends TestCase
      * @param  array<int, array<string, mixed>>  $balances
      * @param  array<int, array<string, mixed>>  $sweeps
      */
-    private function fakeWallets(array $wallets, array $balances = [], array $sweeps = []): void
+    private function fakeWallets(array $wallets, array $balances = [], array $sweeps = [], array $projectFees = [], array $feeDefaults = []): void
     {
         Http::fake([
             '*signin*' => Http::response(['accessToken' => 'operator-token']),
             '*project/*/wallets*' => Http::response($wallets),
             '*project/*/addresses/balance*' => Http::response($balances),
             '*project/*/sweeps*' => Http::response(['data' => $sweeps, 'total' => count($sweeps)]),
+            '*operator/fees/projects*' => Http::response(['projectFees' => $projectFees]),
+            '*operator/fees/defaults*' => Http::response(['defaults' => $feeDefaults]),
         ]);
     }
 
@@ -405,6 +407,32 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertSame('0.001254', $settlement['net']);
         // 0.000033 / 0.00132 = 2.5%.
         $this->assertSame(250, $settlement['realised_rate_bps']);
+    }
+
+    public function test_it_resolves_the_merchants_operator_fee_per_chain(): void
+    {
+        // The fee is not ours to configure: a project override wins over the
+        // chain default, and the card shows whichever is in force.
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [],
+            [],
+            [
+                ['projectID' => 9, 'feeBps' => 400, 'blockchain' => ['code' => 'ETH']],
+                ['projectID' => 77, 'feeBps' => 999, 'blockchain' => ['code' => 'ETH']],
+            ],
+            [
+                ['feeBps' => 250, 'blockchain' => ['code' => 'ETH']],
+                ['feeBps' => 300, 'blockchain' => ['code' => 'BTC']],
+            ],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertSame(400, $status['fees']['ETH']['bps'], 'The project override wins.');
+        $this->assertSame('project', $status['fees']['ETH']['source']);
+        $this->assertSame(300, $status['fees']['BTC']['bps'], 'No override — the chain default applies.');
+        $this->assertSame('default', $status['fees']['BTC']['source']);
     }
 
     public function test_a_cache_failure_does_not_break_the_status(): void

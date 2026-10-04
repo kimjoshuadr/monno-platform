@@ -470,6 +470,43 @@ class PayRamOperatorClient
     }
 
     /**
+     * Per-project operator-fee overrides, across every project.
+     *
+     * PayRam resolves a merchant's fee as: the project override if one exists
+     * for that chain, else the chain default. This returns the overrides; pair
+     * it with the defaults to get the effective rate.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getProjectFees(): array
+    {
+        $body = $this->request('get', '/api/v1/operator/fees/projects', [], withToken: true);
+
+        $rows = $body['projectFees'] ?? [];
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * The operator's per-chain fee defaults — what a project falls back to when
+     * it has no override of its own.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getFeeDefaults(): array
+    {
+        $body = $this->request('get', '/api/v1/operator/fees/defaults', [], withToken: true);
+
+        $rows = $body['defaults'] ?? [];
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      *
      * @throws PayRamApiException

@@ -278,6 +278,11 @@ export interface PayRamGatewayStatus {
         at?: string | null;
     }>;
     last_sweep_error: PayRamSweepError | null;
+    /**
+     * The operator fee actually in force per chain, read from PayRam. The
+     * operator sets it there, per merchant; Monno does not configure it.
+     */
+    fees?: Record<string, {bps: number; source: 'project' | 'default'}>;
 }
 
 export interface OrganizerPayRamAccountResponse {
