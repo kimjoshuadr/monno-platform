@@ -121,6 +121,101 @@ readonly class PayRamProjectFeeService
     }
 
     /**
+     * The buyer's markup: PayRam's own fee, grossed up onto the buyer.
+     *
+     * PayRam's platform fee is not exposed by any operator API, so the only
+     * honest source is what it actually took: the fee leg of the merchant's
+     * recent sweeps. The configured rate only seeds a merchant with no sweep
+     * history yet — after the first settlement the markup reflects reality.
+     */
+    public function settlementFeeBps(?int $projectId): int
+    {
+        $configured = max(0, (int) config('services.payram.settlement_fee_bps', 250));
+
+        if ($projectId === null || $projectId <= 0) {
+            return $configured;
+        }
+
+        $rates = $this->realisedPlatformRates($projectId);
+
+        // Worst case across chains: the buyer picks the chain after we quote, so
+        // the markup has to cover whichever one they end up using.
+        return $rates === [] ? $configured : max(0, max($rates));
+    }
+
+    /**
+     * The rate PayRam's own fee took, per chain, from recent sweeps.
+     *
+     * @return array<string, int>
+     */
+    private function realisedPlatformRates(int $projectId): array
+    {
+        $cacheKey = 'payram_realised_platform_fee:'.$projectId;
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        try {
+            $sweeps = $this->operatorClient->getProjectSweeps($projectId, 40);
+        } catch (Throwable $exception) {
+            // Never cache a failure: a gateway blip must not pin a stale rate.
+            logger()->warning('Could not read PayRam sweeps to learn the platform fee', [
+                'project_id' => $projectId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
+
+        $legsByTx = [];
+        foreach ($sweeps as $sweep) {
+            if (! is_array($sweep)) {
+                continue;
+            }
+
+            $txHash = (string) ($sweep['txHash'] ?? '');
+            if ($txHash !== '') {
+                $legsByTx[$txHash][] = $sweep;
+            }
+        }
+
+        $rates = [];
+
+        foreach ($legsByTx as $legs) {
+            $gross = 0.0;
+            $fee = 0.0;
+            $hasGross = false;
+            $hasFee = false;
+            $chain = null;
+
+            foreach ($legs as $leg) {
+                $status = (string) ($leg['status'] ?? '');
+                $amount = (float) ($leg['amount'] ?? 0);
+                $chain ??= $leg['blockchainCode'] ?? null;
+
+                if (in_array($status, ['fund_collect', 'fund_collect_processed'], true)) {
+                    $gross += $amount;
+                    $hasGross = true;
+                }
+                if (in_array($status, ['fee_transfer', 'fee_transfer_processed'], true)) {
+                    $fee += $amount;
+                    $hasFee = true;
+                }
+            }
+
+            if ($hasGross && $hasFee && $gross > 0 && is_string($chain) && $chain !== '') {
+                $rates[strtoupper($chain)] = (int) round(($fee / $gross) * 10000);
+            }
+        }
+
+        Cache::put($cacheKey, $rates, self::CACHE_TTL_SECONDS);
+
+        return $rates;
+    }
+
+    /**
      * @return array{overrides: array<int, array<string, mixed>>, defaults: array<int, array<string, mixed>>}
      */
     private function feeData(): array

@@ -8,7 +8,9 @@ use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\Generated\EventSettingDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\OrderDomainObjectAbstract;
+use HiEvents\DomainObjects\Generated\OrganizerPayramAccountDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\PayramPaymentDomainObjectAbstract;
+use HiEvents\DomainObjects\OrderDomainObject;
 use HiEvents\DomainObjects\PayramPaymentDomainObject;
 use HiEvents\DomainObjects\Status\OrderStatus;
 use HiEvents\DomainObjects\Status\PayRamPaymentStatus;
@@ -19,9 +21,11 @@ use HiEvents\Repository\Eloquent\Value\OrderAndDirection;
 use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
+use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Domain\Payment\PayRam\DTOs\CreatePayRamPaymentResponseDTO;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamCredentialResolver;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamProjectFeeService;
 use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
 use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
@@ -53,6 +57,8 @@ readonly class CreatePayRamPaymentHandler
         private CheckoutSessionManagementService $sessionIdentifierService,
         private CurrencyConversionClientInterface $currencyConversionClient,
         private PayRamCredentialResolver $credentialResolver,
+        private OrganizerPayRamAccountsRepositoryInterface $accountsRepository,
+        private PayRamProjectFeeService $projectFeeService,
     ) {}
 
     /**
@@ -76,7 +82,7 @@ readonly class CreatePayRamPaymentHandler
 
         $this->assertPayRamIsEnabledForEvent($order->getEventId());
 
-        [$amountInUsd, $payramFeeUsd, $fxRate, $feeRateBps] = $this->quote($order);
+        [$amountInUsd, $payramFeeUsd, $fxRate, $feeRateBps] = $this->quote($order, $this->resolveProjectId($order));
 
         $this->assertInvoiceClearsTheFloor($amountInUsd);
 
@@ -200,7 +206,7 @@ readonly class CreatePayRamPaymentHandler
      *
      * @throws PayRamConfigurationException
      */
-    private function quote($order): array
+    private function quote($order, ?int $projectId): array
     {
         $orderAmount = (float) $order->getTotalGross();
         $orderCurrency = $order->getCurrency();
@@ -234,7 +240,12 @@ readonly class CreatePayRamPaymentHandler
         // price grossed up by exactly what the sweep will take for PayRam.
         // Monno's operator fee is deliberately NOT grossed up — the organizer
         // bears it (see config/services.php).
-        $feeBps = max(0, (int) config('services.payram.settlement_fee_bps', 250));
+        //
+        // The rate is learned from the merchant's own sweeps where possible: the
+        // platform fee is not exposed by any API, so the realised fee leg is the
+        // only honest source. The configured value seeds a merchant with no
+        // history yet.
+        $feeBps = $this->projectFeeService->settlementFeeBps($projectId);
         if ($feeBps === 0) {
             return [round($ticketUsd, 2), 0.0, $fxRate, 0];
         }
@@ -249,6 +260,26 @@ readonly class CreatePayRamPaymentHandler
         $amountInUsd = ceil($grossedUp * 100) / 100;
 
         return [$amountInUsd, round($amountInUsd - $ticketUsd, 2), $fxRate, $feeBps];
+    }
+
+    /**
+     * The merchant's PayRam project, so the buyer's markup can be priced from
+     * their own settlements. Null when there is no linked account — the fee
+     * service then falls back to the configured rate.
+     */
+    private function resolveProjectId(OrderDomainObject $order): ?int
+    {
+        $organizerId = $order->getEvent()?->getOrganizerId();
+
+        if ($organizerId === null) {
+            return null;
+        }
+
+        $account = $this->accountsRepository->findFirstWhere([
+            OrganizerPayramAccountDomainObjectAbstract::ORGANIZER_ID => $organizerId,
+        ]);
+
+        return $account?->getExternalPlatformId();
     }
 
     private function determineExpiry($order): Carbon

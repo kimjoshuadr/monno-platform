@@ -134,4 +134,46 @@ class PayRamProjectFeeServiceTest extends TestCase
 
         $this->assertSame(250, $this->service()->operatorFeeBps(null, 'ETH'));
     }
+
+    public function test_the_buyer_markup_learns_the_platform_rate_from_real_sweeps(): void
+    {
+        // PayRam's platform fee isn't exposed by any API, so the markup comes
+        // from what its fee leg actually took: 0.000033 / 0.00132 = 2.5%.
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectSweeps')->andReturn([
+            ['status' => 'fee_transfer_processed', 'amount' => '0.000033', 'txHash' => '0xa', 'blockchainCode' => 'ETH'],
+            ['status' => 'fund_collect_processed', 'amount' => '0.00132', 'txHash' => '0xa', 'blockchainCode' => 'ETH'],
+        ]);
+
+        $this->assertSame(250, (new PayRamProjectFeeService($client))->settlementFeeBps(9));
+    }
+
+    public function test_the_buyer_markup_covers_the_worst_chain_it_has_seen(): void
+    {
+        // The buyer chooses the chain after we quote, so the markup must cover
+        // whichever one they pick.
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectSweeps')->andReturn([
+            ['status' => 'fee_transfer_processed', 'amount' => '0.000025', 'txHash' => '0xa', 'blockchainCode' => 'ETH'],
+            ['status' => 'fund_collect_processed', 'amount' => '0.001', 'txHash' => '0xa', 'blockchainCode' => 'ETH'],
+            ['status' => 'fee_transfer_processed', 'amount' => '0.00005', 'txHash' => '0xb', 'blockchainCode' => 'BTC'],
+            ['status' => 'fund_collect_processed', 'amount' => '0.001', 'txHash' => '0xb', 'blockchainCode' => 'BTC'],
+        ]);
+
+        // ETH is 2.5%, BTC is 5%.
+        $this->assertSame(500, (new PayRamProjectFeeService($client))->settlementFeeBps(9));
+    }
+
+    public function test_the_buyer_markup_falls_back_to_config_with_no_sweep_history(): void
+    {
+        config(['services.payram.settlement_fee_bps' => 300]);
+
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectSweeps')->andReturn([]);
+
+        $service = new PayRamProjectFeeService($client);
+
+        $this->assertSame(300, $service->settlementFeeBps(9), 'A merchant with no sweeps yet uses the configured seed.');
+        $this->assertSame(300, $service->settlementFeeBps(null), 'No project at all uses the configured seed.');
+    }
 }

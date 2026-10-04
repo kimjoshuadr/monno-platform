@@ -19,9 +19,11 @@ use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\CreatePayRamPaymentHandler;
 use HiEvents\Services\Domain\Payment\PayRam\DTOs\PayRamPaymentSessionDTO;
 use HiEvents\Services\Domain\Payment\PayRam\PayRamCredentialResolver;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamProjectFeeService;
 use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
 use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamClient;
+use HiEvents\Services\Infrastructure\Payment\PayRam\PayRamOperatorClient;
 use HiEvents\Services\Infrastructure\Session\CheckoutSessionManagementService;
 use HiEvents\Values\MoneyValue;
 use Illuminate\Support\Carbon;
@@ -46,6 +48,8 @@ class CreatePayRamPaymentHandlerTest extends TestCase
 
     private OrganizerPayRamAccountsRepositoryInterface $accountsRepository;
 
+    private PayRamProjectFeeService $projectFeeService;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -68,6 +72,12 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         $this->accountsRepository = m::mock(OrganizerPayRamAccountsRepositoryInterface::class);
         // No per-organizer merchant account → the shared instance key is used.
         $this->accountsRepository->shouldReceive('findFirstWhere')->andReturn(null);
+
+        // The buyer's markup: normally learned from the merchant's own sweeps.
+        // These orders have no merchant account, so the fee service resolves no
+        // project and the configured 2.5% applies — the operator client is never
+        // reached.
+        $this->projectFeeService = new PayRamProjectFeeService(m::mock(PayRamOperatorClient::class));
     }
 
     protected function tearDown(): void
@@ -116,6 +126,8 @@ class CreatePayRamPaymentHandlerTest extends TestCase
             sessionIdentifierService: $this->sessionService,
             currencyConversionClient: $this->currencyConversionClient,
             credentialResolver: new PayRamCredentialResolver($this->accountsRepository),
+            accountsRepository: $this->accountsRepository,
+            projectFeeService: $this->projectFeeService,
         );
     }
 
@@ -139,6 +151,8 @@ class CreatePayRamPaymentHandlerTest extends TestCase
             sessionIdentifierService: $this->sessionService,
             currencyConversionClient: new NoOpCurrencyConversionClient(app(LoggerInterface::class)),
             credentialResolver: new PayRamCredentialResolver($this->accountsRepository),
+            accountsRepository: $this->accountsRepository,
+            projectFeeService: $this->projectFeeService,
         );
 
         $this->expectException(PayRamConfigurationException::class);
