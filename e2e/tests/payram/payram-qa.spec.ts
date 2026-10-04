@@ -83,6 +83,39 @@ test.describe('PayRam · Monno card', () => {
     expect(card, card).toMatch(/paid by your buyer/i);
   });
 
+  test("the card shows the merchant's own fee, read from PayRam", async ({ page, request }) => {
+    // The fee is not Monno's to configure — it is read from PayRam per chain, so
+    // the card must show what is actually in force rather than a hardcoded rate.
+    await request.post(`${BASE_URL}/api/auth/login`, {
+      data: { email: configured.email, password: configured.password },
+      headers: { Accept: 'application/json' },
+    });
+    const account = await request.get(`${BASE_URL}/api/organizers/${configured.id}/payram/account`, {
+      headers: { Accept: 'application/json' },
+    });
+    const fees = (await account.json()).gateway?.fees ?? {};
+    const chains = Object.keys(fees);
+    test.skip(chains.length === 0, 'The gateway returned no fee configuration.');
+
+    for (const chain of chains) {
+      expect(typeof fees[chain].bps, `${chain} must carry an integer bps`).toBe('number');
+      expect(['project', 'default']).toContain(fees[chain].source);
+    }
+
+    await loginUi(page, configured);
+    await page.goto(`${BASE_URL}/manage/organizer/${configured.id}/settings#crypto-payments`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.getByText('Crypto payments', { exact: false }).first().waitFor({ state: 'visible', timeout: 20_000 });
+    await page.waitForTimeout(3000);
+
+    const card = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
+
+    // A percentage, not the "Set in PayRam" fallback and not a stale constant.
+    expect(card, card).toMatch(/Monno fee\s+\d/);
+    expect(card, card).not.toMatch(/Monno fee\s+Set in PayRam/i);
+  });
+
   test('a settlement on the card is broken into its fee legs', async ({ page, request }) => {
     await request.post(`${BASE_URL}/api/auth/login`, {
       data: { email: configured.email, password: configured.password },

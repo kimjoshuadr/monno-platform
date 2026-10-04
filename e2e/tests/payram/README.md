@@ -48,9 +48,13 @@ with just the primary organizer.
   live order but not promising a ticket once it has expired. The backend
   `payment` block and the 30-minute wait are covered by backend tests.
 - **Fee disclosure** — the organizer card states who pays which fee (Monno's
-  2.5% on the organizer, PayRam's 1–5% on the buyer) and breaks the last
+  operator fee on the organizer, PayRam's 1–5% on the buyer) and breaks the last
   settlement into its on-chain legs (collected → PayRam fee → Monno fee → net).
   The buyer's checkout names the PayRam settlement fee and its rate.
+- **Per-merchant fee** — the fee is read from PayRam per chain (project override
+  or chain default) and the card shows the rate actually in force, not a
+  hardcoded one. `PayRamProjectFeeService` resolution and the USD floor are
+  covered by backend unit tests.
 
 ## Not here (covered elsewhere)
 
