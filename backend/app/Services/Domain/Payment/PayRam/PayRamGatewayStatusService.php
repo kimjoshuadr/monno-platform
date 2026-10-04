@@ -56,8 +56,19 @@ readonly class PayRamGatewayStatusService
 
         $key = 'payram:gateway_status:'.$projectId;
 
-        if (($cached = Cache::get($key)) !== null) {
-            return $cached;
+        // Caching is an optimisation, never a requirement. A cache store that
+        // cannot be written (bad permissions, full disk) must not turn the money-
+        // path status into a 500 — read and write best-effort, and always fall
+        // back to asking the gateway.
+        try {
+            if (($cached = Cache::get($key)) !== null) {
+                return $cached;
+            }
+        } catch (Throwable $exception) {
+            logger()->warning('Could not read the PayRam gateway status cache', [
+                'project_id' => $projectId,
+                'error' => $exception->getMessage(),
+            ]);
         }
 
         $status = $this->fetch($projectId);
@@ -68,7 +79,14 @@ readonly class PayRamGatewayStatusService
         // told their gateway is unreachable, and it also fails the publish gate.
         // Only a real answer is worth keeping.
         if (($status['available'] ?? false) === true) {
-            Cache::put($key, $status, self::CACHE_TTL_SECONDS);
+            try {
+                Cache::put($key, $status, self::CACHE_TTL_SECONDS);
+            } catch (Throwable $exception) {
+                logger()->warning('Could not write the PayRam gateway status cache', [
+                    'project_id' => $projectId,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
 
         return $status;

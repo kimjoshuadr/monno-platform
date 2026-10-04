@@ -321,4 +321,34 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertSame('0xcold', $status['recent_settlements'][0]['destination']);
         $this->assertSame('0xabc', $status['recent_settlements'][0]['transaction_hash']);
     }
+
+    public function test_a_cache_failure_does_not_break_the_status(): void
+    {
+        // A cache store that cannot be read or written (bad permissions) must
+        // never turn the money-path status into a 500.
+        $this->fakeWallets([
+            $this->depositWallet(['ETH' => '0xcollector'], [9]),
+        ]);
+
+        Cache::shouldReceive('get')->andReturnUsing(function (string $key) {
+            if (str_contains($key, 'gateway_status')) {
+                throw new \RuntimeException('cache down');
+            }
+
+            return null;
+        });
+        Cache::shouldReceive('put')->andReturnUsing(function (string $key) {
+            if (str_contains($key, 'gateway_status')) {
+                throw new \RuntimeException('cache down');
+            }
+
+            return true;
+        });
+        Cache::shouldReceive('forget')->andReturnTrue();
+
+        $status = $this->gatewayStatus();
+
+        $this->assertTrue($status['available']);
+        $this->assertTrue($status['cold_wallet_configured']);
+    }
 }
