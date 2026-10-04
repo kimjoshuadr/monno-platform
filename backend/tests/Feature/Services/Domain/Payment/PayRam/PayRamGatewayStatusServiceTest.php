@@ -280,6 +280,34 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertStringContainsString('hot wallet', $status['last_sweep_error']['reason']);
     }
 
+    public function test_a_stale_sweep_error_with_nothing_to_sweep_is_not_reported(): void
+    {
+        // PayRam keeps the last sweep error even after the problem is fixed, so
+        // an organizer would chase a resolved warning forever. With no balance
+        // waiting to move it is history, not a problem.
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [[
+                'walletName' => 'EVM Deposit Wallet 1',
+                'blockchainCode' => 'ETH',
+                'currencyCode' => 'ETH',
+                'amount' => '0',
+                'amountUSD' => '0',
+                'eligibleForSweepCount' => 0,
+                'eligibleForSweepAmount' => '0',
+                'action' => 'no_balance',
+                'lastSweepError' => [
+                    'statusCode' => 'DEPOSIT_NOT_DEPLOYED_LOW_GAS',
+                    'reason' => 'Deposit wallets on ETH cannot be deployed yet: insufficient fees',
+                ],
+            ]],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertNull($status['last_sweep_error'], 'A resolved error with no balance waiting is history.');
+    }
+
     public function test_a_failing_balance_read_does_not_break_readiness(): void
     {
         // Readiness comes from the wallets call; only the sweep detail is lost

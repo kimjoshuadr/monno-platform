@@ -251,6 +251,7 @@ readonly class PayRamGatewayStatusService
 
             $eligibleAmount = (float) ($balance['eligibleForSweepAmount'] ?? 0);
             $eligibleCount = (int) ($balance['eligibleForSweepCount'] ?? 0);
+            $heldAmount = (float) ($balance['amount'] ?? 0);
 
             if ($eligibleCount > 0 || $eligibleAmount > 0) {
                 $eligible[] = [
@@ -262,11 +263,18 @@ readonly class PayRamGatewayStatusService
                 ];
             }
 
+            // PayRam keeps the last sweep error on a wallet even after the
+            // problem is resolved, so a stale "can't deploy / low gas" lingers
+            // forever and sends organizers chasing a fixed issue. An error only
+            // means something when there is money waiting to move — eligible to
+            // sweep, or actually held. With nothing to act on it is history.
+            $hasSomethingToActOn = $eligibleCount > 0 || $eligibleAmount > 0 || $heldAmount > 0;
+
             // The first concrete failure is the most useful thing to show; if
             // several wallets are failing they are almost always failing for
             // the same reason.
             $error = $balance['lastSweepError'] ?? null;
-            if ($lastError === null && is_array($error) && ($error['reason'] ?? null)) {
+            if ($hasSomethingToActOn && $lastError === null && is_array($error) && ($error['reason'] ?? null)) {
                 $lastError = [
                     'statusCode' => $error['statusCode'] ?? null,
                     'category' => $error['category'] ?? null,
