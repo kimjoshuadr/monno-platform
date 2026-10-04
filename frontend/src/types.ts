@@ -259,6 +259,15 @@ export interface PayRamGatewayStatus {
         amount: string;
         amount_usd?: string | null;
     }>;
+    /** Recent sweeps that reached the organizer's cold wallet, newest first. */
+    recent_settlements?: Array<{
+        amount: string;
+        currency_code?: string | null;
+        blockchain_code?: string | null;
+        destination?: string | null;
+        transaction_hash?: string | null;
+        at?: string | null;
+    }>;
     last_sweep_error: PayRamSweepError | null;
 }
 

@@ -278,6 +278,18 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                     </Group>
                                 )}
 
+                                {gateway?.available && (gateway.recent_settlements?.length ?? 0) > 0 && (
+                                    <Group justify="space-between">
+                                        <Text size="xs" c="dimmed">{t`Last settled`}</Text>
+                                        <Text size="xs" fw={500}>
+                                            {`${gateway.recent_settlements![0].amount} ${gateway.recent_settlements![0].currency_code ?? ''}`.trim()}
+                                            {gateway.recent_settlements![0].destination
+                                                ? ` → ${gateway.recent_settlements![0].destination!.slice(0, 6)}…${gateway.recent_settlements![0].destination!.slice(-4)}`
+                                                : ''}
+                                        </Text>
+                                    </Group>
+                                )}
+
                                 {gateway?.available === false && (
                                     <Text size="xs" c="dimmed">
                                         {t`Could not reach the payment gateway to confirm wallet status.`}

@@ -158,4 +158,18 @@ class PayRamOperatorClientTest extends TestCase
                 && ! array_key_exists('emailSendRequestFrom', $data);
         });
     }
+
+    public function test_it_uploads_the_project_logo_as_a_multipart_put(): void
+    {
+        Http::fake([
+            'https://pay.test/api/v1/signin' => Http::response(['accessToken' => 'operator-token']),
+            'https://pay.test/api/v1/external-platform/9' => Http::response(['id' => 9]),
+        ]);
+
+        $this->client->uploadProjectLogo(9, 'PNGDATA', 'logo.png', 'image/png');
+
+        Http::assertSent(fn ($request) => $request->method() === 'PUT'
+            && str_ends_with($request->url(), '/api/v1/external-platform/9')
+            && str_contains($request->body(), 'logo'));
+    }
 }

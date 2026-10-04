@@ -124,6 +124,38 @@ class PayRamOperatorClient
     }
 
     /**
+     * Upload the organizer's brand image to their PayRam project.
+     *
+     * The logo is a **multipart** field — a JSON `logoPath` is ignored — and the
+     * upload is a partial update, so the other project fields are left as they
+     * are. Best-effort by the caller; a failed logo never blocks the profile.
+     *
+     * @throws PayRamApiException
+     */
+    public function uploadProjectLogo(int $projectId, string $contents, string $filename, string $mimeType): void
+    {
+        try {
+            $response = Http::withOptions([
+                'timeout' => $this->configuration->getTimeout(),
+                'connect_timeout' => 10,
+            ])
+                ->withToken($this->token())
+                ->attach('logo', $contents, $filename, ['Content-Type' => $mimeType])
+                ->put($this->configuration->getBaseUrl().sprintf('/api/v1/external-platform/%d', $projectId));
+        } catch (ConnectionException $exception) {
+            throw new PayRamApiException(__('Could not reach the payment gateway.'), null, $exception->getMessage());
+        }
+
+        if ($response->failed()) {
+            throw new PayRamApiException(
+                __('The payment gateway rejected the logo.'),
+                $response->status(),
+                $response->body(),
+            );
+        }
+    }
+
+    /**
      * Where PayRam should send a buyer back to. Built from the public API base,
      * not APP_URL, because the deployed app sits behind an /api prefix.
      */
@@ -413,6 +445,28 @@ class PayRamOperatorClient
     public function getProjectAddressBalances(int $projectId): array
     {
         return $this->requestList(sprintf('/api/v1/project/%d/addresses/balance', $projectId));
+    }
+
+    /**
+     * Recent settlement activity for a project — the on-chain moves from deposit
+     * addresses to the cold wallet, with fee and operator-fee legs. Newest first.
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws PayRamApiException
+     */
+    public function getProjectSweeps(int $projectId, int $limit = 10): array
+    {
+        $body = $this->request(
+            'get',
+            sprintf('/api/v1/project/%d/sweeps?limit=%d', $projectId, max(1, $limit)),
+            [],
+            withToken: true,
+        );
+
+        $rows = $body['data'] ?? (array_is_list($body) ? $body : []);
+
+        return is_array($rows) ? $rows : [];
     }
 
     /**

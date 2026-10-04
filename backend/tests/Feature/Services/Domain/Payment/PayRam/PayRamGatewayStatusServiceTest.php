@@ -70,13 +70,15 @@ class PayRamGatewayStatusServiceTest extends TestCase
     /**
      * @param  array<int, array<string, mixed>>  $wallets
      * @param  array<int, array<string, mixed>>  $balances
+     * @param  array<int, array<string, mixed>>  $sweeps
      */
-    private function fakeWallets(array $wallets, array $balances = []): void
+    private function fakeWallets(array $wallets, array $balances = [], array $sweeps = []): void
     {
         Http::fake([
             '*signin*' => Http::response(['accessToken' => 'operator-token']),
             '*project/*/wallets*' => Http::response($wallets),
             '*project/*/addresses/balance*' => Http::response($balances),
+            '*project/*/sweeps*' => Http::response(['data' => $sweeps, 'total' => count($sweeps)]),
         ]);
     }
 
@@ -288,6 +290,7 @@ class PayRamGatewayStatusServiceTest extends TestCase
                 $this->depositWallet(['ETH' => '0xcollector'], [9]),
             ]),
             '*project/*/addresses/balance*' => Http::response(['error' => 'boom'], 500),
+            '*project/*/sweeps*' => Http::response(['data' => [], 'total' => 0]),
         ]);
 
         $status = $this->gatewayStatus();
@@ -296,5 +299,26 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $this->assertTrue($status['cold_wallet_configured']);
         $this->assertSame([], $status['eligible_for_sweep']);
         $this->assertNull($status['last_sweep_error']);
+    }
+
+    public function test_it_reports_recent_settlements_to_the_cold_wallet(): void
+    {
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [],
+            [
+                // per-sweep legs: only the fund transfer is the organizer's settlement
+                ['status' => 'fund_collect_processed', 'amount' => '0.00063', 'currencyCode' => 'ETH'],
+                ['status' => 'fund_transfer', 'amount' => '0.001254', 'currencyCode' => 'ETH', 'toAddress' => '0xcold', 'txHash' => '0xabc', 'timestamp' => '2026-10-03T14:27:38Z'],
+            ],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $this->assertCount(1, $status['recent_settlements']);
+        $this->assertSame('0.001254', $status['recent_settlements'][0]['amount']);
+        $this->assertSame('ETH', $status['recent_settlements'][0]['currency_code']);
+        $this->assertSame('0xcold', $status['recent_settlements'][0]['destination']);
+        $this->assertSame('0xabc', $status['recent_settlements'][0]['transaction_hash']);
     }
 }

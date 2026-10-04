@@ -153,7 +153,49 @@ readonly class PayRamGatewayStatusService
             'configured_networks' => $configuredNetworks,
             'eligible_for_sweep' => $eligibleForSweep,
             'last_sweep_error' => $lastSweepError,
+            'recent_settlements' => $this->recentSettlements($projectId),
         ];
+    }
+
+    /**
+     * The last few sweeps that moved funds to the organizer's cold wallet,
+     * newest first. PayRam records several legs per sweep (collect, fee,
+     * transfer); only the fund transfer to the cold wallet is the organizer's
+     * settlement, so that is what we surface. A failure here only drops the
+     * detail — it never affects readiness.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function recentSettlements(int $projectId): array
+    {
+        try {
+            $sweeps = $this->operatorClient->getProjectSweeps($projectId, 20);
+        } catch (Throwable) {
+            return [];
+        }
+
+        $settlements = [];
+
+        foreach ($sweeps as $sweep) {
+            if (! is_array($sweep) || ($sweep['status'] ?? null) !== 'fund_transfer') {
+                continue;
+            }
+
+            $settlements[] = [
+                'amount' => (string) ($sweep['amount'] ?? '0'),
+                'currency_code' => $sweep['currencyCode'] ?? null,
+                'blockchain_code' => $sweep['blockchainCode'] ?? null,
+                'destination' => $sweep['toAddress'] ?? null,
+                'transaction_hash' => $sweep['txHash'] ?? null,
+                'at' => $sweep['timestamp'] ?? ($sweep['createdAt'] ?? null),
+            ];
+
+            if (count($settlements) >= 3) {
+                break;
+            }
+        }
+
+        return $settlements;
     }
 
     /**
@@ -268,6 +310,7 @@ readonly class PayRamGatewayStatusService
             'configured_networks' => [],
             'eligible_for_sweep' => [],
             'last_sweep_error' => null,
+            'recent_settlements' => [],
         ];
     }
 }
