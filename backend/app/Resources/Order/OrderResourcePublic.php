@@ -3,6 +3,7 @@
 namespace HiEvents\Resources\Order;
 
 use Carbon\Carbon;
+use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\DomainObjects\OrderDomainObject;
 use HiEvents\DomainObjects\Status\OrderStatus;
 use HiEvents\Resources\Attendee\AttendeeResourcePublic;
@@ -37,6 +38,12 @@ class OrderResourcePublic extends BaseResource
             // Stripe can never confirm those and the page would show a false
             // failure over a settled payment.
             'payment_provider' => $this->getPaymentProvider(),
+            // The crypto payment's own state, so the return page can wait for
+            // completion and, if a payment came up short, say so honestly.
+            'payment' => $this->when(
+                $this->getPaymentProvider() === PaymentProviders::PAYRAM->value && $this->getPayramPayment() !== null,
+                fn () => $this->payramPaymentPayload(),
+            ),
             'currency' => $this->getCurrency(),
             'reserved_until' => $this->getReservedUntil(),
             'is_expired' => $this->when(
@@ -80,6 +87,34 @@ class OrderResourcePublic extends BaseResource
             $this->mergeWhen($this->getSessionIdentifier() !== null, fn () => [
                 'session_identifier' => $this->getSessionIdentifier(),
             ]),
+        ];
+    }
+
+    /**
+     * The crypto payment as the checkout return page needs it: what was asked
+     * for, what actually arrived, and whether that is short or over. `state` is
+     * PayRam's own value (open / partially_filled / filled / over_filled /
+     * cancelled) so the page can wait until it completes.
+     *
+     * @return array<string, mixed>
+     */
+    private function payramPaymentPayload(): array
+    {
+        $payment = $this->getPayramPayment();
+        $expected = (float) $payment->getAmountInUsd();
+        $received = $payment->getFilledAmountInUsd();
+
+        return [
+            'provider' => PaymentProviders::PAYRAM->value,
+            'state' => $payment->getStatus(),
+            'expected_usd' => $payment->getAmountInUsd(),
+            'expected_amount' => $payment->getAmountInUsd(),
+            'received_amount' => $payment->getFilledAmount(),
+            'received_usd' => $received,
+            'currency' => $payment->getCurrency(),
+            'reference_id' => $payment->getReferenceId(),
+            'underpaid' => $received !== null && (float) $received < $expected,
+            'overpaid' => $received !== null && (float) $received > $expected,
         ];
     }
 }

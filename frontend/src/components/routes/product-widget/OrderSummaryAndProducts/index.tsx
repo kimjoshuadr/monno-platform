@@ -601,6 +601,14 @@ export const OrderSummaryAndProducts = () => {
                     </Alert>
                 )}
 
+                {order.payment?.overpaid && (
+                    <Alert icon={<IconCash size={16}/>} color="blue" mb="lg" radius="lg">
+                        <Text size="sm">
+                            {t`You paid more than the total for this order. The extra is shown to the organizer in PayRam, who can refund it or apply it to a future invoice.`}
+                        </Text>
+                    </Alert>
+                )}
+
                 <InlineOrderSummary
                     event={event}
                     order={order}

@@ -9,6 +9,7 @@ import {eventCheckoutPath} from "../../../../utilites/urlHelper.ts";
 import {HomepageInfoMessage} from "../../../common/HomepageInfoMessage";
 import {isSsr} from "../../../../utilites/helpers.ts";
 import {trackEvent, AnalyticsEvents} from "../../../../utilites/analytics.ts";
+import {formatCurrency} from "../../../../utilites/currency.ts";
 
 /**
  * Handles the return from the payment provider.
@@ -21,13 +22,17 @@ import {trackEvent, AnalyticsEvents} from "../../../../utilites/analytics.ts";
  * takes real time to confirm, so the only thing worth polling is the order
  * itself. Asking Stripe for a PayRam order can never succeed, and used to show
  * a false failure after ten seconds.
+ *
+ * The page now waits for the payment to actually complete and then sends the
+ * buyer to their ticket. If the crypto payment arrived short, it says so
+ * plainly instead of pretending it is still merely "processing".
  **/
 const STRIPE_CONFIRM_WINDOW_MS = 10000;
 
-// On-chain confirmation is not instant. PayRam asks for a dozen block
-// confirmations, so give the reference a realistic window before we stop
-// waiting and let the buyer know it is still pending rather than failed.
-const PAYRAM_CONFIRM_WINDOW_MS = 120000;
+// Crypto can take a while — confirmations plus the sweep. Keep waiting for half
+// an hour before falling back to "still pending, we'll email your ticket", and
+// let a reload resume the wait. The order completes server-side either way.
+const PAYRAM_CONFIRM_WINDOW_MS = 30 * 60 * 1000;
 
 export const PaymentReturn = () => {
     const {eventId, orderShortId} = useParams();
@@ -54,6 +59,12 @@ export const PaymentReturn = () => {
     const [cannotConfirmPayment, setCannotConfirmPayment] = useState(false);
     const [stillPending, setStillPending] = useState(false);
     const hasTrackedPurchase = useRef(false);
+
+    // The crypto payment, when this is a PayRam order: what was asked for, what
+    // arrived, and whether it came up short.
+    const payment = order?.payment;
+    const isUnderpaid = payment?.underpaid === true;
+    const isOverpaid = payment?.overpaid === true;
 
     useEffect(
         () => {
@@ -114,6 +125,8 @@ export const PaymentReturn = () => {
                 const totalCents = Math.round((order.total_gross || 0) * 100);
                 trackEvent(AnalyticsEvents.PURCHASE_COMPLETED_PAID, { value: totalCents });
             }
+            // Overpayment settles as complete too; the surplus is shown on the
+            // summary (and in the PayRam dashboard for the organizer).
             navigate(eventCheckoutPath(eventId, orderShortId, 'summary'));
         }
         if (order.payment_status === 'PAYMENT_FAILED' || (typeof window !== 'undefined' && window?.location.search.includes('failed'))) {
@@ -123,10 +136,13 @@ export const PaymentReturn = () => {
 
     const showError = cannotConfirmPayment;
 
+    const receivedLabel = formatCurrency(Number(payment?.received_usd ?? 0), 'USD');
+    const expectedLabel = formatCurrency(Number(payment?.expected_usd ?? 0), 'USD');
+
     return (
         <CheckoutContent>
             <div className={classes.container}>
-                {!showError && !stillPending && (
+                {!showError && !stillPending && !isUnderpaid && (
                     <HomepageInfoMessage
                         status="processing"
                         message={(
@@ -139,10 +155,19 @@ export const PaymentReturn = () => {
                     />
                 )}
 
-                {!showError && stillPending && (
+                {!showError && isUnderpaid && (
                     <HomepageInfoMessage
                         status="processing"
-                        message={t`We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed.`}
+                        message={t`We received ${receivedLabel} of ${expectedLabel} for this order. That is less than the total, so it cannot be confirmed automatically yet. We will take you to your ticket as soon as it is resolved — you can safely close this page.`}
+                    />
+                )}
+
+                {!showError && stillPending && !isUnderpaid && (
+                    <HomepageInfoMessage
+                        status="processing"
+                        message={isOverpaid
+                            ? t`We're still confirming your crypto payment. You paid more than the total — the extra is shown to the organizer in PayRam to refund or apply. You can safely close this page; your ticket will be emailed once it confirms.`
+                            : t`We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed.`}
                     />
                 )}
 

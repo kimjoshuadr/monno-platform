@@ -1055,6 +1055,20 @@ interface TaxesAndFeesRollup {
     taxes: TaxOrFee[];
 }
 
+export interface CryptoPaymentState {
+    provider: 'PAYRAM';
+    /** PayRam's own payment state. */
+    state: 'OPEN' | 'PARTIALLY_FILLED' | 'FILLED' | 'OVER_FILLED' | 'CANCELLED';
+    expected_usd: number | string;
+    expected_amount: number | string;
+    received_amount: number | string | null;
+    received_usd: number | string | null;
+    currency?: string | null;
+    reference_id: string;
+    underpaid: boolean;
+    overpaid: boolean;
+}
+
 export interface Order {
     id: IdParam;
     short_id: string;
@@ -1081,6 +1095,8 @@ export interface Order {
     status: 'RESERVED' | 'CANCELLED' | 'COMPLETED' | 'AWAITING_OFFLINE_PAYMENT' | 'ABANDONED';
     refund_status?: 'REFUND_PENDING' | 'REFUND_FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
     payment_status?: 'NO_PAYMENT_REQUIRED' | 'AWAITING_PAYMENT' | 'PAYMENT_FAILED' | 'PAYMENT_RECEIVED' | 'AWAITING_OFFLINE_PAYMENT';
+    /** Crypto payment state, present only for a PayRam order. */
+    payment?: CryptoPaymentState;
     public_id: string;
     is_payment_required: boolean;
     is_manually_created: boolean;

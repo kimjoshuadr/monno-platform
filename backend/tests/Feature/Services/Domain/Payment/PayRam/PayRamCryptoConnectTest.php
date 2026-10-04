@@ -123,6 +123,46 @@ class PayRamCryptoConnectTest extends TestCase
         $response->assertJsonPath('data.payment_provider', 'PAYRAM');
     }
 
+    public function test_the_public_order_carries_the_crypto_payment_state(): void
+    {
+        // The return page waits for completion and, when a payment came up
+        // short, says so. It needs the crypto state, expected vs received.
+        $this->order->update(['payment_provider' => 'PAYRAM']);
+
+        DB::table('payram_payments')->insert([
+            'order_id' => $this->order->id,
+            'reference_id' => 'ref-partial-1',
+            'invoice_id' => 'ORD12345',
+            'checkout_url' => 'https://pay.test/payments?reference_id=ref-partial-1',
+            'amount_in_usd' => 0.17,
+            'order_currency' => 'USD',
+            'order_amount' => 50.00,
+            'fx_rate' => 1.0,
+            'platform_fee_usd' => 0.0,
+            'filled_amount' => 0.00006,
+            'filled_amount_in_usd' => 0.157725,
+            'status' => 'PARTIALLY_FILLED',
+            'currency' => 'ETH',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->getJson(
+            '/public/events/'.$this->eventId.'/order/ORD12345?include=event&session_identifier=test-session-123',
+            ['Accept' => 'application/json']
+        );
+
+        $response->assertOk();
+        $response->assertJsonPath('data.payment.state', 'PARTIALLY_FILLED');
+        $response->assertJsonPath('data.payment.reference_id', 'ref-partial-1');
+        $response->assertJsonPath('data.payment.underpaid', true);
+        $response->assertJsonPath('data.payment.overpaid', false);
+
+        $payment = $response->json('data.payment');
+        $this->assertEqualsWithDelta(0.17, (float) $payment['expected_usd'], 1e-9);
+        $this->assertEqualsWithDelta(0.157725, (float) $payment['received_usd'], 1e-9);
+    }
+
     public function test_cancel_action_redirects_to_payment_with_canceled_flag(): void
     {
         $action = app(PayRamCancelAction::class);
