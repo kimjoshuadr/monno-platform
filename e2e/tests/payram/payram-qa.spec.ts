@@ -212,10 +212,16 @@ test.describe('PayRam · console overlay', () => {
     const account = await request.get(`${BASE_URL}/api/organizers/${configured.id}/payram/account`, {
       headers: { Accept: 'application/json' },
     });
-    const gateway = (await account.json()).gateway ?? {};
+    const accountBody = await account.json();
+    const gateway = accountBody.gateway ?? {};
     const canSweep = gateway.cold_wallet_configured === true && gateway.hot_wallet_active === true;
+    // The overlay resolves the project from the console URL, so open the
+    // project-scoped page rather than the dashboard (an account can own several
+    // projects, and the dashboard is ambiguous).
+    const projectId = accountBody.external_platform_id;
+    const consolePath = projectId ? `/project/${projectId}/dashboard` : '/dashboard';
 
-    await openConsole(page, request, configured, '/dashboard');
+    await openConsole(page, request, configured, consolePath);
 
     const state = await page.evaluate(() => {
       const banner = document.getElementById('monno-setup-banner');
@@ -233,7 +239,7 @@ test.describe('PayRam · console overlay', () => {
       };
     });
 
-    expect(state.version, 'overlay version').toBe('2026-10-04.2');
+    expect(state.version, 'overlay version').toBe('2026-10-04.3');
     expect(state.oldStepper, 'old stepper must be gone').toBe(false);
     expect(
       state.banner,
