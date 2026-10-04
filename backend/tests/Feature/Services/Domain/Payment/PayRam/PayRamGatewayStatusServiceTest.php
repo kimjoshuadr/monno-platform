@@ -335,7 +335,7 @@ class PayRamGatewayStatusServiceTest extends TestCase
             [$this->depositWallet(['ETH' => '0xcollector'], [9])],
             [],
             [
-                // per-sweep legs: only the fund transfer is the organizer's settlement
+                // per-sweep legs: the fund transfer is what reaches the organizer
                 ['status' => 'fund_collect_processed', 'amount' => '0.00063', 'currencyCode' => 'ETH'],
                 ['status' => 'fund_transfer', 'amount' => '0.001254', 'currencyCode' => 'ETH', 'toAddress' => '0xcold', 'txHash' => '0xabc', 'timestamp' => '2026-10-03T14:27:38Z'],
             ],
@@ -344,10 +344,40 @@ class PayRamGatewayStatusServiceTest extends TestCase
         $status = $this->gatewayStatus();
 
         $this->assertCount(1, $status['recent_settlements']);
-        $this->assertSame('0.001254', $status['recent_settlements'][0]['amount']);
+        $this->assertSame('0.001254', $status['recent_settlements'][0]['net']);
         $this->assertSame('ETH', $status['recent_settlements'][0]['currency_code']);
         $this->assertSame('0xcold', $status['recent_settlements'][0]['destination']);
         $this->assertSame('0xabc', $status['recent_settlements'][0]['transaction_hash']);
+    }
+
+    public function test_it_breaks_a_settlement_into_its_fee_legs(): void
+    {
+        // A real sweep transaction carries four legs that share one tx hash:
+        // the collect from the deposit address, PayRam's fee, Monno's operator
+        // fee, and the net that lands in the cold wallet. The card shows the
+        // breakdown so the organizer can check what left against what arrived.
+        $this->fakeWallets(
+            [$this->depositWallet(['ETH' => '0xcollector'], [9])],
+            [],
+            [
+                ['status' => 'operator_fee_transfer_processed', 'amount' => '0.0000015', 'currencyCode' => 'ETH', 'toAddress' => '0xaE30', 'txHash' => '0xabc', 'timestamp' => '2026-10-04T01:37:09Z'],
+                ['status' => 'fee_transfer_processed', 'amount' => '0.0000015', 'currencyCode' => 'ETH', 'toAddress' => '0xEEDb', 'txHash' => '0xabc', 'timestamp' => '2026-10-04T01:37:04Z'],
+                ['status' => 'fund_transfer', 'amount' => '0.000057', 'currencyCode' => 'ETH', 'toAddress' => '0xcold', 'txHash' => '0xabc', 'timestamp' => '2026-10-04T01:36:59Z'],
+                ['status' => 'fund_collect_processed', 'amount' => '0.00006', 'currencyCode' => 'ETH', 'toAddress' => '0xsweeper', 'txHash' => '0xabc', 'timestamp' => '2026-10-04T01:36:54Z'],
+            ],
+        );
+
+        $status = $this->gatewayStatus();
+
+        $settlement = $status['recent_settlements'][0];
+        $this->assertSame('0.00006', $settlement['gross']);
+        $this->assertSame('0.0000015', $settlement['payram_fee']);
+        $this->assertSame('0.0000015', $settlement['operator_fee']);
+        $this->assertSame('0.000057', $settlement['net']);
+        $this->assertSame('0xcold', $settlement['destination']);
+        $this->assertSame('0xabc', $settlement['transaction_hash']);
+        // 0.0000015 / 0.00006 = 2.5%.
+        $this->assertSame(250, $settlement['realised_rate_bps']);
     }
 
     public function test_a_cache_failure_does_not_break_the_status(): void

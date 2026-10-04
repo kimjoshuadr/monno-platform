@@ -260,7 +260,17 @@ class PayRamPaymentSettlementHandler
      */
     private function recordApplicationFee(PayramPaymentDomainObject $payment, OrderDomainObject $updatedOrder): void
     {
-        $feeUsd = (float) ($payment->getPlatformFeeUsd() ?? 0);
+        // What we record here is Monno's own revenue: the operator fee taken
+        // on-chain at sweep time. The stored platform_fee_usd is the *buyer's*
+        // markup, which pays PayRam's settlement fee — a different party's cut.
+        // The two are only equal while both rates happen to match, so derive
+        // ours from the operator rate rather than reusing the buyer's markup.
+        $operatorBps = max(0, (int) config('services.payram.operator_fee_bps', 0));
+        if ($operatorBps === 0) {
+            return;
+        }
+
+        $feeUsd = (float) $payment->getAmountInUsd() * $operatorBps / 10000;
         if ($feeUsd <= 0) {
             return;
         }

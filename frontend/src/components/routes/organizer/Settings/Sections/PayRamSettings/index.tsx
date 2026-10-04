@@ -20,13 +20,69 @@ import {
 import {Card} from "../../../../../common/Card";
 import {HeadingWithDescription} from "../../../../../common/Card/CardHeading";
 import {useGetPayRamAccount} from "../../../../../../queries/useGetPayRamAccount";
-import {IdParam} from "../../../../../../types";
+import {IdParam, PayRamGatewayStatus} from "../../../../../../types";
 import {organizerPayRamClient} from "../../../../../../api/organizer-payram.client";
 import {showInfo} from "../../../../../../utilites/notifications";
 
 interface PayRamSettingsProps {
     organizerId: IdParam;
 }
+
+type Settlement = NonNullable<PayRamGatewayStatus['recent_settlements']>[number];
+
+const shortAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`;
+
+/** 250 -> "2.5%", 300 -> "3%". */
+const formatRate = (bps?: number | null): string | null => (bps ? `${Number((bps / 100).toFixed(2))}%` : null);
+
+/**
+ * One sweep transaction, broken into the legs PayRam recorded on-chain. The
+ * organizer can see exactly what was collected, what each fee took, and what
+ * actually reached their cold wallet — rather than one figure they have to
+ * take on trust.
+ */
+const SettlementBreakdown = ({settlement}: { settlement: Settlement }) => {
+    const unit = settlement.currency_code ?? '';
+    const amount = (value?: string | null) => (value != null ? `${value} ${unit}`.trim() : null);
+    const rate = formatRate(settlement.realised_rate_bps);
+
+    return (
+        <Stack gap={2}>
+            <Text size="xs" c="dimmed">{t`Last settlement`}</Text>
+
+            {amount(settlement.gross) && (
+                <Group justify="space-between">
+                    <Text size="xs" c="dimmed">{t`Collected`}</Text>
+                    <Text size="xs">{amount(settlement.gross)}</Text>
+                </Group>
+            )}
+
+            {amount(settlement.payram_fee) && (
+                <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                        {t`PayRam fee`}{rate ? ` (${rate})` : ''}
+                    </Text>
+                    <Text size="xs">−{amount(settlement.payram_fee)}</Text>
+                </Group>
+            )}
+
+            {amount(settlement.operator_fee) && (
+                <Group justify="space-between">
+                    <Text size="xs" c="dimmed">{t`Monno fee`}</Text>
+                    <Text size="xs">−{amount(settlement.operator_fee)}</Text>
+                </Group>
+            )}
+
+            <Group justify="space-between">
+                <Text size="xs" c="dimmed">
+                    {t`Swept to your cold wallet`}
+                    {settlement.destination ? ` (${shortAddress(settlement.destination)})` : ''}
+                </Text>
+                <Text size="xs" fw={500}>{amount(settlement.net)}</Text>
+            </Group>
+        </Stack>
+    );
+};
 
 export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
     const {data, isPending} = useGetPayRamAccount(organizerId);
@@ -129,6 +185,10 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 {t`Choose the currencies you accept and record the wallet your sales settle to. Settling to that wallet needs one wallet connection in the PayRam console — we never ask for or hold your private keys.`}
                             </Text>
 
+                            <Text size="xs" c="dimmed">
+                                {t`Two fees apply when your sales settle: PayRam's 1–5% settlement fee, which your buyer pays as a visible markup at checkout, and Monno's 2.5%, which comes out of what you receive.`}
+                            </Text>
+
                             {isConnected && gatewayWalletReady === null && (
                                 <Alert
                                     color="orange"
@@ -211,10 +271,19 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                             <Stack gap="xs">
                                 <Group justify="space-between">
                                     <Text size="xs" c="dimmed">
-                                        {t`Platform fee`}
+                                        {t`Monno fee`}
                                     </Text>
                                     <Text size="xs" fw={500}>
-                                        {t`2.5% (automatically collected on-chain)`}
+                                        {t`2.5% — paid by you`}
+                                    </Text>
+                                </Group>
+
+                                <Group justify="space-between">
+                                    <Text size="xs" c="dimmed">
+                                        {t`PayRam settlement fee`}
+                                    </Text>
+                                    <Text size="xs" fw={500}>
+                                        {t`1–5% — paid by your buyer`}
                                     </Text>
                                 </Group>
 
@@ -223,7 +292,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                         {t`Settlement`}
                                     </Text>
                                     <Text size="xs" fw={500}>
-                                        {t`Instant sweep to your cold wallet`}
+                                        {t`Swept on-chain to your cold wallet`}
                                     </Text>
                                 </Group>
 
@@ -279,15 +348,7 @@ export const PayRamSettings = ({organizerId}: PayRamSettingsProps) => {
                                 )}
 
                                 {gateway?.available && (gateway.recent_settlements?.length ?? 0) > 0 && (
-                                    <Group justify="space-between">
-                                        <Text size="xs" c="dimmed">{t`Last settled`}</Text>
-                                        <Text size="xs" fw={500}>
-                                            {`${gateway.recent_settlements![0].amount} ${gateway.recent_settlements![0].currency_code ?? ''}`.trim()}
-                                            {gateway.recent_settlements![0].destination
-                                                ? ` → ${gateway.recent_settlements![0].destination!.slice(0, 6)}…${gateway.recent_settlements![0].destination!.slice(-4)}`
-                                                : ''}
-                                        </Text>
-                                    </Group>
+                                    <SettlementBreakdown settlement={gateway.recent_settlements![0]}/>
                                 )}
 
                                 {gateway?.available === false && (

@@ -62,11 +62,18 @@ return [
         'enabled' => (bool) env('PAYRAM_ENABLED', true),
         'timeout' => (int) env('PAYRAM_TIMEOUT', 20),
 
-        // Operator markup PayRam collects on-chain at sweep time (bps).
-        // Must match the fee configured for this chain in the PayRam dashboard,
-        // because we gross the buyer's amount up by it so the organizer nets
-        // their sticker price.
-        'fee_bps' => (int) env('PAYRAM_FEE_BPS', 250),
+        // PayRam's own settlement fee (bps). It is taken on-chain at sweep time
+        // by PayRam's sweep contract and passed to the buyer as a visible
+        // markup, so the buyer pays ticket / (1 - bps). PayRam controls this
+        // rate (capped at 500 bps), which is why the settlement record
+        // reconciles this estimate against the legs actually swept.
+        'settlement_fee_bps' => (int) env('PAYRAM_SETTLEMENT_FEE_BPS', env('PAYRAM_FEE_BPS', 250)),
+
+        // Monno's operator fee (bps). It is taken on-chain by the same sweep
+        // contract, but the organizer bears it — it is never grossed up onto
+        // the buyer. The settlement record shows it as its own leg so the
+        // organizer can see exactly what left and what arrived.
+        'operator_fee_bps' => (int) env('PAYRAM_OPERATOR_FEE_BPS', env('PAYRAM_FEE_BPS', 250)),
 
         // The shared operator hot wallet (EVM family). Every new project is
         // attached to it at provisioning so buyer funds can sweep to the

@@ -24,7 +24,14 @@ class PayRamHealthCommand extends Command
     protected $signature = 'monno:payram-health
         {--json : Emit machine-readable JSON}';
 
-    protected $description = 'Report PayRam projects whose sweeps are broken (no hot wallet, sweep failures).';
+    protected $description = 'Report PayRam projects whose sweeps are broken (no hot wallet, sweep failures, fee drift).';
+
+    /**
+     * How far the rate PayRam actually charged may drift from the rate we quote
+     * before it is worth flagging. Coin amounts are rounded, so a little slack
+     * is expected; a real rate change is not.
+     */
+    private const FEE_DRIFT_TOLERANCE_BPS = 50;
 
     public function __construct(
         private readonly PayRamOperatorClient $operatorClient,
@@ -83,6 +90,8 @@ class PayRamHealthCommand extends Command
             } catch (Throwable $exception) {
                 $issues[] = ['project' => $projectId, 'label' => $label, 'type' => 'balance_unreadable', 'detail' => $exception->getMessage()];
             }
+
+            $this->checkSettlementFeeDrift($projectId, $label, $issues);
         }
 
         if ($issues === []) {
@@ -103,6 +112,88 @@ class PayRamHealthCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * The rate we quote the buyer against is our estimate of what PayRam's sweep
+     * will take. PayRam can move that rate (it is capped, not fixed), and if it
+     * moves the quote no longer matches what leaves — the buyer's markup stops
+     * covering the fee, or the organizer silently eats the difference. Compare
+     * the rate the last settled sweep actually charged against what we quote.
+     *
+     * @param  array<int, array<string, mixed>>  $issues
+     */
+    private function checkSettlementFeeDrift(int $projectId, string $label, array &$issues): void
+    {
+        $configured = max(0, (int) config('services.payram.settlement_fee_bps', 0));
+        if ($configured === 0) {
+            return;
+        }
+
+        try {
+            $sweeps = $this->operatorClient->getProjectSweeps($projectId, 40);
+        } catch (Throwable) {
+            // An unreachable gateway is already reported by the wallet check.
+            return;
+        }
+
+        $legsByTx = [];
+        foreach ($sweeps as $sweep) {
+            if (! is_array($sweep)) {
+                continue;
+            }
+            $txHash = (string) ($sweep['txHash'] ?? '');
+            if ($txHash !== '') {
+                $legsByTx[$txHash][] = $sweep;
+            }
+        }
+
+        foreach ($sweeps as $sweep) {
+            if (! is_array($sweep)) {
+                continue;
+            }
+
+            $txHash = (string) ($sweep['txHash'] ?? '');
+            if ($txHash === '' || ! isset($legsByTx[$txHash])) {
+                continue;
+            }
+
+            $gross = null;
+            $payramFee = null;
+            foreach ($legsByTx[$txHash] as $leg) {
+                $status = (string) ($leg['status'] ?? '');
+                if (in_array($status, ['fund_collect', 'fund_collect_processed'], true)) {
+                    $gross = $leg['amount'] ?? null;
+                }
+                if (in_array($status, ['fee_transfer', 'fee_transfer_processed'], true)) {
+                    $payramFee = $leg['amount'] ?? null;
+                }
+            }
+
+            unset($legsByTx[$txHash]);
+
+            if ($gross === null || $payramFee === null || (float) $gross <= 0) {
+                continue;
+            }
+
+            $realised = (int) round(((float) $payramFee / (float) $gross) * 10000);
+
+            if (abs($realised - $configured) > self::FEE_DRIFT_TOLERANCE_BPS) {
+                $issues[] = [
+                    'project' => $projectId,
+                    'label' => $label,
+                    'type' => 'settlement_fee_drift',
+                    'detail' => sprintf(
+                        'PayRam took %.2f%% on the last sweep but we quote %.2f%% — update PAYRAM_SETTLEMENT_FEE_BPS',
+                        $realised / 100,
+                        $configured / 100,
+                    ),
+                ];
+            }
+
+            // Only the newest settled sweep holds the current rate.
+            return;
+        }
     }
 
     /**

@@ -54,7 +54,8 @@ class CreatePayRamPaymentHandlerTest extends TestCase
             'services.payram.enabled' => true,
             'services.payram.base_url' => 'https://pay.monno.io',
             'services.payram.api_key' => 'key',
-            'services.payram.fee_bps' => 250,
+            'services.payram.settlement_fee_bps' => 250,
+            'services.payram.operator_fee_bps' => 250,
             'mail.from.address' => 'no-reply@monno.io',
         ]);
 
@@ -169,7 +170,10 @@ class CreatePayRamPaymentHandlerTest extends TestCase
         $this->assertSame(25.00, $response->orderAmount);
         // 25.00 / (1 - 0.025) = 25.6410... -> rounds up to the cent
         $this->assertSame(25.65, $response->amountInUsd);
-        $this->assertSame(0.65, $response->platformFeeUsd);
+        $this->assertSame(0.65, $response->payramFeeUsd);
+        // The buyer is told the rate as well as the amount.
+        $this->assertSame(250, $response->feeRateBps);
+        $this->assertSame('2.5', $response->feeRatePercent());
     }
 
     public function test_it_stamps_the_order_as_payram_when_the_session_is_created(): void
@@ -236,10 +240,10 @@ class CreatePayRamPaymentHandlerTest extends TestCase
 
         // 100 / 0.975 = 102.5641... -> 102.57
         $this->assertSame(102.57, $response->amountInUsd);
-        $this->assertSame(2.57, $response->platformFeeUsd);
+        $this->assertSame(2.57, $response->payramFeeUsd);
 
-        // After PayRam takes 2.5% of what the buyer paid, the organizer is left
-        // with at least the ticket price.
+        // After the sweep takes PayRam's 2.5% of what the buyer paid, the
+        // buyer's markup has covered that fee exactly.
         $this->assertGreaterThanOrEqual(100.00, $response->amountInUsd * 0.975);
     }
 
@@ -267,14 +271,71 @@ class CreatePayRamPaymentHandlerTest extends TestCase
 
         // 19.30 / (1 - 0.025) = 19.7948... -> rounds up to 19.80
         $this->assertSame(19.80, $response->amountInUsd);
-        $this->assertSame(0.50, $response->platformFeeUsd);
+        $this->assertSame(0.50, $response->payramFeeUsd);
         $this->assertSame('PHP', $response->orderCurrency);
         $this->assertSame(1099.00, $response->orderAmount);
         $this->assertSame(0.017561, round($response->fxRate, 6));
 
-        // After PayRam takes its 2.5% on-chain, the organizer is still left
-        // with at least the ticket price they advertised.
+        // The buyer's markup has covered PayRam's 2.5%; the organizer separately
+        // bears Monno's operator fee, which is not grossed up here.
         $this->assertGreaterThanOrEqual(19.30, $response->amountInUsd * 0.975);
+    }
+
+    public function test_the_operator_fee_is_not_grossed_up_onto_the_buyer(): void
+    {
+        // The split: the buyer pays PayRam's settlement fee, the organizer bears
+        // Monno's operator fee. Changing the operator rate must therefore not
+        // move the buyer's amount at all — only the settlement rate may.
+        config(['services.payram.operator_fee_bps' => 900]);
+
+        $order = $this->makeOrder(currency: 'USD', totalGross: 100.00);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO('ref-op', 'https://pay.monno.io/payments?reference_id=ref-op', ''));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        // Still PayRam's 2.5%, not the 9% operator rate.
+        $this->assertSame(102.57, $response->amountInUsd);
+        $this->assertSame(2.57, $response->payramFeeUsd);
+        $this->assertSame(250, $response->feeRateBps);
+    }
+
+    public function test_the_gross_up_covers_the_fee_exactly_rather_than_leaving_a_squared_shortfall(): void
+    {
+        // Grossing up by (1 + r) instead of 1 / (1 - r) leaves the organizer
+        // short by r^2. Assert the markup is at least the fee on the collected
+        // amount, so the buyer's markup fully covers what the sweep takes.
+        $order = $this->makeOrder(currency: 'USD', totalGross: 200.00);
+
+        $this->orderRepository->shouldReceive('loadRelation')->andReturnSelf();
+        $this->orderRepository->shouldReceive('findByShortId')->andReturn($order);
+        $this->orderRepository->shouldReceive('updateFromArray')->andReturn($order);
+        $this->sessionService->shouldReceive('verifySession')->andReturn(true);
+        $this->eventSettingsRepository->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeSettings([PaymentProviders::PAYRAM->value]));
+        $this->payramPaymentsRepository->shouldReceive('findWhere')->andReturn(new Collection);
+        $this->payramPaymentsRepository->shouldReceive('create')->andReturn(new PayramPaymentDomainObject);
+        $this->payramClient->shouldReceive('createPayment')
+            ->andReturn(new PayRamPaymentSessionDTO('ref-e', 'https://pay.monno.io/payments?reference_id=ref-e', ''));
+
+        $response = $this->handler()->handle('ORDSHORT');
+
+        $feeOnCollected = $response->amountInUsd * 0.025;
+
+        $this->assertGreaterThanOrEqual(
+            $feeOnCollected,
+            $response->payramFeeUsd,
+            'The buyer markup must cover the fee charged on the collected amount.'
+        );
     }
 
     public function test_it_rejects_an_order_whose_session_cannot_be_verified(): void

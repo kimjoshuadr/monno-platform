@@ -176,37 +176,58 @@ readonly class PayRamGatewayStatusService
     }
 
     /**
-     * The last few sweeps that moved funds to the organizer's cold wallet,
-     * newest first. PayRam records several legs per sweep (collect, fee,
-     * transfer); only the fund transfer to the cold wallet is the organizer's
-     * settlement, so that is what we surface. A failure here only drops the
-     * detail — it never affects readiness.
+     * The recent sweeps that reached the organizer's cold wallet, newest first.
+     *
+     * PayRam records one row per leg of a single sweep transaction: the collect
+     * from the deposit address, PayRam's fee transfer, Monno's operator-fee
+     * transfer, and the fund transfer to the cold wallet. Grouping the legs by
+     * transaction hash turns four rows into the one thing the organizer cares
+     * about — what was collected, what each fee took, and what actually
+     * arrived — instead of a bare "last settled" figure they cannot check.
+     *
+     * A failure here only drops the detail — it never affects readiness.
      *
      * @return array<int, array<string, mixed>>
      */
     private function recentSettlements(int $projectId): array
     {
         try {
-            $sweeps = $this->operatorClient->getProjectSweeps($projectId, 20);
+            // 40 rows covers a handful of sweeps; each sweep is several rows.
+            $sweeps = $this->operatorClient->getProjectSweeps($projectId, 40);
         } catch (Throwable) {
             return [];
         }
 
-        $settlements = [];
-
+        $legsByTx = [];
         foreach ($sweeps as $sweep) {
-            if (! is_array($sweep) || ($sweep['status'] ?? null) !== 'fund_transfer') {
+            if (! is_array($sweep)) {
                 continue;
             }
 
-            $settlements[] = [
-                'amount' => (string) ($sweep['amount'] ?? '0'),
-                'currency_code' => $sweep['currencyCode'] ?? null,
-                'blockchain_code' => $sweep['blockchainCode'] ?? null,
-                'destination' => $sweep['toAddress'] ?? null,
-                'transaction_hash' => $sweep['txHash'] ?? null,
-                'at' => $sweep['timestamp'] ?? ($sweep['createdAt'] ?? null),
-            ];
+            $txHash = (string) ($sweep['txHash'] ?? '');
+            if ($txHash !== '') {
+                $legsByTx[$txHash][] = $sweep;
+            }
+        }
+
+        $settlements = [];
+        $seen = [];
+
+        foreach ($sweeps as $sweep) {
+            if (! is_array($sweep)) {
+                continue;
+            }
+
+            $txHash = (string) ($sweep['txHash'] ?? '');
+            if ($txHash === '' || isset($seen[$txHash])) {
+                continue;
+            }
+            $seen[$txHash] = true;
+
+            $settlement = $this->summariseSweep($txHash, $legsByTx[$txHash] ?? []);
+            if ($settlement !== null) {
+                $settlements[] = $settlement;
+            }
 
             if (count($settlements) >= 3) {
                 break;
@@ -214,6 +235,77 @@ readonly class PayRamGatewayStatusService
         }
 
         return $settlements;
+    }
+
+    /**
+     * Collapse the legs of one sweep into a single settlement record.
+     *
+     * @param  array<int, array<string, mixed>>  $legs
+     * @return array<string, mixed>|null
+     */
+    private function summariseSweep(string $txHash, array $legs): ?array
+    {
+        $gross = null;
+        $payramFee = null;
+        $operatorFee = null;
+        $net = null;
+        $destination = null;
+        $currency = null;
+        $blockchain = null;
+        $at = null;
+
+        foreach ($legs as $leg) {
+            $status = (string) ($leg['status'] ?? '');
+            $amount = $leg['amount'] ?? null;
+
+            $currency ??= $leg['currencyCode'] ?? null;
+            $blockchain ??= $leg['blockchainCode'] ?? null;
+            $at ??= $leg['timestamp'] ?? ($leg['createdAt'] ?? null);
+
+            switch ($status) {
+                case 'fund_collect':
+                case 'fund_collect_processed':
+                    $gross = $amount;
+                    break;
+                case 'fee_transfer':
+                case 'fee_transfer_processed':
+                    $payramFee = $amount;
+                    break;
+                case 'operator_fee_transfer':
+                case 'operator_fee_transfer_processed':
+                    $operatorFee = $amount;
+                    break;
+                case 'fund_transfer':
+                    $net = $amount;
+                    $destination ??= $leg['toAddress'] ?? null;
+                    break;
+            }
+        }
+
+        // A sweep only counts as a settlement once the fund transfer to the
+        // cold wallet exists; the fee legs alone can also belong to an
+        // in-flight sweep that has not landed yet.
+        if ($net === null) {
+            return null;
+        }
+
+        $realisedRateBps = null;
+        if ($gross !== null && (float) $gross > 0 && $payramFee !== null) {
+            $realisedRateBps = (int) round(((float) $payramFee / (float) $gross) * 10000);
+        }
+
+        return [
+            'gross' => $gross !== null ? (string) $gross : null,
+            'payram_fee' => $payramFee !== null ? (string) $payramFee : null,
+            'operator_fee' => $operatorFee !== null ? (string) $operatorFee : null,
+            'net' => (string) $net,
+            'realised_rate_bps' => $realisedRateBps,
+            'currency_code' => $currency,
+            'blockchain_code' => $blockchain,
+            'destination' => $destination,
+            'transaction_hash' => $txHash,
+            'at' => $at,
+        ];
     }
 
     /**

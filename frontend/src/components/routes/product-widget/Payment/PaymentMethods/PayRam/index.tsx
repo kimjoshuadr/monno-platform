@@ -87,11 +87,13 @@ export const PayRamPaymentMethod = ({enabled, setSubmitHandler}: PayRamPaymentMe
                         <Text size="sm" c="dimmed">≈ {formatCurrency(data.ticket_amount_in_usd, 'USD')}</Text>
                     </Group>
 
-                    {data.platform_fee_usd > 0 && (
+                    {data.payram_fee_usd > 0 && (
                         <Group justify="space-between">
-                            <Text size="sm" c="dimmed">{t`Payment processing`}</Text>
                             <Text size="sm" c="dimmed">
-                                {formatCurrency(data.platform_fee_usd, 'USD')}
+                                {t`PayRam settlement fee`} ({data.fee_rate_percent}%)
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                                {formatCurrency(data.payram_fee_usd, 'USD')}
                             </Text>
                         </Group>
                     )}

@@ -76,7 +76,7 @@ readonly class CreatePayRamPaymentHandler
 
         $this->assertPayRamIsEnabledForEvent($order->getEventId());
 
-        [$amountInUsd, $platformFeeUsd, $fxRate] = $this->quote($order);
+        [$amountInUsd, $payramFeeUsd, $fxRate, $feeRateBps] = $this->quote($order);
 
         $this->assertInvoiceClearsTheFloor($amountInUsd);
 
@@ -85,11 +85,17 @@ readonly class CreatePayRamPaymentHandler
 
         $existing = $this->findReusableSession($order->getId(), $expiresAt);
         if ($existing !== null) {
+            $existingAmount = (float) $existing->getAmountInUsd();
+            $existingFee = (float) ($existing->getPlatformFeeUsd() ?? 0);
+
             return new CreatePayRamPaymentResponseDTO(
                 referenceId: $existing->getReferenceId(),
                 checkoutUrl: (string) $existing->getCheckoutUrl(),
-                amountInUsd: (float) $existing->getAmountInUsd(),
-                platformFeeUsd: (float) ($existing->getPlatformFeeUsd() ?? 0),
+                amountInUsd: $existingAmount,
+                payramFeeUsd: $existingFee,
+                // Derive the rate from what was actually quoted, so a rate
+                // change after the session was minted cannot mislabel it.
+                feeRateBps: $existingAmount > 0 ? (int) round($existingFee / $existingAmount * 10000) : 0,
                 orderAmount: (float) $existing->getOrderAmount(),
                 orderCurrency: $existing->getOrderCurrency(),
                 fxRate: (float) ($existing->getFxRate() ?? 1),
@@ -122,7 +128,7 @@ readonly class CreatePayRamPaymentHandler
             PayramPaymentDomainObjectAbstract::ORDER_CURRENCY => $order->getCurrency(),
             PayramPaymentDomainObjectAbstract::ORDER_AMOUNT => (float) $order->getTotalGross(),
             PayramPaymentDomainObjectAbstract::FX_RATE => $fxRate,
-            PayramPaymentDomainObjectAbstract::PLATFORM_FEE_USD => $platformFeeUsd,
+            PayramPaymentDomainObjectAbstract::PLATFORM_FEE_USD => $payramFeeUsd,
             PayramPaymentDomainObjectAbstract::STATUS => PayRamPaymentStatus::OPEN->value,
             PayramPaymentDomainObjectAbstract::EXPIRES_AT => $expiresAt->toDateTimeString(),
         ]);
@@ -139,7 +145,8 @@ readonly class CreatePayRamPaymentHandler
             referenceId: $session->referenceId,
             checkoutUrl: $session->checkoutUrl,
             amountInUsd: $amountInUsd,
-            platformFeeUsd: $platformFeeUsd,
+            payramFeeUsd: $payramFeeUsd,
+            feeRateBps: $feeRateBps,
             orderAmount: (float) $order->getTotalGross(),
             orderCurrency: $order->getCurrency(),
             fxRate: $fxRate,
@@ -189,7 +196,7 @@ readonly class CreatePayRamPaymentHandler
     }
 
     /**
-     * @return array{0: float, 1: float, 2: float} [amountInUsd, platformFeeUsd, fxRate]
+     * @return array{0: float, 1: float, 2: float, 3: int} [amountInUsd, payramFeeUsd, fxRate, feeRateBps]
      *
      * @throws PayRamConfigurationException
      */
@@ -223,19 +230,25 @@ readonly class CreatePayRamPaymentHandler
             $ticketUsd = $orderAmount;
         }
 
-        $feeBps = max(0, (int) config('services.payram.fee_bps', 250));
+        // PayRam's settlement fee is passed to the buyer: they pay the ticket
+        // price grossed up by exactly what the sweep will take for PayRam.
+        // Monno's operator fee is deliberately NOT grossed up — the organizer
+        // bears it (see config/services.php).
+        $feeBps = max(0, (int) config('services.payram.settlement_fee_bps', 250));
         if ($feeBps === 0) {
-            return [round($ticketUsd, 2), 0.0, $fxRate];
+            return [round($ticketUsd, 2), 0.0, $fxRate, 0];
         }
 
-        // Gross up so that, after PayRam takes feeBps on-chain, the organizer
-        // is left with exactly the ticket price.
+        // The fee is a percentage of what gets swept, and what gets swept
+        // includes the grossed-up amount, so the markup is ticket / (1 - fee) —
+        // not ticket * (1 + fee), which would leave the organizer short by the
+        // fee squared.
         $grossedUp = $ticketUsd / (1 - ($feeBps / 10000));
 
         // Round up to the cent so we never under-collect the fee.
         $amountInUsd = ceil($grossedUp * 100) / 100;
 
-        return [$amountInUsd, round($amountInUsd - $ticketUsd, 2), $fxRate];
+        return [$amountInUsd, round($amountInUsd - $ticketUsd, 2), $fxRate, $feeBps];
     }
 
     private function determineExpiry($order): Carbon

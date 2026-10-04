@@ -38,8 +38,16 @@ class CreatePayRamPaymentActionPublic extends BaseAction
             'amount_in_usd_formatted' => $session->amountInUsdFormatted(),
             'ticket_amount_in_usd' => $session->ticketAmountInUsd(),
             'ticket_amount_in_usd_formatted' => $session->ticketAmountInUsdFormatted(),
-            'platform_fee_usd' => $session->platformFeeUsd,
-            'platform_fee_usd_formatted' => $session->platformFeeUsdFormatted(),
+            // PayRam's settlement fee, which the buyer is paying. Named for what
+            // it is: the markup is PayRam's cut, not Monno's.
+            'payram_fee_usd' => $session->payramFeeUsd,
+            'payram_fee_usd_formatted' => $session->payramFeeUsdFormatted(),
+            'fee_rate_bps' => $session->feeRateBps,
+            'fee_rate_percent' => $session->feeRatePercent(),
+            // Deprecated alias, kept so a client loaded before this change still
+            // renders a fee line instead of a blank one.
+            'platform_fee_usd' => $session->payramFeeUsd,
+            'platform_fee_usd_formatted' => $session->payramFeeUsdFormatted(),
             'order_amount' => $session->orderAmount,
             'order_currency' => $session->orderCurrency,
             'fx_rate' => $session->fxRate,

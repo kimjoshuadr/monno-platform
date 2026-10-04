@@ -259,9 +259,18 @@ export interface PayRamGatewayStatus {
         amount: string;
         amount_usd?: string | null;
     }>;
-    /** Recent sweeps that reached the organizer's cold wallet, newest first. */
+    /**
+     * Recent sweeps that reached the organizer's cold wallet, newest first.
+     * Each entry is one sweep transaction, broken into the legs PayRam recorded
+     * on-chain: what was collected, what each fee took, and what arrived.
+     */
     recent_settlements?: Array<{
-        amount: string;
+        gross?: string | null;
+        payram_fee?: string | null;
+        operator_fee?: string | null;
+        net: string;
+        /** The rate PayRam actually charged on this sweep. */
+        realised_rate_bps?: number | null;
         currency_code?: string | null;
         blockchain_code?: string | null;
         destination?: string | null;

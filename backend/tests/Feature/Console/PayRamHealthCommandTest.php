@@ -40,6 +40,10 @@ class PayRamHealthCommandTest extends TestCase
 
     private function bind(array $accounts, PayRamOperatorClient $client): void
     {
+        // Most tests do not care about fee drift; give it an empty sweep list
+        // unless the test asks for one.
+        $client->shouldReceive('getProjectSweeps')->andReturn([])->byDefault();
+
         $this->app->instance(PayRamOperatorClient::class, $client);
 
         $repository = Mockery::mock(OrganizerPayRamAccountsRepositoryInterface::class);
@@ -112,5 +116,53 @@ class PayRamHealthCommandTest extends TestCase
 
         $this->assertSame(1, $exit);
         $this->assertStringContainsString('sweep_failed', Artisan::output());
+    }
+
+    public function test_fee_drift_between_the_quote_and_the_last_sweep_is_flagged(): void
+    {
+        // PayRam can move its settlement rate. If the last sweep charged 4% but
+        // we still quote 2.5%, the buyer's markup no longer covers the fee and
+        // the organizer silently eats the difference. That is worth an alarm.
+        config(['services.payram.settlement_fee_bps' => 250]);
+
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9),
+            $this->hotWallet(5, 9),
+        ]);
+        $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([]);
+        $client->shouldReceive('getProjectSweeps')->with(9, 40)->andReturn([
+            ['status' => 'fund_transfer', 'amount' => '0.000096', 'txHash' => '0xabc', 'toAddress' => '0xcold'],
+            ['status' => 'fee_transfer_processed', 'amount' => '0.000004', 'txHash' => '0xabc'],
+            ['status' => 'fund_collect_processed', 'amount' => '0.0001', 'txHash' => '0xabc'],
+        ]);
+        $this->bind([$this->account(9, 'GN Club')], $client);
+
+        $exit = Artisan::call('monno:payram-health');
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('settlement_fee_drift', Artisan::output());
+    }
+
+    public function test_a_settlement_at_the_quoted_rate_is_not_flagged(): void
+    {
+        config(['services.payram.settlement_fee_bps' => 250]);
+
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9),
+            $this->hotWallet(5, 9),
+        ]);
+        $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([]);
+        $client->shouldReceive('getProjectSweeps')->with(9, 40)->andReturn([
+            ['status' => 'fund_transfer', 'amount' => '0.0000975', 'txHash' => '0xabc', 'toAddress' => '0xcold'],
+            ['status' => 'fee_transfer_processed', 'amount' => '0.0000025', 'txHash' => '0xabc'],
+            ['status' => 'fund_collect_processed', 'amount' => '0.0001', 'txHash' => '0xabc'],
+        ]);
+        $this->bind([$this->account(9, 'GN Club')], $client);
+
+        $exit = Artisan::call('monno:payram-health');
+
+        $this->assertSame(0, $exit);
     }
 }

@@ -8,7 +8,8 @@ readonly class CreatePayRamPaymentResponseDTO
         public string $referenceId,
         public string $checkoutUrl,
         public float $amountInUsd,
-        public float $platformFeeUsd,
+        public float $payramFeeUsd,
+        public int $feeRateBps,
         public float $orderAmount,
         public string $orderCurrency,
         public float $fxRate,
@@ -24,12 +25,12 @@ readonly class CreatePayRamPaymentResponseDTO
     }
 
     /**
-     * What the ticket itself is worth in USD — the grossed-up amount minus the
-     * fee, so the checkout line reads ₱1,099 ≈ $17.51 + $0.45 = $17.96.
+     * What the ticket itself is worth in USD — the grossed-up amount minus
+     * PayRam's fee, so the checkout line reads ₱1,099 ≈ $17.51 + $0.44 = $17.95.
      */
     public function ticketAmountInUsd(): float
     {
-        return round($this->amountInUsd - $this->platformFeeUsd, 2);
+        return round($this->amountInUsd - $this->payramFeeUsd, 2);
     }
 
     public function ticketAmountInUsdFormatted(): string
@@ -37,8 +38,17 @@ readonly class CreatePayRamPaymentResponseDTO
         return number_format($this->ticketAmountInUsd(), 2, '.', '');
     }
 
-    public function platformFeeUsdFormatted(): string
+    public function payramFeeUsdFormatted(): string
     {
-        return number_format($this->platformFeeUsd, 2, '.', '');
+        return number_format($this->payramFeeUsd, 2, '.', '');
+    }
+
+    /**
+     * "2.5" — the rate shown beside the fee line, without forcing a trailing
+     * zero or a misleadingly precise figure.
+     */
+    public function feeRatePercent(): string
+    {
+        return rtrim(rtrim(number_format($this->feeRateBps / 100, 2, '.', ''), '0'), '.') ?: '0';
     }
 }
