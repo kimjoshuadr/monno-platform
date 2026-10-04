@@ -144,6 +144,7 @@ test.describe('PayRam · Monno card', () => {
       const json = await resp.json();
       if (json?.gateway) {
         json.gateway.hot_wallet_configured = false;
+        json.gateway.hot_wallet_active = false;
       }
       await route.fulfill({
         status: 200,
