@@ -28,6 +28,16 @@ class PayRamHealthCommandTest extends TestCase
         ];
     }
 
+    private function depositWallet(int $id, int $projectId, ?string $collector = '0xcollector'): array
+    {
+        return [
+            'id' => $id,
+            'walletType' => 'deposit_wallet',
+            'walletScws' => [['blockchainCode' => 'ETH', 'fundCollectorAddress' => $collector]],
+            'externalPlatformWallets' => [['externalPlatformID' => $projectId]],
+        ];
+    }
+
     private function bind(array $accounts, PayRamOperatorClient $client): void
     {
         $this->app->instance(PayRamOperatorClient::class, $client);
@@ -37,12 +47,15 @@ class PayRamHealthCommandTest extends TestCase
         $this->app->instance(OrganizerPayRamAccountsRepositoryInterface::class, $repository);
     }
 
-    public function test_a_project_with_the_shared_hot_wallet_and_no_errors_is_healthy(): void
+    public function test_a_configured_project_with_a_hot_wallet_and_no_errors_is_healthy(): void
     {
         config(['services.payram.hot_wallet_id' => 5]);
 
         $client = Mockery::mock(PayRamOperatorClient::class);
-        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([$this->hotWallet(5, 9)]);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9),
+            $this->hotWallet(5, 9),
+        ]);
         $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([
             ['walletName' => 'EVM Deposit', 'lastSweepError' => null],
         ]);
@@ -54,29 +67,44 @@ class PayRamHealthCommandTest extends TestCase
         $this->assertStringContainsString('all projects healthy', Artisan::output());
     }
 
-    public function test_a_project_with_the_wrong_hot_wallet_is_flagged(): void
+    public function test_a_configured_project_without_a_hot_wallet_is_flagged(): void
     {
-        config(['services.payram.hot_wallet_id' => 5]);
-
         $client = Mockery::mock(PayRamOperatorClient::class);
-        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([$this->hotWallet(99, 9)]);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9), // can take money...
+            // ...but no hot wallet, so it cannot sweep.
+        ]);
         $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([]);
         $this->bind([$this->account(9, 'GN Club')], $client);
 
         $exit = Artisan::call('monno:payram-health');
 
         $this->assertSame(1, $exit);
-        $this->assertStringContainsString('hot_wallet_deviation', Artisan::output());
+        $this->assertStringContainsString('missing_hot_wallet', Artisan::output());
+    }
+
+    public function test_a_project_with_no_deposit_wallet_is_not_flagged(): void
+    {
+        // Nothing to sweep yet — the organizer has not finished setup.
+        $client = Mockery::mock(PayRamOperatorClient::class);
+        $client->shouldReceive('getProjectWallets')->with(35)->andReturn([]);
+        $client->shouldReceive('getProjectAddressBalances')->with(35)->andReturn([]);
+        $this->bind([$this->account(35, 'GN Club 26')], $client);
+
+        $exit = Artisan::call('monno:payram-health');
+
+        $this->assertSame(0, $exit);
     }
 
     public function test_a_failed_sweep_is_flagged(): void
     {
-        config(['services.payram.hot_wallet_id' => 5]);
-
         $client = Mockery::mock(PayRamOperatorClient::class);
-        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([$this->hotWallet(5, 9)]);
+        $client->shouldReceive('getProjectWallets')->with(9)->andReturn([
+            $this->depositWallet(6, 9),
+            $this->hotWallet(5, 9),
+        ]);
         $client->shouldReceive('getProjectAddressBalances')->with(9)->andReturn([
-            ['walletName' => 'EVM Deposit', 'lastSweepError' => ['statusCode' => 'HOT_WALLET_MISSING', 'reason' => 'No hot wallet assigned']],
+            ['walletName' => 'EVM Deposit', 'lastSweepError' => ['statusCode' => 'DEPOSIT_NOT_DEPLOYED_LOW_GAS', 'reason' => 'insufficient fees']],
         ]);
         $this->bind([$this->account(9, 'GN Club')], $client);
 

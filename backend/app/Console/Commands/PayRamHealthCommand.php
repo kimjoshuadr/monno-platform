@@ -10,11 +10,11 @@ use Throwable;
 /**
  * Watches every merchant project for the things that silently strand money.
  *
- * Two failures matter operationally:
- *   - a project whose hot wallet is not the shared operator wallet (it cannot
- *     sweep, or it sweeps under the wrong gas), and
- *   - a project whose last sweep failed (that is how "low gas", "no hot wallet"
- *     and "deposit not deployed" surface).
+ * A project can accept payments as soon as it has a deposit wallet, but it can
+ * only *sweep* once it has a hot wallet to pay gas. Funds arriving on a project
+ * with no hot wallet are stuck, so that is the headline check here. The second
+ * check is the last sweep failure — which is how a dry hot wallet, an undeployed
+ * deposit contract or a wrong hot-wallet key surface.
  *
  * Exits non-zero when anything is wrong, so the scheduler is the alarm. It does
  * not read on-chain balances — PayRam reports the failures itself.
@@ -24,7 +24,7 @@ class PayRamHealthCommand extends Command
     protected $signature = 'monno:payram-health
         {--json : Emit machine-readable JSON}';
 
-    protected $description = 'Report PayRam projects whose sweeps are broken (hot-wallet deviation, sweep failures).';
+    protected $description = 'Report PayRam projects whose sweeps are broken (no hot wallet, sweep failures).';
 
     public function __construct(
         private readonly PayRamOperatorClient $operatorClient,
@@ -35,7 +35,6 @@ class PayRamHealthCommand extends Command
 
     public function handle(): int
     {
-        $sharedHotWalletId = (int) config('services.payram.hot_wallet_id', 0);
         $issues = [];
 
         foreach ($this->accountsRepository->all() as $account) {
@@ -54,14 +53,18 @@ class PayRamHealthCommand extends Command
                 continue;
             }
 
-            $hotWalletIds = $this->hotWalletIdsForProject($wallets, $projectId);
+            $mine = $this->projectWallets($wallets, $projectId);
+            $hasDepositWallet = $this->hasConfiguredDepositWallet($mine);
+            $hasHotWallet = $this->hasHotWallet($mine);
 
-            if ($sharedHotWalletId > 0 && ! in_array($sharedHotWalletId, $hotWalletIds, true)) {
+            // A project that can take money but cannot move it. Before a deposit
+            // wallet exists there is nothing to sweep yet, so this is not an error.
+            if ($hasDepositWallet && ! $hasHotWallet) {
                 $issues[] = [
                     'project' => $projectId,
                     'label' => $label,
-                    'type' => 'hot_wallet_deviation',
-                    'detail' => sprintf('assigned hot wallet(s) [%s], expected %d', implode(', ', $hotWalletIds), $sharedHotWalletId),
+                    'type' => 'missing_hot_wallet',
+                    'detail' => 'has a deposit wallet but no hot wallet — funds cannot sweep',
                 ];
             }
 
@@ -73,11 +76,7 @@ class PayRamHealthCommand extends Command
                             'project' => $projectId,
                             'label' => $label,
                             'type' => 'sweep_failed',
-                            'detail' => sprintf(
-                                '%s (%s)',
-                                $error['reason'],
-                                $error['statusCode'] ?? 'unknown',
-                            ),
+                            'detail' => sprintf('%s (%s)', $error['reason'], $error['statusCode'] ?? 'unknown'),
                         ];
                     }
                 }
@@ -107,29 +106,58 @@ class PayRamHealthCommand extends Command
     }
 
     /**
-     * The hot wallets attached to this project (the wallet list is shared across
-     * projects, so a row only counts when the project is in its assignments).
+     * Wallets attached to this project (the list is shared across projects, so a
+     * row only counts when the project is in its assignments).
      *
      * @param  array<int, array<string, mixed>>  $wallets
-     * @return array<int, int>
+     * @return array<int, array<string, mixed>>
      */
-    private function hotWalletIdsForProject(array $wallets, int $projectId): array
+    private function projectWallets(array $wallets, int $projectId): array
     {
-        $ids = [];
-
-        foreach ($wallets as $wallet) {
-            if (! is_array($wallet) || ($wallet['walletType'] ?? null) !== 'hot_wallet') {
-                continue;
+        return array_values(array_filter($wallets, function ($wallet) use ($projectId) {
+            if (! is_array($wallet)) {
+                return false;
             }
-
             foreach (($wallet['externalPlatformWallets'] ?? []) as $assignment) {
                 if (is_array($assignment) && (int) ($assignment['externalPlatformID'] ?? 0) === $projectId) {
-                    $ids[] = (int) $wallet['id'];
-                    break;
+                    return true;
+                }
+            }
+
+            return false;
+        }));
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $wallets
+     */
+    private function hasHotWallet(array $wallets): bool
+    {
+        foreach ($wallets as $wallet) {
+            if (($wallet['walletType'] ?? null) === 'hot_wallet') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $wallets
+     */
+    private function hasConfiguredDepositWallet(array $wallets): bool
+    {
+        foreach ($wallets as $wallet) {
+            if (($wallet['walletType'] ?? null) !== 'deposit_wallet') {
+                continue;
+            }
+            foreach (($wallet['walletScws'] ?? []) as $scw) {
+                if (is_array($scw) && (string) ($scw['fundCollectorAddress'] ?? '') !== '') {
+                    return true;
                 }
             }
         }
 
-        return $ids;
+        return false;
     }
 }

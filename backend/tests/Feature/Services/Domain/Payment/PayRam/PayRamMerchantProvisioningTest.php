@@ -152,50 +152,6 @@ class PayRamMerchantProvisioningTest extends TestCase
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/external-platform/42/api-key'));
     }
 
-    public function test_it_attaches_the_shared_hot_wallet_when_configured(): void
-    {
-        config(['services.payram.hot_wallet_id' => 5]);
-
-        Http::fake([
-            '*signin*' => Http::response(['accessToken' => 'operator-jwt-token']),
-            '*external-platform/42/api-key*' => Http::response(['id' => 7, 'key' => self::ORGANIZER_KEY]),
-            '*api/v1/external-platform*' => Http::response(['id' => 42, 'name' => 'Acme Run']),
-            '*member*' => Http::response(['id' => 11]),
-            '*project/all/wallets/5/assignable-projects*' => Http::response([
-                'projects' => [['projectID' => 2, 'status' => 'currently_assigned']],
-            ]),
-            '*wallets/5/projects*' => Http::response(['success' => true]),
-        ]);
-
-        $this->provisioningService()->provision($this->organizerId, 'Acme Run', 'organizer@example.com');
-
-        // The new project is appended to the wallet's existing assignments, so a
-        // shared hot wallet can serve every merchant.
-        Http::assertSent(fn ($request) => $request->method() === 'PUT'
-            && str_ends_with($request->url(), '/api/v1/wallets/5/projects')
-            && $request['projectIds'] === [2, 42]);
-    }
-
-    public function test_a_failed_hot_wallet_assignment_does_not_block_provisioning(): void
-    {
-        config(['services.payram.hot_wallet_id' => 5]);
-
-        Http::fake([
-            '*signin*' => Http::response(['accessToken' => 'operator-jwt-token']),
-            '*external-platform/42/api-key*' => Http::response(['id' => 7, 'key' => self::ORGANIZER_KEY]),
-            '*api/v1/external-platform*' => Http::response(['id' => 42, 'name' => 'Acme Run']),
-            '*member*' => Http::response(['id' => 11]),
-            '*project/all/wallets/5/assignable-projects*' => Http::response(['projects' => []]),
-            '*wallets/5/projects*' => Http::response(['error' => ['code' => 'BOOM']], 500),
-        ]);
-
-        $account = $this->provisioningService()->provision($this->organizerId, 'Acme Run', 'organizer@example.com');
-
-        // A missing assignment is recoverable by the repair command; refusing to
-        // provision would leave the organizer unable to accept crypto at all.
-        $this->assertSame(PayRamMerchantProvisioningService::STATUS_READY, $account->getStatus());
-    }
-
     public function test_credentials_are_encrypted_at_rest(): void
     {
         $this->fakeSuccessfulProvisioning();
