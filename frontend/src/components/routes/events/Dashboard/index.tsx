@@ -6,7 +6,6 @@ import {SearchBarWrapper} from "../../../common/SearchBar";
 import {Button, Menu, Skeleton} from "@mantine/core";
 import {
     IconArrowRight,
-    IconBuilding,
     IconCalendarPlus,
     IconChevronDown,
     IconPlus,
@@ -23,6 +22,7 @@ import {CreateOrganizerModal} from "../../../modals/CreateOrganizerModal";
 import {SwitchOrganizerModal} from "../../../modals/SwitchOrganizerModal";
 import classes from "./Dashboard.module.scss";
 import {getEventQueryFilters} from "../../../../utilites/eventsPageFiltersHelper.ts";
+import {getOrganizerPalette, getInitials} from "../../../../utilites/imageFallbacks.ts";
 import {EventsDashboardStatusButtons} from "../../../common/EventsDashboardStatusButtons";
 import {NoEventsBlankSlate} from "../../../common/NoEventsBlankSlate";
 import {useState} from "react";
@@ -101,8 +101,19 @@ export function Dashboard() {
                                     alt={organizers[0].name}
                                 />
                             ) : (
-                                <div className={classes.logoPlaceholder}>
-                                    <IconBuilding size={20}/>
+                                <div
+                                    className={classes.logoPlaceholder}
+                                    style={{
+                                        background: getOrganizerPalette(organizers[0].name).gradient,
+                                        color: '#ffffff',
+                                        fontWeight: 700,
+                                        fontSize: '14px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {getInitials(organizers[0].name)}
                                 </div>
                             )}
                         </div>
@@ -127,7 +138,22 @@ export function Dashboard() {
                                             alt={organizer.name}
                                         />
                                     ) : (
-                                        <IconBuilding size={12}/>
+                                        <div
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: '6px',
+                                                background: getOrganizerPalette(organizer.name).gradient,
+                                                color: '#ffffff',
+                                                fontWeight: 700,
+                                                fontSize: '10px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            {getInitials(organizer.name)}
+                                        </div>
                                     )}
                                 </div>
                             ))}

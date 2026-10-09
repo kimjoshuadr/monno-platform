@@ -33,6 +33,7 @@ import {downloadICSFile} from "../../../utilites/calendar.ts";
 import SelectProducts from "../../routes/product-widget/SelectProducts";
 import {ShareModal} from "../../modals/ShareModal";
 import {EventRoomHeader, monnoEventUrl, monnoSiteUrl} from "./EventRoomChrome.tsx";
+import {getEventCoverImage, makeEventPosterSvg} from "../../../utilites/imageFallbacks.ts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -123,8 +124,12 @@ export const EventRoom = ({
 
     const squareImage = event.images?.find((image) => image.type === "EVENT_IMAGE")
         ?? event.images?.find((image) => image.type === "EVENT_COVER");
+    // Uploaded image → curated category photo → typographic poster (never empty).
+    const fallbackCoverUrl = getEventCoverImage(event)
+        ?? makeEventPosterSvg(event.title || "Event", event.category);
+    const eventCoverUrl = squareImage?.url ?? fallbackCoverUrl;
     // The MIRROR_COVER_IMAGE background blurs the cover — the wide one when it exists.
-    const mirrorBackgroundImage = event.images?.find((image) => image.type === "EVENT_COVER") ?? squareImage;
+    const mirrorBackgroundImage = event.images?.find((image) => image.type === "EVENT_COVER") ?? squareImage ?? { url: fallbackCoverUrl };
 
     const price = useMemo(() => lowestPrice(event), [event]);
     const currency = event.currency || "USD";
@@ -411,9 +416,9 @@ export const EventRoom = ({
 
                         <div className="event-cover-square" data-od-id="event-cover">
                             <figure className="event-cover-plate" data-od-id="event-cover-plate">
-                                {squareImage ? (
+                                {eventCoverUrl ? (
                                     <img
-                                        src={squareImage.url}
+                                        src={eventCoverUrl}
                                         alt={event.image_alt || ""}
                                         width={720}
                                         height={720}

@@ -7,6 +7,7 @@ import {useNavigate, useParams} from 'react-router';
 import classes from './SwitchOrganizerModal.module.scss';
 import {LoadingMask} from '../../common/LoadingMask';
 import {IdParam, OrganizerStatus} from "../../../types.ts";
+import {getOrganizerPalette, getInitials} from "../../../utilites/imageFallbacks.ts";
 
 interface SwitchOrganizerModalProps {
     opened: boolean;
@@ -71,8 +72,19 @@ export const SwitchOrganizerModal: React.FC<SwitchOrganizerModalProps> = ({
                                                     alt={organizer.name}
                                                 />
                                             ) : (
-                                                <div className={classes.logoPlaceholder}>
-                                                    <IconBuilding size={20} stroke={1.5}/>
+                                                <div
+                                                    className={classes.logoPlaceholder}
+                                                    style={{
+                                                        background: getOrganizerPalette(organizer.name).gradient,
+                                                        color: '#ffffff',
+                                                        fontWeight: 700,
+                                                        fontSize: '14px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    {getInitials(organizer.name)}
                                                 </div>
                                             )}
                                         </div>
@@ -119,8 +131,19 @@ export const SwitchOrganizerModal: React.FC<SwitchOrganizerModalProps> = ({
                                                     alt={organizer.name}
                                                 />
                                             ) : (
-                                                <div className={classes.logoPlaceholder}>
-                                                    <IconBuilding size={20} stroke={1.5}/>
+                                                <div
+                                                    className={classes.logoPlaceholder}
+                                                    style={{
+                                                        background: getOrganizerPalette(organizer.name).gradient,
+                                                        color: '#ffffff',
+                                                        fontWeight: 700,
+                                                        fontSize: '14px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    {getInitials(organizer.name)}
                                                 </div>
                                             )}
                                         </div>

@@ -39,6 +39,7 @@ import {ensureHomepageFontLoaded} from "../../../utilites/fontLoader.ts";
 import {ShareComponent} from "../../common/ShareIcon";
 import {EventDateRange} from "../../common/EventDateRange";
 import {CalendarOptionsPopover} from "../../common/CalendarOptionsPopover";
+import {getOrganizerPalette, getInitials} from "../../../utilites/imageFallbacks.ts";
 import {isDateInPast} from "../../../utilites/dates.ts";
 import {formatCurrency} from "../../../utilites/currency.ts";
 import {UserGeneratedContent} from "../../common/UserGeneratedContent";
@@ -313,8 +314,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                         className={classes.organizerPillAvatar}
                                                     />
                                                 ) : (
-                                                    <span className={classes.organizerPillAvatarPlaceholder}>
-                                                        {organizer.name.charAt(0).toUpperCase()}
+                                                    <span
+                                                        className={classes.organizerPillAvatarPlaceholder}
+                                                        style={{background: getOrganizerPalette(organizer.name).gradient}}
+                                                    >
+                                                        {getInitials(organizer.name)}
                                                     </span>
                                                 )}
                                                 <span className={classes.organizerPillName}>
@@ -330,8 +334,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                         className={classes.organizerPillAvatar}
                                                     />
                                                 ) : (
-                                                    <span className={classes.organizerPillAvatarPlaceholder}>
-                                                        {organizer?.name?.charAt(0).toUpperCase() || '?'}
+                                                    <span
+                                                        className={classes.organizerPillAvatarPlaceholder}
+                                                        style={{background: getOrganizerPalette(organizer?.name || '').gradient}}
+                                                    >
+                                                        {getInitials(organizer?.name)}
                                                     </span>
                                                 )}
                                                 <span className={classes.organizerPillName}>
@@ -604,8 +611,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                 className={classes.organizerAvatar}
                                             />
                                         ) : (
-                                            <div className={classes.organizerAvatarPlaceholder}>
-                                                {organizer.name.charAt(0).toUpperCase()}
+                                            <div
+                                                className={classes.organizerAvatarPlaceholder}
+                                                style={{background: getOrganizerPalette(organizer.name).gradient}}
+                                            >
+                                                {getInitials(organizer.name)}
                                             </div>
                                         )}
                                         <div className={classes.organizerContent}>
