@@ -228,7 +228,7 @@ msgstr "{sold} vendidas · {left} restantes en todas las fechas"
 msgid "{sold} sold · unlimited"
 msgstr "{sold} vendidas · ilimitado"
 
-#: src/components/layouts/EventRoom/index.tsx:530
+#: src/components/layouts/EventRoom/index.tsx:594
 msgid "{taken}% of capacity taken"
 msgstr ""
 
@@ -529,8 +529,8 @@ msgstr "Abandonado"
 msgid "About"
 msgstr "Acerca de"
 
-#: src/components/layouts/EventRoom/index.tsx:190
-#: src/components/layouts/EventRoom/index.tsx:476
+#: src/components/layouts/EventRoom/index.tsx:211
+#: src/components/layouts/EventRoom/index.tsx:513
 msgid "About this event"
 msgstr ""
 
@@ -911,7 +911,7 @@ msgstr "Agregar entradas"
 msgid "Add tier"
 msgstr "Agregar nivel"
 
-#: src/components/layouts/EventRoom/index.tsx:592
+#: src/components/layouts/EventRoom/index.tsx:656
 msgid "Add to calendar"
 msgstr ""
 
@@ -2095,7 +2095,7 @@ msgstr "Personalice sus entradas con un logotipo, colores y mensaje de pie de p�
 msgid "Brazilian Portuguese"
 msgstr "Portugués brasileño"
 
-#: src/components/layouts/EventRoom/index.tsx:384
+#: src/components/layouts/EventRoom/index.tsx:405
 msgid "Breadcrumb"
 msgstr ""
 
@@ -2339,8 +2339,8 @@ msgstr "Cancelado"
 msgid "Cancelling {0} date(s). This may take a moment to complete."
 msgstr "Cancelando {0} fecha(s). Esto puede tardar un momento."
 
-#: src/components/layouts/EventRoom/index.tsx:257
-#: src/components/layouts/EventRoom/index.tsx:536
+#: src/components/layouts/EventRoom/index.tsx:278
+#: src/components/layouts/EventRoom/index.tsx:600
 msgid "capacity"
 msgstr ""
 
@@ -2350,7 +2350,7 @@ msgstr ""
 #: src/components/common/CapacityHelp/index.tsx:63
 #: src/components/common/CapacityHelp/index.tsx:118
 #: src/components/forms/CapaciyAssigmentForm/index.tsx:42
-#: src/components/layouts/EventRoom/index.tsx:255
+#: src/components/layouts/EventRoom/index.tsx:276
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:63
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:508
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1105
@@ -2789,6 +2789,7 @@ msgstr "cerrar"
 #: src/components/common/SideDrawer/index.tsx:117
 #: src/components/forms/ProductForm/ProductDrawer.tsx:100
 #: src/components/layouts/CheckIn/AttendeeDetailSheet.tsx:208
+#: src/components/layouts/EventRoom/index.tsx:567
 #: src/components/modals/JoinWaitlistModal/index.tsx:116
 #: src/components/modals/JoinWaitlistModal/index.tsx:143
 #: src/components/modals/RefundOrderModal/index.tsx:199
@@ -3891,7 +3892,7 @@ msgstr "Dashboard"
 #: src/components/common/OrderDetails/index.tsx:42
 #: src/components/common/WaitlistTable/index.tsx:184
 #: src/components/forms/QuestionForm/index.tsx:136
-#: src/components/layouts/EventRoom/index.tsx:220
+#: src/components/layouts/EventRoom/index.tsx:241
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:39
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:56
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:24
@@ -4195,7 +4196,7 @@ msgstr ""
 
 #: src/components/common/ProgressStepper/index.tsx:18
 #: src/components/common/ProgressStepper/index.tsx:23
-#: src/components/layouts/EventRoom/index.tsx:214
+#: src/components/layouts/EventRoom/index.tsx:235
 #: src/components/modals/ManageAttendeeModal/index.tsx:242
 #: src/components/modals/ManageOrderModal/index.tsx:268
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:103
@@ -4261,7 +4262,7 @@ msgid "Discount Type"
 msgstr "Tipo de descuento"
 
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:37
-#: src/components/layouts/EventRoom/index.tsx:386
+#: src/components/layouts/EventRoom/index.tsx:407
 msgid "Discover"
 msgstr ""
 
@@ -4993,7 +4994,7 @@ msgstr "registros"
 msgid "Entries will appear here when customers join the waitlist for sold out products."
 msgstr "Las entradas aparecerán aquí cuando los clientes se unan a la lista de espera de productos agotados."
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
 msgid "Entry"
 msgstr ""
 
@@ -5946,12 +5947,12 @@ msgstr "Flash apagado"
 msgid "Flash on"
 msgstr "Flash encendido"
 
-#: src/components/layouts/EventRoom/index.tsx:290
-#: src/components/layouts/EventRoom/index.tsx:299
+#: src/components/layouts/EventRoom/index.tsx:311
+#: src/components/layouts/EventRoom/index.tsx:320
 msgid "Follow"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:290
+#: src/components/layouts/EventRoom/index.tsx:311
 msgid "Following"
 msgstr ""
 
@@ -5991,8 +5992,10 @@ msgstr "Cuarto"
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:123
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:133
 #: src/components/forms/ProductForm/index.tsx:289
-#: src/components/layouts/EventRoom/index.tsx:459
-#: src/components/layouts/EventRoom/index.tsx:514
+#: src/components/layouts/EventRoom/index.tsx:480
+#: src/components/layouts/EventRoom/index.tsx:503
+#: src/components/layouts/EventRoom/index.tsx:578
+#: src/components/layouts/EventRoom/index.tsx:696
 #: src/components/layouts/OrganizerRoom/index.tsx:434
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:157
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:228
@@ -6016,7 +6019,8 @@ msgstr "Vie"
 msgid "Friday"
 msgstr "Viernes"
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
+#: src/components/layouts/EventRoom/index.tsx:695
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1067
 msgid "From"
 msgstr "Desde"
@@ -6119,6 +6123,13 @@ msgstr "Cobra con Stripe"
 msgid "Get started"
 msgstr "Comenzar"
 
+#: src/components/layouts/EventRoom/index.tsx:501
+#: src/components/layouts/EventRoom/index.tsx:559
+#: src/components/layouts/EventRoom/index.tsx:562
+#: src/components/layouts/EventRoom/index.tsx:704
+msgid "Get tickets"
+msgstr ""
+
 #: src/components/layouts/EventHomepage/index.tsx:211
 msgid "Get Tickets"
 msgstr "Obtener Entradas"
@@ -6164,7 +6175,7 @@ msgstr "Ir a la página de inicio"
 msgid "Go to Schedule"
 msgstr "Ir a la programación"
 
-#: src/components/layouts/EventRoom/index.tsx:535
+#: src/components/layouts/EventRoom/index.tsx:599
 msgid "going"
 msgstr ""
 
@@ -6459,7 +6470,7 @@ msgstr "Homero"
 msgid "Host"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:308
+#: src/components/layouts/EventRoom/index.tsx:329
 msgid "Hosted by"
 msgstr ""
 
@@ -8590,7 +8601,7 @@ msgstr "Evento en línea"
 msgid "Online Event Details"
 msgstr "Detalles del evento en línea"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "Only"
 msgstr ""
 
@@ -10232,7 +10243,7 @@ msgstr "Registrar reembolso"
 #~ msgid "Recording your accepted currencies"
 #~ msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:233
+#: src/components/layouts/EventRoom/index.tsx:254
 msgid "recurring"
 msgstr ""
 
@@ -10353,12 +10364,12 @@ msgstr "Configuración regional"
 msgid "Register"
 msgstr "Registro"
 
-#: src/components/layouts/EventRoom/index.tsx:258
-#: src/components/layouts/EventRoom/index.tsx:618
+#: src/components/layouts/EventRoom/index.tsx:279
+#: src/components/layouts/EventRoom/index.tsx:682
 msgid "registered"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:508
+#: src/components/layouts/EventRoom/index.tsx:545
 msgid "Registration"
 msgstr ""
 
@@ -10659,8 +10670,8 @@ msgstr "Revocar oferta"
 msgid "Role"
 msgstr "Rol"
 
-#: src/components/layouts/EventRoom/index.tsx:197
-#: src/components/layouts/EventRoom/index.tsx:483
+#: src/components/layouts/EventRoom/index.tsx:218
+#: src/components/layouts/EventRoom/index.tsx:520
 msgid "Running order"
 msgstr ""
 
@@ -10801,7 +10812,7 @@ msgstr "Guardar opciones"
 msgid "Save fee override"
 msgstr "Guardar la tarifa personalizada"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 msgid "Save for later"
 msgstr ""
 
@@ -10837,7 +10848,7 @@ msgstr "Guardar la configuración de IVA"
 msgid "Save VAT Settings"
 msgstr "Guardar Configuración del IVA"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 #: src/components/layouts/OrganizerRoom/RoomEventCard.tsx:59
 msgid "Saved"
 msgstr ""
@@ -11311,7 +11322,7 @@ msgid "Send emails to attendees, ticket holders, or order owners. Messages can b
 msgstr "Enviar correos electrónicos a asistentes, titulares de entradas o propietarios de pedidos. Los mensajes se pueden enviar de inmediato o programar para más tarde."
 
 #: src/components/layouts/Event/index.tsx:248
-#: src/components/layouts/EventRoom/index.tsx:635
+#: src/components/layouts/EventRoom/index.tsx:719
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:132
 msgid "Send it to someone who'd come with you."
 msgstr ""
@@ -11588,7 +11599,7 @@ msgstr "Compartir"
 msgid "Share Affiliate Link"
 msgstr "Compartir enlace de afiliado"
 
-#: src/components/layouts/EventRoom/index.tsx:582
+#: src/components/layouts/EventRoom/index.tsx:646
 msgid "Share event"
 msgstr ""
 
@@ -11609,7 +11620,7 @@ msgid "Share this date"
 msgstr ""
 
 #: src/components/layouts/Event/index.tsx:247
-#: src/components/layouts/EventRoom/index.tsx:634
+#: src/components/layouts/EventRoom/index.tsx:718
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:131
 msgid "Share this event"
 msgstr ""
@@ -11914,7 +11925,7 @@ msgstr "Divide el check-in por días, zonas o tipos de entrada. Comparte el enla
 #~ msgid "Sports"
 #~ msgstr "Deportes"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "spots left"
 msgstr ""
 
@@ -13307,7 +13318,7 @@ msgstr "Niveles"
 msgid "TikTok"
 msgstr "TikTok"
 
-#: src/components/layouts/EventRoom/index.tsx:229
+#: src/components/layouts/EventRoom/index.tsx:250
 #: src/components/routes/event/OccurrencesTab/index.tsx:307
 #: src/components/routes/event/Settings/Sections/AgendaSettings/index.tsx:91
 msgid "Time"
@@ -14088,7 +14099,7 @@ msgid "VAT: not registered"
 msgstr "IVA: no registrado"
 
 #: src/components/common/BlockBuilder/registry.ts:69
-#: src/components/layouts/EventRoom/index.tsx:242
+#: src/components/layouts/EventRoom/index.tsx:263
 msgid "Venue"
 msgstr ""
 
@@ -14193,7 +14204,7 @@ msgstr "Ver respuestas"
 msgid "View Attendee Details"
 msgstr "Ver detalles del asistente"
 
-#: src/components/layouts/EventRoom/index.tsx:449
+#: src/components/layouts/EventRoom/index.tsx:470
 msgid "View calendar"
 msgstr ""
 
@@ -14781,7 +14792,7 @@ msgstr "¿Quién organiza este evento?"
 msgid "Who should be asked this question?"
 msgstr "¿A quién se le debería hacer esta pregunta?"
 
-#: src/components/layouts/EventRoom/index.tsx:603
+#: src/components/layouts/EventRoom/index.tsx:667
 msgid "Who's coming"
 msgstr ""
 
@@ -15036,7 +15047,7 @@ msgstr "En el siguiente paso podrás configurar fechas, programaciones y reglas 
 msgid "You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms."
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:597
+#: src/components/layouts/EventRoom/index.tsx:661
 msgid "You'll finish checkout on the ticket platform."
 msgstr ""
 

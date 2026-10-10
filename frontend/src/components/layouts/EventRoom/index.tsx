@@ -1,9 +1,10 @@
 /* eslint-disable lingui/no-unlocalized-strings -- image-type keys, date/format strings and
    analytics names only; every user-facing string goes through `t`. */
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Link} from "react-router";
 import {t} from "@lingui/macro";
 import {
+    IconArrowRight,
     IconBookmark,
     IconBookmarkFilled,
     IconCalendar,
@@ -13,8 +14,9 @@ import {
     IconPlus,
     IconShare,
     IconUsers,
+    IconX,
 } from "@tabler/icons-react";
-import {AgendaItem, Event, EventType, HomepageBlock, Organizer, OrganizerStatus, VenueAddress} from "../../../types.ts";
+import {AgendaItem, Event, EventLifecycleStatus, EventType, HomepageBlock, Organizer, OrganizerStatus, VenueAddress} from "../../../types.ts";
 import {formatCurrency} from "../../../utilites/currency.ts";
 import {getProductsFromEvent} from "../../../utilites/helpers.ts";
 import {getGoogleMapsUrl, getShortLocationDisplay} from "../../../utilites/addressUtilities.ts";
@@ -99,6 +101,23 @@ export const EventRoom = ({
     const {isSaved, toggle, ready} = useRoomSaved();
     const saved = ready && isSaved(`event:${event.id}`);
     const [shareOpen, setShareOpen] = useState(false);
+    /** On a phone the rail is a bottom sheet; the page's CTA and sticky bar open it. */
+    const [sheetOpen, setSheetOpen] = useState(false);
+
+    // Escape closes the sheet, and the page behind it does not scroll while it is open.
+    useEffect(() => {
+        if (!sheetOpen) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setSheetOpen(false);
+        };
+        document.addEventListener("keydown", onKey);
+        const previous = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.removeEventListener("keydown", onKey);
+            document.body.style.overflow = previous;
+        };
+    }, [sheetOpen]);
     // Share hands out the main website's page for this event. Events without one
     // get no share button at all, rather than a link to this ticket surface or an
     // auth-gated preview.
@@ -168,6 +187,8 @@ export const EventRoom = ({
     const taken = attendance.capacity
         ? Math.round((attendance.registered / attendance.capacity) * 100)
         : 0;
+    // A finished event keeps its page but offers nothing to buy.
+    const ended = event.lifecycle_status === EventLifecycleStatus.ENDED;
 
     // The host's own mark, wherever the page draws it: their logo when uploaded, otherwise
     // their initials (two letters, the way the website writes a monogram).
@@ -469,6 +490,22 @@ export const EventRoom = ({
 
                         {event.tagline ? <p className="event-tagline">{event.tagline}</p> : null}
 
+                        {/* Phones read the event first and open the tickets from here. */}
+                        {ended ? null : (
+                            <button
+                                type="button"
+                                className="btn btn-primary btn-block ticket-cta"
+                                onClick={() => setSheetOpen(true)}
+                                data-od-id="event-get-tickets"
+                            >
+                                <span>{t`Get tickets`}</span>
+                                <span className="ticket-cta-price">
+                                    {price === 0 ? t`Free` : compactPrice(price, currency)}
+                                </span>
+                                <IconArrowRight size={16}/>
+                            </button>
+                        )}
+
                         {blockDriven ? visibleBlocks.map((block) => renderBlock(block)) : (
                             <>
                                 {description ? (
@@ -506,122 +543,169 @@ export const EventRoom = ({
                     </div>
 
                     <aside className="register-rail" aria-label={t`Registration`}>
-                        <div className="ticket-card" data-od-id="event-ticket-card">
-                            <div className="price-row">
-                                <div>
-                                    <span className="price-label">{price === 0 ? t`Entry` : t`From`}</span>
-                                    <div className="price-tag">
-                                        {price === 0 ? t`Free` : formatCurrency(price, currency)}
-                                    </div>
-                                </div>
-                                {start ? (
-                                    <div className="price-when">
-                                        <span>{start.format("ddd")}</span>
-                                        <strong>{start.format("MMM D")}</strong>
-                                    </div>
-                                ) : null}
+                        {/* Below ~761px the rail is a bottom sheet; the page's CTA and sticky
+                            bar open it. Above that it is the sticky column it always was. */}
+                        <div
+                            className="rail-backdrop"
+                            data-open={sheetOpen ? "true" : undefined}
+                            onClick={() => setSheetOpen(false)}
+                            aria-hidden="true"
+                        />
+                        <div
+                            className="rail-sheet"
+                            data-open={sheetOpen ? "true" : undefined}
+                            role={sheetOpen ? "dialog" : undefined}
+                            aria-modal={sheetOpen ? true : undefined}
+                            aria-label={t`Get tickets`}
+                        >
+                            <div className="rail-sheet-head">
+                                <span className="rail-sheet-title">{t`Get tickets`}</span>
+                                <button
+                                    type="button"
+                                    className="rail-sheet-close"
+                                    onClick={() => setSheetOpen(false)}
+                                    aria-label={t`Close`}
+                                >
+                                    <IconX size={18}/>
+                                </button>
                             </div>
-
-                            {attendance.capacity ? (
-                                <div className="stack-xs" style={{marginTop: 18}}>
-                                    <div
-                                        className="progress"
-                                        role="img"
-                                        aria-label={t`${taken}% of capacity taken`}
-                                    >
-                                        <span style={{width: `${taken}%`}}/>
+                            <div className="rail-sheet-body">
+                                <div className="ticket-card" data-od-id="event-ticket-card">
+                                    <div className="price-row">
+                                        <div>
+                                            <span className="price-label">{price === 0 ? t`Entry` : t`From`}</span>
+                                            <div className="price-tag">
+                                                {price === 0 ? t`Free` : formatCurrency(price, currency)}
+                                            </div>
+                                        </div>
+                                        {start ? (
+                                            <div className="price-when">
+                                                <span>{start.format("ddd")}</span>
+                                                <strong>{start.format("MMM D")}</strong>
+                                            </div>
+                                        ) : null}
                                     </div>
-                                    <p className="progress-note">
-                                        <span>{attendance.registered.toLocaleString()} {t`going`}</span>
-                                        <span>{attendance.capacity.toLocaleString()} {t`capacity`}</span>
+
+                                    {attendance.capacity ? (
+                                        <div className="stack-xs" style={{marginTop: 18}}>
+                                            <div
+                                                className="progress"
+                                                role="img"
+                                                aria-label={t`${taken}% of capacity taken`}
+                                            >
+                                                <span style={{width: `${taken}%`}}/>
+                                            </div>
+                                            <p className="progress-note">
+                                                <span>{attendance.registered.toLocaleString()} {t`going`}</span>
+                                                <span>{attendance.capacity.toLocaleString()} {t`capacity`}</span>
+                                            </p>
+                                        </div>
+                                    ) : null}
+
+                                    {/* The ticket picker: products, prices, promo and the checkout
+                                        hand-off, in the rail where the design puts the register card. */}
+                                    <div className="rail-tickets" data-od-id="event-ticket-picker">
+                                        <SelectProducts
+                                            colors={{
+                                                background: "transparent",
+                                                primary: "var(--event-primary-color)",
+                                                primaryText: "var(--event-primary-text-color)",
+                                                secondary: "var(--event-primary-color)",
+                                                secondaryText: "var(--event-accent-contrast)",
+                                                bodyBackground: "transparent",
+                                            }}
+                                            continueButtonText={event.settings?.continue_button_text}
+                                            padding={"0px"}
+                                            event={event}
+                                            promoCodeValid={promoCodeValid}
+                                            promoCode={promoCode ?? undefined}
+                                            initialOccurrenceId={initialOccurrenceId ?? null}
+                                            showPoweredBy={false}
+                                        />
+                                    </div>
+
+                                    <div className="rail-actions">
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline btn-block"
+                                            aria-pressed={saved}
+                                            onClick={() => toggle(`event:${event.id}`)}
+                                            data-od-id="event-save"
+                                        >
+                                            {saved ? <IconBookmarkFilled size={16}/> : <IconBookmark size={16}/>}
+                                            {saved ? t`Saved` : t`Save for later`}
+                                        </button>
+                                        {shareUrl ? (
+                                            <button
+                                                type="button"
+                                                className="btn btn-ghost btn-block"
+                                                onClick={() => setShareOpen(true)}
+                                                data-od-id="event-share"
+                                            >
+                                                <IconShare size={16}/>
+                                                {t`Share event`}
+                                            </button>
+                                        ) : null}
+                                        <button
+                                            type="button"
+                                            className="btn btn-ghost btn-block"
+                                            onClick={() => downloadICSFile(event)}
+                                            data-od-id="event-calendar"
+                                        >
+                                            <IconCalendar size={16}/>
+                                            {t`Add to calendar`}
+                                        </button>
+                                    </div>
+
+                                    <p className="rail-note">
+                                        {t`You'll finish checkout on the ticket platform.`}
                                     </p>
                                 </div>
-                            ) : null}
 
-                            {/* The ticket picker: products, prices, promo and the checkout
-                                hand-off, in the rail where the design puts the register card. */}
-                            <div className="rail-tickets" data-od-id="event-ticket-picker">
-                                <SelectProducts
-                                    colors={{
-                                        background: "transparent",
-                                        primary: "var(--event-primary-color)",
-                                        primaryText: "var(--event-primary-text-color)",
-                                        secondary: "var(--event-primary-color)",
-                                        secondaryText: "var(--event-accent-contrast)",
-                                        bodyBackground: "transparent",
-                                    }}
-                                    continueButtonText={event.settings?.continue_button_text}
-                                    padding={"0px"}
-                                    event={event}
-                                    promoCodeValid={promoCodeValid}
-                                    promoCode={promoCode ?? undefined}
-                                    initialOccurrenceId={initialOccurrenceId ?? null}
-                                    showPoweredBy={false}
-                                />
-                            </div>
-
-                            <div className="rail-actions">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline btn-block"
-                                    aria-pressed={saved}
-                                    onClick={() => toggle(`event:${event.id}`)}
-                                    data-od-id="event-save"
-                                >
-                                    {saved ? <IconBookmarkFilled size={16}/> : <IconBookmark size={16}/>}
-                                    {saved ? t`Saved` : t`Save for later`}
-                                </button>
-                                {shareUrl ? (
-                                    <button
-                                        type="button"
-                                        className="btn btn-ghost btn-block"
-                                        onClick={() => setShareOpen(true)}
-                                        data-od-id="event-share"
-                                    >
-                                        <IconShare size={16}/>
-                                        {t`Share event`}
-                                    </button>
-                                ) : null}
-                                <button
-                                    type="button"
-                                    className="btn btn-ghost btn-block"
-                                    onClick={() => downloadICSFile(event)}
-                                    data-od-id="event-calendar"
-                                >
-                                    <IconCalendar size={16}/>
-                                    {t`Add to calendar`}
-                                </button>
-                            </div>
-
-                            <p className="rail-note">
-                                {t`You'll finish checkout on the ticket platform.`}
-                            </p>
-                        </div>
-
-                        {attendeesVisible ? (
-                            <div className="panel who-coming" data-od-id="event-who-coming">
-                                <h2 className="block-title">{t`Who's coming`}</h2>
-                                <div className="who-coming-row">
-                                    {markCount > 0 ? (
-                                        <span className="avatar-stack" aria-hidden="true">
-                                            {Array.from({length: markCount}, (_, index) => (
-                                                <span className="monogram monogram-anon" key={index}/>
-                                            ))}
-                                            {attendance.registered > markCount ? (
-                                                <span className="monogram avatar-stack-more">
-                                                    +{attendance.registered - markCount}
+                                {attendeesVisible ? (
+                                    <div className="panel who-coming" data-od-id="event-who-coming">
+                                        <h2 className="block-title">{t`Who's coming`}</h2>
+                                        <div className="who-coming-row">
+                                            {markCount > 0 ? (
+                                                <span className="avatar-stack" aria-hidden="true">
+                                                    {Array.from({length: markCount}, (_, index) => (
+                                                        <span className="monogram monogram-anon" key={index}/>
+                                                    ))}
+                                                    {attendance.registered > markCount ? (
+                                                        <span className="monogram avatar-stack-more">
+                                                            +{attendance.registered - markCount}
+                                                        </span>
+                                                    ) : null}
                                                 </span>
                                             ) : null}
-                                        </span>
-                                    ) : null}
-                                    <p className="who-coming-count">
-                                        {attendance.registered.toLocaleString()} {t`registered`}
-                                    </p>
-                                </div>
+                                            <p className="who-coming-count">
+                                                {attendance.registered.toLocaleString()} {t`registered`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : null}
                             </div>
-                        ) : null}
+                        </div>
                     </aside>
                 </div>
+
+                {ended ? null : (
+                    <div className="sticky-ticket-bar" data-od-id="event-sticky-tickets">
+                        <div className="sticky-ticket-bar-copy">
+                            <span className="sticky-ticket-bar-label">{t`From`}</span>
+                            <strong>{price === 0 ? t`Free` : compactPrice(price, currency)}</strong>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => setSheetOpen(true)}
+                            data-od-id="event-get-tickets-sticky"
+                        >
+                            {t`Get tickets`}
+                            <IconArrowRight size={16}/>
+                        </button>
+                    </div>
+                )}
             </div>
 
             {footer}

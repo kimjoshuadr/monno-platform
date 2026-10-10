@@ -228,7 +228,7 @@ msgstr "{sold} đã bán · còn {left} cho tất cả các ngày"
 msgid "{sold} sold · unlimited"
 msgstr "{sold} đã bán · không giới hạn"
 
-#: src/components/layouts/EventRoom/index.tsx:530
+#: src/components/layouts/EventRoom/index.tsx:594
 msgid "{taken}% of capacity taken"
 msgstr ""
 
@@ -529,8 +529,8 @@ msgstr "Đã bỏ"
 msgid "About"
 msgstr "Thông tin sự kiện"
 
-#: src/components/layouts/EventRoom/index.tsx:190
-#: src/components/layouts/EventRoom/index.tsx:476
+#: src/components/layouts/EventRoom/index.tsx:211
+#: src/components/layouts/EventRoom/index.tsx:513
 msgid "About this event"
 msgstr ""
 
@@ -911,7 +911,7 @@ msgstr "Thêm vé"
 msgid "Add tier"
 msgstr "Thêm tầng"
 
-#: src/components/layouts/EventRoom/index.tsx:592
+#: src/components/layouts/EventRoom/index.tsx:656
 msgid "Add to calendar"
 msgstr ""
 
@@ -2095,7 +2095,7 @@ msgstr "Xây dựng thương hiệu vé của bạn với logo, màu sắc và t
 msgid "Brazilian Portuguese"
 msgstr "Tiếng Bồ Đào Nha Brazil"
 
-#: src/components/layouts/EventRoom/index.tsx:384
+#: src/components/layouts/EventRoom/index.tsx:405
 msgid "Breadcrumb"
 msgstr ""
 
@@ -2339,8 +2339,8 @@ msgstr "Hủy bỏ"
 msgid "Cancelling {0} date(s). This may take a moment to complete."
 msgstr "Đang hủy {0} ngày. Có thể mất một lát."
 
-#: src/components/layouts/EventRoom/index.tsx:257
-#: src/components/layouts/EventRoom/index.tsx:536
+#: src/components/layouts/EventRoom/index.tsx:278
+#: src/components/layouts/EventRoom/index.tsx:600
 msgid "capacity"
 msgstr ""
 
@@ -2350,7 +2350,7 @@ msgstr ""
 #: src/components/common/CapacityHelp/index.tsx:63
 #: src/components/common/CapacityHelp/index.tsx:118
 #: src/components/forms/CapaciyAssigmentForm/index.tsx:42
-#: src/components/layouts/EventRoom/index.tsx:255
+#: src/components/layouts/EventRoom/index.tsx:276
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:63
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:508
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1105
@@ -2789,6 +2789,7 @@ msgstr "đóng"
 #: src/components/common/SideDrawer/index.tsx:117
 #: src/components/forms/ProductForm/ProductDrawer.tsx:100
 #: src/components/layouts/CheckIn/AttendeeDetailSheet.tsx:208
+#: src/components/layouts/EventRoom/index.tsx:567
 #: src/components/modals/JoinWaitlistModal/index.tsx:116
 #: src/components/modals/JoinWaitlistModal/index.tsx:143
 #: src/components/modals/RefundOrderModal/index.tsx:199
@@ -3891,7 +3892,7 @@ msgstr "Dashboard"
 #: src/components/common/OrderDetails/index.tsx:42
 #: src/components/common/WaitlistTable/index.tsx:184
 #: src/components/forms/QuestionForm/index.tsx:136
-#: src/components/layouts/EventRoom/index.tsx:220
+#: src/components/layouts/EventRoom/index.tsx:241
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:39
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:56
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:24
@@ -4195,7 +4196,7 @@ msgstr ""
 
 #: src/components/common/ProgressStepper/index.tsx:18
 #: src/components/common/ProgressStepper/index.tsx:23
-#: src/components/layouts/EventRoom/index.tsx:214
+#: src/components/layouts/EventRoom/index.tsx:235
 #: src/components/modals/ManageAttendeeModal/index.tsx:242
 #: src/components/modals/ManageOrderModal/index.tsx:268
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:103
@@ -4261,7 +4262,7 @@ msgid "Discount Type"
 msgstr "Loại giảm giá"
 
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:37
-#: src/components/layouts/EventRoom/index.tsx:386
+#: src/components/layouts/EventRoom/index.tsx:407
 msgid "Discover"
 msgstr ""
 
@@ -4993,7 +4994,7 @@ msgstr "mục"
 msgid "Entries will appear here when customers join the waitlist for sold out products."
 msgstr "Các mục sẽ xuất hiện ở đây khi khách hàng tham gia danh sách chờ cho các sản phẩm đã bán hết."
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
 msgid "Entry"
 msgstr ""
 
@@ -5946,12 +5947,12 @@ msgstr "Tắt đèn flash"
 msgid "Flash on"
 msgstr "Bật đèn flash"
 
-#: src/components/layouts/EventRoom/index.tsx:290
-#: src/components/layouts/EventRoom/index.tsx:299
+#: src/components/layouts/EventRoom/index.tsx:311
+#: src/components/layouts/EventRoom/index.tsx:320
 msgid "Follow"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:290
+#: src/components/layouts/EventRoom/index.tsx:311
 msgid "Following"
 msgstr ""
 
@@ -5991,8 +5992,10 @@ msgstr "Lần 4"
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:123
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:133
 #: src/components/forms/ProductForm/index.tsx:289
-#: src/components/layouts/EventRoom/index.tsx:459
-#: src/components/layouts/EventRoom/index.tsx:514
+#: src/components/layouts/EventRoom/index.tsx:480
+#: src/components/layouts/EventRoom/index.tsx:503
+#: src/components/layouts/EventRoom/index.tsx:578
+#: src/components/layouts/EventRoom/index.tsx:696
 #: src/components/layouts/OrganizerRoom/index.tsx:434
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:157
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:228
@@ -6016,7 +6019,8 @@ msgstr "T6"
 msgid "Friday"
 msgstr "Thứ Sáu"
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
+#: src/components/layouts/EventRoom/index.tsx:695
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1067
 msgid "From"
 msgstr "Từ"
@@ -6119,6 +6123,13 @@ msgstr "Nhận tiền qua Stripe"
 msgid "Get started"
 msgstr "Bắt đầu"
 
+#: src/components/layouts/EventRoom/index.tsx:501
+#: src/components/layouts/EventRoom/index.tsx:559
+#: src/components/layouts/EventRoom/index.tsx:562
+#: src/components/layouts/EventRoom/index.tsx:704
+msgid "Get tickets"
+msgstr ""
+
 #: src/components/layouts/EventHomepage/index.tsx:211
 msgid "Get Tickets"
 msgstr "Lấy vé"
@@ -6164,7 +6175,7 @@ msgstr "Đi đến trang chủ"
 msgid "Go to Schedule"
 msgstr "Đến lịch"
 
-#: src/components/layouts/EventRoom/index.tsx:535
+#: src/components/layouts/EventRoom/index.tsx:599
 msgid "going"
 msgstr ""
 
@@ -6459,7 +6470,7 @@ msgstr "Homer"
 msgid "Host"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:308
+#: src/components/layouts/EventRoom/index.tsx:329
 msgid "Hosted by"
 msgstr ""
 
@@ -8590,7 +8601,7 @@ msgstr "Sự kiện trực tuyến"
 msgid "Online Event Details"
 msgstr "Chi tiết sự kiện trực tuyến"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "Only"
 msgstr ""
 
@@ -10232,7 +10243,7 @@ msgstr "Ghi nhận hoàn tiền"
 #~ msgid "Recording your accepted currencies"
 #~ msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:233
+#: src/components/layouts/EventRoom/index.tsx:254
 msgid "recurring"
 msgstr ""
 
@@ -10353,12 +10364,12 @@ msgstr "Cài đặt khu vực"
 msgid "Register"
 msgstr "Đăng ký"
 
-#: src/components/layouts/EventRoom/index.tsx:258
-#: src/components/layouts/EventRoom/index.tsx:618
+#: src/components/layouts/EventRoom/index.tsx:279
+#: src/components/layouts/EventRoom/index.tsx:682
 msgid "registered"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:508
+#: src/components/layouts/EventRoom/index.tsx:545
 msgid "Registration"
 msgstr ""
 
@@ -10659,8 +10670,8 @@ msgstr "Thu hồi ưu đãi"
 msgid "Role"
 msgstr "Vai trò"
 
-#: src/components/layouts/EventRoom/index.tsx:197
-#: src/components/layouts/EventRoom/index.tsx:483
+#: src/components/layouts/EventRoom/index.tsx:218
+#: src/components/layouts/EventRoom/index.tsx:520
 msgid "Running order"
 msgstr ""
 
@@ -10801,7 +10812,7 @@ msgstr "Lưu lựa chọn"
 msgid "Save fee override"
 msgstr "Lưu phí tùy chỉnh"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 msgid "Save for later"
 msgstr ""
 
@@ -10837,7 +10848,7 @@ msgstr "Lưu cài đặt VAT"
 msgid "Save VAT Settings"
 msgstr "Lưu cài đặt VAT"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 #: src/components/layouts/OrganizerRoom/RoomEventCard.tsx:59
 msgid "Saved"
 msgstr ""
@@ -11311,7 +11322,7 @@ msgid "Send emails to attendees, ticket holders, or order owners. Messages can b
 msgstr "Gửi email cho người tham dự, chủ vé hoặc chủ đơn hàng. Tin nhắn có thể được gửi ngay hoặc lên lịch gửi sau."
 
 #: src/components/layouts/Event/index.tsx:248
-#: src/components/layouts/EventRoom/index.tsx:635
+#: src/components/layouts/EventRoom/index.tsx:719
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:132
 msgid "Send it to someone who'd come with you."
 msgstr ""
@@ -11588,7 +11599,7 @@ msgstr "Chia sẻ"
 msgid "Share Affiliate Link"
 msgstr "Chia sẻ liên kết đối tác"
 
-#: src/components/layouts/EventRoom/index.tsx:582
+#: src/components/layouts/EventRoom/index.tsx:646
 msgid "Share event"
 msgstr ""
 
@@ -11609,7 +11620,7 @@ msgid "Share this date"
 msgstr ""
 
 #: src/components/layouts/Event/index.tsx:247
-#: src/components/layouts/EventRoom/index.tsx:634
+#: src/components/layouts/EventRoom/index.tsx:718
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:131
 msgid "Share this event"
 msgstr ""
@@ -11914,7 +11925,7 @@ msgstr "Chia nhỏ việc check-in theo ngày, khu vực hoặc loại vé. Chia
 #~ msgid "Sports"
 #~ msgstr "Thể thao"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "spots left"
 msgstr ""
 
@@ -13307,7 +13318,7 @@ msgstr "Các bậc"
 msgid "TikTok"
 msgstr "TikTok"
 
-#: src/components/layouts/EventRoom/index.tsx:229
+#: src/components/layouts/EventRoom/index.tsx:250
 #: src/components/routes/event/OccurrencesTab/index.tsx:307
 #: src/components/routes/event/Settings/Sections/AgendaSettings/index.tsx:91
 msgid "Time"
@@ -14088,7 +14099,7 @@ msgid "VAT: not registered"
 msgstr "VAT: chưa đăng ký"
 
 #: src/components/common/BlockBuilder/registry.ts:69
-#: src/components/layouts/EventRoom/index.tsx:242
+#: src/components/layouts/EventRoom/index.tsx:263
 msgid "Venue"
 msgstr ""
 
@@ -14193,7 +14204,7 @@ msgstr "Xem câu trả lời"
 msgid "View Attendee Details"
 msgstr "Xem chi tiết người tham dự"
 
-#: src/components/layouts/EventRoom/index.tsx:449
+#: src/components/layouts/EventRoom/index.tsx:470
 msgid "View calendar"
 msgstr ""
 
@@ -14781,7 +14792,7 @@ msgstr "Ai đang tổ chức sự kiện này?"
 msgid "Who should be asked this question?"
 msgstr "Ai nên được hỏi câu hỏi này?"
 
-#: src/components/layouts/EventRoom/index.tsx:603
+#: src/components/layouts/EventRoom/index.tsx:667
 msgid "Who's coming"
 msgstr ""
 
@@ -15036,7 +15047,7 @@ msgstr "Bạn sẽ thiết lập được ngày, lịch và quy tắc lặp ở 
 msgid "You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms."
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:597
+#: src/components/layouts/EventRoom/index.tsx:661
 msgid "You'll finish checkout on the ticket platform."
 msgstr ""
 

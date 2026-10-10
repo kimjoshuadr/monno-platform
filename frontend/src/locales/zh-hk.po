@@ -228,7 +228,7 @@ msgstr "已售 {sold} · 所有日期剩餘 {left}"
 msgid "{sold} sold · unlimited"
 msgstr "已售 {sold} · 不限量"
 
-#: src/components/layouts/EventRoom/index.tsx:530
+#: src/components/layouts/EventRoom/index.tsx:594
 msgid "{taken}% of capacity taken"
 msgstr ""
 
@@ -529,8 +529,8 @@ msgstr "已放棄"
 msgid "About"
 msgstr "關於"
 
-#: src/components/layouts/EventRoom/index.tsx:190
-#: src/components/layouts/EventRoom/index.tsx:476
+#: src/components/layouts/EventRoom/index.tsx:211
+#: src/components/layouts/EventRoom/index.tsx:513
 msgid "About this event"
 msgstr ""
 
@@ -911,7 +911,7 @@ msgstr "添加機票"
 msgid "Add tier"
 msgstr "增加層級"
 
-#: src/components/layouts/EventRoom/index.tsx:592
+#: src/components/layouts/EventRoom/index.tsx:656
 msgid "Add to calendar"
 msgstr ""
 
@@ -2095,7 +2095,7 @@ msgstr "使用自訂標誌、顏色和頁腳訊息打造您的門票品牌。"
 msgid "Brazilian Portuguese"
 msgstr "巴西葡萄牙語"
 
-#: src/components/layouts/EventRoom/index.tsx:384
+#: src/components/layouts/EventRoom/index.tsx:405
 msgid "Breadcrumb"
 msgstr ""
 
@@ -2339,8 +2339,8 @@ msgstr "已取消"
 msgid "Cancelling {0} date(s). This may take a moment to complete."
 msgstr "正在取消 {0} 個日期，可能需要一點時間。"
 
-#: src/components/layouts/EventRoom/index.tsx:257
-#: src/components/layouts/EventRoom/index.tsx:536
+#: src/components/layouts/EventRoom/index.tsx:278
+#: src/components/layouts/EventRoom/index.tsx:600
 msgid "capacity"
 msgstr ""
 
@@ -2350,7 +2350,7 @@ msgstr ""
 #: src/components/common/CapacityHelp/index.tsx:63
 #: src/components/common/CapacityHelp/index.tsx:118
 #: src/components/forms/CapaciyAssigmentForm/index.tsx:42
-#: src/components/layouts/EventRoom/index.tsx:255
+#: src/components/layouts/EventRoom/index.tsx:276
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:63
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:508
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1105
@@ -2789,6 +2789,7 @@ msgstr "關閉"
 #: src/components/common/SideDrawer/index.tsx:117
 #: src/components/forms/ProductForm/ProductDrawer.tsx:100
 #: src/components/layouts/CheckIn/AttendeeDetailSheet.tsx:208
+#: src/components/layouts/EventRoom/index.tsx:567
 #: src/components/modals/JoinWaitlistModal/index.tsx:116
 #: src/components/modals/JoinWaitlistModal/index.tsx:143
 #: src/components/modals/RefundOrderModal/index.tsx:199
@@ -3891,7 +3892,7 @@ msgstr "Dashboard"
 #: src/components/common/OrderDetails/index.tsx:42
 #: src/components/common/WaitlistTable/index.tsx:184
 #: src/components/forms/QuestionForm/index.tsx:136
-#: src/components/layouts/EventRoom/index.tsx:220
+#: src/components/layouts/EventRoom/index.tsx:241
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:39
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:56
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:24
@@ -4195,7 +4196,7 @@ msgstr ""
 
 #: src/components/common/ProgressStepper/index.tsx:18
 #: src/components/common/ProgressStepper/index.tsx:23
-#: src/components/layouts/EventRoom/index.tsx:214
+#: src/components/layouts/EventRoom/index.tsx:235
 #: src/components/modals/ManageAttendeeModal/index.tsx:242
 #: src/components/modals/ManageOrderModal/index.tsx:268
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:103
@@ -4261,7 +4262,7 @@ msgid "Discount Type"
 msgstr "折扣類型"
 
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:37
-#: src/components/layouts/EventRoom/index.tsx:386
+#: src/components/layouts/EventRoom/index.tsx:407
 msgid "Discover"
 msgstr ""
 
@@ -4993,7 +4994,7 @@ msgstr "項"
 msgid "Entries will appear here when customers join the waitlist for sold out products."
 msgstr "當客戶加入已售罄產品的候補名單時，條目將顯示在此處。"
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
 msgid "Entry"
 msgstr ""
 
@@ -5946,12 +5947,12 @@ msgstr "閃光燈關閉"
 msgid "Flash on"
 msgstr "閃光燈開啟"
 
-#: src/components/layouts/EventRoom/index.tsx:290
-#: src/components/layouts/EventRoom/index.tsx:299
+#: src/components/layouts/EventRoom/index.tsx:311
+#: src/components/layouts/EventRoom/index.tsx:320
 msgid "Follow"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:290
+#: src/components/layouts/EventRoom/index.tsx:311
 msgid "Following"
 msgstr ""
 
@@ -5991,8 +5992,10 @@ msgstr "第四個"
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:123
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:133
 #: src/components/forms/ProductForm/index.tsx:289
-#: src/components/layouts/EventRoom/index.tsx:459
-#: src/components/layouts/EventRoom/index.tsx:514
+#: src/components/layouts/EventRoom/index.tsx:480
+#: src/components/layouts/EventRoom/index.tsx:503
+#: src/components/layouts/EventRoom/index.tsx:578
+#: src/components/layouts/EventRoom/index.tsx:696
 #: src/components/layouts/OrganizerRoom/index.tsx:434
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:157
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:228
@@ -6016,7 +6019,8 @@ msgstr "五"
 msgid "Friday"
 msgstr "星期五"
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
+#: src/components/layouts/EventRoom/index.tsx:695
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1067
 msgid "From"
 msgstr "從"
@@ -6119,6 +6123,13 @@ msgstr "用 Stripe 收款"
 msgid "Get started"
 msgstr "開始使用"
 
+#: src/components/layouts/EventRoom/index.tsx:501
+#: src/components/layouts/EventRoom/index.tsx:559
+#: src/components/layouts/EventRoom/index.tsx:562
+#: src/components/layouts/EventRoom/index.tsx:704
+msgid "Get tickets"
+msgstr ""
+
 #: src/components/layouts/EventHomepage/index.tsx:211
 msgid "Get Tickets"
 msgstr "購票"
@@ -6164,7 +6175,7 @@ msgstr "返回主頁"
 msgid "Go to Schedule"
 msgstr "前往排程"
 
-#: src/components/layouts/EventRoom/index.tsx:535
+#: src/components/layouts/EventRoom/index.tsx:599
 msgid "going"
 msgstr ""
 
@@ -6459,7 +6470,7 @@ msgstr "荷馬"
 msgid "Host"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:308
+#: src/components/layouts/EventRoom/index.tsx:329
 msgid "Hosted by"
 msgstr ""
 
@@ -8590,7 +8601,7 @@ msgstr "線上活動"
 msgid "Online Event Details"
 msgstr "在線活動詳情"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "Only"
 msgstr ""
 
@@ -10232,7 +10243,7 @@ msgstr "記錄退款"
 #~ msgid "Recording your accepted currencies"
 #~ msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:233
+#: src/components/layouts/EventRoom/index.tsx:254
 msgid "recurring"
 msgstr ""
 
@@ -10353,12 +10364,12 @@ msgstr "地區設定"
 msgid "Register"
 msgstr "註冊"
 
-#: src/components/layouts/EventRoom/index.tsx:258
-#: src/components/layouts/EventRoom/index.tsx:618
+#: src/components/layouts/EventRoom/index.tsx:279
+#: src/components/layouts/EventRoom/index.tsx:682
 msgid "registered"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:508
+#: src/components/layouts/EventRoom/index.tsx:545
 msgid "Registration"
 msgstr ""
 
@@ -10659,8 +10670,8 @@ msgstr "撤銷報價"
 msgid "Role"
 msgstr "角色"
 
-#: src/components/layouts/EventRoom/index.tsx:197
-#: src/components/layouts/EventRoom/index.tsx:483
+#: src/components/layouts/EventRoom/index.tsx:218
+#: src/components/layouts/EventRoom/index.tsx:520
 msgid "Running order"
 msgstr ""
 
@@ -10801,7 +10812,7 @@ msgstr "儲存選擇"
 msgid "Save fee override"
 msgstr "儲存個別收費"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 msgid "Save for later"
 msgstr ""
 
@@ -10837,7 +10848,7 @@ msgstr "儲存增值稅設定"
 msgid "Save VAT Settings"
 msgstr "儲存增值稅設定"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 #: src/components/layouts/OrganizerRoom/RoomEventCard.tsx:59
 msgid "Saved"
 msgstr ""
@@ -11311,7 +11322,7 @@ msgid "Send emails to attendees, ticket holders, or order owners. Messages can b
 msgstr "向參與者、持票人或訂單擁有者發送電子郵件。訊息可以立即發送或安排稍後發送。"
 
 #: src/components/layouts/Event/index.tsx:248
-#: src/components/layouts/EventRoom/index.tsx:635
+#: src/components/layouts/EventRoom/index.tsx:719
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:132
 msgid "Send it to someone who'd come with you."
 msgstr ""
@@ -11588,7 +11599,7 @@ msgstr "分享"
 msgid "Share Affiliate Link"
 msgstr "分享推廣連結"
 
-#: src/components/layouts/EventRoom/index.tsx:582
+#: src/components/layouts/EventRoom/index.tsx:646
 msgid "Share event"
 msgstr ""
 
@@ -11609,7 +11620,7 @@ msgid "Share this date"
 msgstr ""
 
 #: src/components/layouts/Event/index.tsx:247
-#: src/components/layouts/EventRoom/index.tsx:634
+#: src/components/layouts/EventRoom/index.tsx:718
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:131
 msgid "Share this event"
 msgstr ""
@@ -11914,7 +11925,7 @@ msgstr "按日子、區域或門票類型分拆簽到。將連結分享給工作
 #~ msgid "Sports"
 #~ msgstr "體育"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "spots left"
 msgstr ""
 
@@ -13307,7 +13318,7 @@ msgstr "級別"
 msgid "TikTok"
 msgstr "TikTok"
 
-#: src/components/layouts/EventRoom/index.tsx:229
+#: src/components/layouts/EventRoom/index.tsx:250
 #: src/components/routes/event/OccurrencesTab/index.tsx:307
 #: src/components/routes/event/Settings/Sections/AgendaSettings/index.tsx:91
 msgid "Time"
@@ -14088,7 +14099,7 @@ msgid "VAT: not registered"
 msgstr "增值稅：未登記"
 
 #: src/components/common/BlockBuilder/registry.ts:69
-#: src/components/layouts/EventRoom/index.tsx:242
+#: src/components/layouts/EventRoom/index.tsx:263
 msgid "Venue"
 msgstr ""
 
@@ -14193,7 +14204,7 @@ msgstr "查看答案"
 msgid "View Attendee Details"
 msgstr "查看參會者詳情"
 
-#: src/components/layouts/EventRoom/index.tsx:449
+#: src/components/layouts/EventRoom/index.tsx:470
 msgid "View calendar"
 msgstr ""
 
@@ -14781,7 +14792,7 @@ msgstr "這項活動由誰組織？"
 msgid "Who should be asked this question?"
 msgstr "這個問題應該問誰？"
 
-#: src/components/layouts/EventRoom/index.tsx:603
+#: src/components/layouts/EventRoom/index.tsx:667
 msgid "Who's coming"
 msgstr ""
 
@@ -15036,7 +15047,7 @@ msgstr "你可以在下一步設定日期、排程和重複規則。"
 msgid "You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms."
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:597
+#: src/components/layouts/EventRoom/index.tsx:661
 msgid "You'll finish checkout on the ticket platform."
 msgstr ""
 

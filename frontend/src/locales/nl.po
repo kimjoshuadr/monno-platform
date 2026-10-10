@@ -229,7 +229,7 @@ msgstr "{sold} verkocht · {left} over voor alle datums"
 msgid "{sold} sold · unlimited"
 msgstr "{sold} verkocht · onbeperkt"
 
-#: src/components/layouts/EventRoom/index.tsx:530
+#: src/components/layouts/EventRoom/index.tsx:594
 msgid "{taken}% of capacity taken"
 msgstr ""
 
@@ -530,8 +530,8 @@ msgstr "Verlaten"
 msgid "About"
 msgstr "Over"
 
-#: src/components/layouts/EventRoom/index.tsx:190
-#: src/components/layouts/EventRoom/index.tsx:476
+#: src/components/layouts/EventRoom/index.tsx:211
+#: src/components/layouts/EventRoom/index.tsx:513
 msgid "About this event"
 msgstr ""
 
@@ -912,7 +912,7 @@ msgstr "Tickets toevoegen"
 msgid "Add tier"
 msgstr "Niveau toevoegen"
 
-#: src/components/layouts/EventRoom/index.tsx:592
+#: src/components/layouts/EventRoom/index.tsx:656
 msgid "Add to calendar"
 msgstr ""
 
@@ -2096,7 +2096,7 @@ msgstr "Pas je tickets aan met een eigen logo, kleuren en voettekst."
 msgid "Brazilian Portuguese"
 msgstr "Braziliaans Portugees"
 
-#: src/components/layouts/EventRoom/index.tsx:384
+#: src/components/layouts/EventRoom/index.tsx:405
 msgid "Breadcrumb"
 msgstr ""
 
@@ -2340,8 +2340,8 @@ msgstr "Geannuleerd"
 msgid "Cancelling {0} date(s). This may take a moment to complete."
 msgstr "Bezig met annuleren van {0} datum(s). Dit kan even duren."
 
-#: src/components/layouts/EventRoom/index.tsx:257
-#: src/components/layouts/EventRoom/index.tsx:536
+#: src/components/layouts/EventRoom/index.tsx:278
+#: src/components/layouts/EventRoom/index.tsx:600
 msgid "capacity"
 msgstr ""
 
@@ -2351,7 +2351,7 @@ msgstr ""
 #: src/components/common/CapacityHelp/index.tsx:63
 #: src/components/common/CapacityHelp/index.tsx:118
 #: src/components/forms/CapaciyAssigmentForm/index.tsx:42
-#: src/components/layouts/EventRoom/index.tsx:255
+#: src/components/layouts/EventRoom/index.tsx:276
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:63
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:508
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1105
@@ -2790,6 +2790,7 @@ msgstr "sluiten"
 #: src/components/common/SideDrawer/index.tsx:117
 #: src/components/forms/ProductForm/ProductDrawer.tsx:100
 #: src/components/layouts/CheckIn/AttendeeDetailSheet.tsx:208
+#: src/components/layouts/EventRoom/index.tsx:567
 #: src/components/modals/JoinWaitlistModal/index.tsx:116
 #: src/components/modals/JoinWaitlistModal/index.tsx:143
 #: src/components/modals/RefundOrderModal/index.tsx:199
@@ -3892,7 +3893,7 @@ msgstr "Dashboard"
 #: src/components/common/OrderDetails/index.tsx:42
 #: src/components/common/WaitlistTable/index.tsx:184
 #: src/components/forms/QuestionForm/index.tsx:136
-#: src/components/layouts/EventRoom/index.tsx:220
+#: src/components/layouts/EventRoom/index.tsx:241
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:39
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:56
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:24
@@ -4196,7 +4197,7 @@ msgstr ""
 
 #: src/components/common/ProgressStepper/index.tsx:18
 #: src/components/common/ProgressStepper/index.tsx:23
-#: src/components/layouts/EventRoom/index.tsx:214
+#: src/components/layouts/EventRoom/index.tsx:235
 #: src/components/modals/ManageAttendeeModal/index.tsx:242
 #: src/components/modals/ManageOrderModal/index.tsx:268
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:103
@@ -4262,7 +4263,7 @@ msgid "Discount Type"
 msgstr "Korting Type"
 
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:37
-#: src/components/layouts/EventRoom/index.tsx:386
+#: src/components/layouts/EventRoom/index.tsx:407
 msgid "Discover"
 msgstr ""
 
@@ -4994,7 +4995,7 @@ msgstr "items"
 msgid "Entries will appear here when customers join the waitlist for sold out products."
 msgstr "Inschrijvingen verschijnen hier wanneer klanten zich aanmelden voor de wachtlijst van uitverkochte producten."
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
 msgid "Entry"
 msgstr ""
 
@@ -5947,12 +5948,12 @@ msgstr "Flits uit"
 msgid "Flash on"
 msgstr "Flits aan"
 
-#: src/components/layouts/EventRoom/index.tsx:290
-#: src/components/layouts/EventRoom/index.tsx:299
+#: src/components/layouts/EventRoom/index.tsx:311
+#: src/components/layouts/EventRoom/index.tsx:320
 msgid "Follow"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:290
+#: src/components/layouts/EventRoom/index.tsx:311
 msgid "Following"
 msgstr ""
 
@@ -5992,8 +5993,10 @@ msgstr "Vierde"
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:123
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:133
 #: src/components/forms/ProductForm/index.tsx:289
-#: src/components/layouts/EventRoom/index.tsx:459
-#: src/components/layouts/EventRoom/index.tsx:514
+#: src/components/layouts/EventRoom/index.tsx:480
+#: src/components/layouts/EventRoom/index.tsx:503
+#: src/components/layouts/EventRoom/index.tsx:578
+#: src/components/layouts/EventRoom/index.tsx:696
 #: src/components/layouts/OrganizerRoom/index.tsx:434
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:157
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:228
@@ -6017,7 +6020,8 @@ msgstr "Vr"
 msgid "Friday"
 msgstr "Vrijdag"
 
-#: src/components/layouts/EventRoom/index.tsx:512
+#: src/components/layouts/EventRoom/index.tsx:576
+#: src/components/layouts/EventRoom/index.tsx:695
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1067
 msgid "From"
 msgstr "Van"
@@ -6120,6 +6124,13 @@ msgstr "Betaald worden via Stripe"
 msgid "Get started"
 msgstr "Aan de slag"
 
+#: src/components/layouts/EventRoom/index.tsx:501
+#: src/components/layouts/EventRoom/index.tsx:559
+#: src/components/layouts/EventRoom/index.tsx:562
+#: src/components/layouts/EventRoom/index.tsx:704
+msgid "Get tickets"
+msgstr ""
+
 #: src/components/layouts/EventHomepage/index.tsx:211
 msgid "Get Tickets"
 msgstr "Koop Tickets"
@@ -6165,7 +6176,7 @@ msgstr "Ga naar de startpagina"
 msgid "Go to Schedule"
 msgstr "Naar de planning"
 
-#: src/components/layouts/EventRoom/index.tsx:535
+#: src/components/layouts/EventRoom/index.tsx:599
 msgid "going"
 msgstr ""
 
@@ -6460,7 +6471,7 @@ msgstr "Homer"
 msgid "Host"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:308
+#: src/components/layouts/EventRoom/index.tsx:329
 msgid "Hosted by"
 msgstr ""
 
@@ -8591,7 +8602,7 @@ msgstr "Online evenement"
 msgid "Online Event Details"
 msgstr "Details online evenement"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "Only"
 msgstr ""
 
@@ -10233,7 +10244,7 @@ msgstr "Terugbetaling registreren"
 #~ msgid "Recording your accepted currencies"
 #~ msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:233
+#: src/components/layouts/EventRoom/index.tsx:254
 msgid "recurring"
 msgstr ""
 
@@ -10354,12 +10365,12 @@ msgstr "Regionale instellingen"
 msgid "Register"
 msgstr "Registreer"
 
-#: src/components/layouts/EventRoom/index.tsx:258
-#: src/components/layouts/EventRoom/index.tsx:618
+#: src/components/layouts/EventRoom/index.tsx:279
+#: src/components/layouts/EventRoom/index.tsx:682
 msgid "registered"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:508
+#: src/components/layouts/EventRoom/index.tsx:545
 msgid "Registration"
 msgstr ""
 
@@ -10660,8 +10671,8 @@ msgstr "Aanbod intrekken"
 msgid "Role"
 msgstr "Rol"
 
-#: src/components/layouts/EventRoom/index.tsx:197
-#: src/components/layouts/EventRoom/index.tsx:483
+#: src/components/layouts/EventRoom/index.tsx:218
+#: src/components/layouts/EventRoom/index.tsx:520
 msgid "Running order"
 msgstr ""
 
@@ -10802,7 +10813,7 @@ msgstr "Keuzes opslaan"
 msgid "Save fee override"
 msgstr "Aangepaste kosten opslaan"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 msgid "Save for later"
 msgstr ""
 
@@ -10838,7 +10849,7 @@ msgstr "Btw-instellingen opslaan"
 msgid "Save VAT Settings"
 msgstr "BTW-instellingen opslaan"
 
-#: src/components/layouts/EventRoom/index.tsx:572
+#: src/components/layouts/EventRoom/index.tsx:636
 #: src/components/layouts/OrganizerRoom/RoomEventCard.tsx:59
 msgid "Saved"
 msgstr ""
@@ -11312,7 +11323,7 @@ msgid "Send emails to attendees, ticket holders, or order owners. Messages can b
 msgstr "Stuur e-mails naar deelnemers, tickethouders of bestelingseigenaren. Berichten kunnen direct worden verzonden of worden ingepland voor later."
 
 #: src/components/layouts/Event/index.tsx:248
-#: src/components/layouts/EventRoom/index.tsx:635
+#: src/components/layouts/EventRoom/index.tsx:719
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:132
 msgid "Send it to someone who'd come with you."
 msgstr ""
@@ -11589,7 +11600,7 @@ msgstr "Deel"
 msgid "Share Affiliate Link"
 msgstr "Deel affiliatelink"
 
-#: src/components/layouts/EventRoom/index.tsx:582
+#: src/components/layouts/EventRoom/index.tsx:646
 msgid "Share event"
 msgstr ""
 
@@ -11610,7 +11621,7 @@ msgid "Share this date"
 msgstr ""
 
 #: src/components/layouts/Event/index.tsx:247
-#: src/components/layouts/EventRoom/index.tsx:634
+#: src/components/layouts/EventRoom/index.tsx:718
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:131
 msgid "Share this event"
 msgstr ""
@@ -11915,7 +11926,7 @@ msgstr "Verdeel de check-in over dagen, zones of tickettypes. Deel de link met j
 #~ msgid "Sports"
 #~ msgstr "Sport"
 
-#: src/components/layouts/EventRoom/index.tsx:463
+#: src/components/layouts/EventRoom/index.tsx:484
 msgid "spots left"
 msgstr ""
 
@@ -13308,7 +13319,7 @@ msgstr "Niveaus"
 msgid "TikTok"
 msgstr "TikTok"
 
-#: src/components/layouts/EventRoom/index.tsx:229
+#: src/components/layouts/EventRoom/index.tsx:250
 #: src/components/routes/event/OccurrencesTab/index.tsx:307
 #: src/components/routes/event/Settings/Sections/AgendaSettings/index.tsx:91
 msgid "Time"
@@ -14089,7 +14100,7 @@ msgid "VAT: not registered"
 msgstr "Btw: niet geregistreerd"
 
 #: src/components/common/BlockBuilder/registry.ts:69
-#: src/components/layouts/EventRoom/index.tsx:242
+#: src/components/layouts/EventRoom/index.tsx:263
 msgid "Venue"
 msgstr ""
 
@@ -14194,7 +14205,7 @@ msgstr "Antwoorden bekijken"
 msgid "View Attendee Details"
 msgstr "Details van deelnemers bekijken"
 
-#: src/components/layouts/EventRoom/index.tsx:449
+#: src/components/layouts/EventRoom/index.tsx:470
 msgid "View calendar"
 msgstr ""
 
@@ -14782,7 +14793,7 @@ msgstr "Wie organiseert dit evenement?"
 msgid "Who should be asked this question?"
 msgstr "Aan wie moet deze vraag worden gesteld?"
 
-#: src/components/layouts/EventRoom/index.tsx:603
+#: src/components/layouts/EventRoom/index.tsx:667
 msgid "Who's coming"
 msgstr ""
 
@@ -15037,7 +15048,7 @@ msgstr "In de volgende stap kun je datums, planningen en herhalingsregels instel
 msgid "You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms."
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:597
+#: src/components/layouts/EventRoom/index.tsx:661
 msgid "You'll finish checkout on the ticket platform."
 msgstr ""
 
