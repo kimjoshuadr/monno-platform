@@ -35,7 +35,7 @@ import {downloadICSFile} from "../../../utilites/calendar.ts";
 import SelectProducts from "../../routes/product-widget/SelectProducts";
 import {ShareModal} from "../../modals/ShareModal";
 import {EventRoomHeader, monnoEventUrl, monnoSiteUrl} from "./EventRoomChrome.tsx";
-import {getEventCoverImage, makeEventPosterSvg} from "../../../utilites/imageFallbacks.ts";
+import {getEventCoverImage, makeEventPosterSvg, makeOrganizerAvatarSvg} from "../../../utilites/imageFallbacks.ts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -287,13 +287,16 @@ export const EventRoom = ({
 
     const hostPanel = organizer ? (
         <div className="event-host-panel">
-            {organizerLogo ? (
-                <span className="event-host-mark">
-                    <img src={organizerLogo.url} alt="" width={48} height={48}/>
-                </span>
-            ) : (
-                <span className="monogram">{organizerInitials}</span>
-            )}
+            {/* Same mark as the cover card: the uploaded logo, or the organizer's
+                initials on their brand gradient. */}
+            <span className="event-host-mark">
+                <img
+                    src={organizerLogo?.url ?? makeOrganizerAvatarSvg(organizer.name, organizerInitials)}
+                    alt=""
+                    width={48}
+                    height={48}
+                />
+            </span>
             <div>
                 <h3>{organizer.name}</h3>
                 {organizer.description ? <p className="bio">{organizer.description}</p> : null}
@@ -453,11 +456,12 @@ export const EventRoom = ({
                         {organizer ? (
                             <div className="event-host-card" data-od-id="event-host-card">
                                 <span className="event-host-mark">
-                                    {organizerLogo ? (
-                                        <img src={organizerLogo.url} alt="" width={48} height={48}/>
-                                    ) : (
-                                        <span className="monogram">{organizerInitials}</span>
-                                    )}
+                                    <img
+                                        src={organizerLogo?.url ?? makeOrganizerAvatarSvg(organizer.name, organizerInitials)}
+                                        alt=""
+                                        width={48}
+                                        height={48}
+                                    />
                                 </span>
                                 <span className="event-host-copy">
                                     <span className="event-host-name">{organizer.name}</span>

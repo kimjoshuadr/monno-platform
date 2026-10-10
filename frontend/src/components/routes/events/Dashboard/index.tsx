@@ -142,7 +142,6 @@ export function Dashboard() {
                                             style={{
                                                 width: '100%',
                                                 height: '100%',
-                                                borderRadius: '6px',
                                                 background: getOrganizerPalette(organizer.name).gradient,
                                                 color: '#ffffff',
                                                 fontWeight: 700,

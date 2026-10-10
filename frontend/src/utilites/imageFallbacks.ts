@@ -130,6 +130,12 @@ export function getEventCoverImage(event?: Partial<Event> | null): string | null
   return null;
 }
 
+/**
+ * An organizer's initials on their brand gradient — a full-bleed square the
+ * container clips to its own shape. No baked-in squircle or ring: a circle
+ * frame would otherwise show corner gaps and double chrome, and the mark's
+ * own radius should come from the page, not the asset.
+ */
 export function makeOrganizerAvatarSvg(name: string, initials?: string): string {
   const palette = getOrganizerPalette(name);
   const mark = escapeXml(initials || getInitials(name));
@@ -140,9 +146,8 @@ export function makeOrganizerAvatarSvg(name: string, initials?: string): string 
       <stop offset="100%" stop-color="${palette.end}"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="38" fill="url(#g)"/>
-  <rect width="126" height="126" x="1" y="1" rx="37" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="48" letter-spacing="1">${mark}</text>
+  <rect width="128" height="128" fill="url(#g)"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="48" letter-spacing="1">${mark}</text>
 </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
@@ -172,7 +177,7 @@ export function makeEventPosterSvg(title: string, category?: string | null): str
   <rect width="1600" height="1000" fill="url(#g)"/>
   <rect width="1600" height="1000" fill="url(#glow)"/>
   <circle cx="800" cy="450" r="150" fill="url(#glass)" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
-  <text x="800" y="465" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="104" letter-spacing="4">${initials}</text>
+  <text x="800" y="450" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="104" letter-spacing="4">${initials}</text>
   <text x="800" y="690" text-anchor="middle" dominant-baseline="central" fill="rgba(255,255,255,0.95)" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="600" font-size="34" letter-spacing="1">${cleanTitle}</text>
   <text x="800" y="750" text-anchor="middle" dominant-baseline="central" fill="rgba(255,255,255,0.7)" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="20" letter-spacing="4">${cleanCategory}</text>
 </svg>`;
