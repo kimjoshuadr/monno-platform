@@ -154,7 +154,7 @@ final class MonnoSeedContent
                 'featured' => false, 'image' => 'event-market.jpg',
             ],
             [
-                'organizer' => 'harbourrun', 'category' => 'SPORTS',
+                'organizer' => 'harbourrun', 'category' => 'FITNESS',
                 'city' => 'Sydney', 'country' => 'AU', 'region' => 'NSW', 'timezone' => 'Australia/Sydney',
                 'venue' => 'Mrs Macquarie\u2019s Point', 'address' => '1 Mrs Macquarie\u2019s Road', 'zip' => '2000',
                 'lat' => -33.8590, 'lng' => 151.2150,

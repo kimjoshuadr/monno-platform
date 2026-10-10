@@ -89,7 +89,7 @@ msgstr "{0} 標誌"
 msgid "{0} of {1} seats are taken."
 msgstr "{1} 個座位中已佔用 {0} 個。"
 
-#: src/components/routes/events/Dashboard/index.tsx:141
+#: src/components/routes/events/Dashboard/index.tsx:167
 msgid "{0} organizers"
 msgstr "{0} 位主辦單位"
 
@@ -113,7 +113,7 @@ msgstr "{appName} 標誌"
 msgid "{attendeeCount} attendees are registered for this session."
 msgstr "本場次有 {attendeeCount} 位參加者已登記。"
 
-#: src/components/common/EventCard/index.tsx:141
+#: src/components/common/EventCard/index.tsx:131
 msgid "{availableCount} of {totalCount} available"
 msgstr "{totalCount} 中有 {availableCount} 可用"
 
@@ -228,11 +228,11 @@ msgstr "已售 {sold} · 所有日期剩餘 {left}"
 msgid "{sold} sold · unlimited"
 msgstr "已售 {sold} · 不限量"
 
-#: src/components/layouts/EventRoom/index.tsx:525
+#: src/components/layouts/EventRoom/index.tsx:530
 msgid "{taken}% of capacity taken"
 msgstr ""
 
-#: src/components/common/EventCard/index.tsx:137
+#: src/components/common/EventCard/index.tsx:127
 msgid "{totalCount} ticket types"
 msgstr "{totalCount} 種門票類型"
 
@@ -340,7 +340,7 @@ msgstr "活動前1小時"
 msgid "1 ticket"
 msgstr "1張門票"
 
-#: src/components/common/EventCard/index.tsx:137
+#: src/components/common/EventCard/index.tsx:127
 msgid "1 ticket type"
 msgstr "1 種門票類型"
 
@@ -356,6 +356,10 @@ msgstr "有 1 個可選時間"
 #: src/components/modals/SendMessageModal/index.tsx:119
 msgid "1 week before event"
 msgstr "活動前1週"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:324
+msgid "1–5% — paid by your buyer"
+msgstr ""
 
 #: src/components/common/CapacityHelp/index.tsx:28
 msgid "12 mats in the studio and one Drop-in ticket."
@@ -375,12 +379,12 @@ msgid "19:45"
 msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:216
-msgid "2.5% (automatically collected on-chain)"
-msgstr ""
+#~ msgid "2.5% (automatically collected on-chain)"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:450
-msgid "2.5% (grossed up onto buyer)"
-msgstr ""
+#~ msgid "2.5% (grossed up onto buyer)"
+#~ msgstr ""
 
 #: src/components/common/WidgetEditor/index.tsx:230
 msgid "20"
@@ -520,13 +524,13 @@ msgid "Abandoned"
 msgstr "已放棄"
 
 #: src/components/common/BlockBuilder/registry.ts:43
-#: src/components/layouts/EventHomepage/index.tsx:483
+#: src/components/layouts/EventHomepage/index.tsx:490
 #: src/components/layouts/OrganizerRoom/index.tsx:160
 msgid "About"
 msgstr "關於"
 
-#: src/components/layouts/EventRoom/index.tsx:185
-#: src/components/layouts/EventRoom/index.tsx:471
+#: src/components/layouts/EventRoom/index.tsx:190
+#: src/components/layouts/EventRoom/index.tsx:476
 msgid "About this event"
 msgstr ""
 
@@ -567,12 +571,20 @@ msgstr "接受邀請"
 msgid "Accept payment outside the platform (bank transfer, invoice, e-wallet) and mark orders as paid manually."
 msgstr ""
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:103
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:211
 msgid "Accept stablecoins and other crypto with zero chargebacks."
 msgstr ""
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:77
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:185
 msgid "Accept USDC, USDT, ETH, and other cryptocurrencies with zero chargebacks. Sales settle to your own cold wallet on-chain."
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:291
+msgid "Accepting payments"
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:372
+msgid "Accepting payments on"
 msgstr ""
 
 #: src/components/forms/ProductForm/index.tsx:592
@@ -656,6 +668,14 @@ msgstr "賬戶"
 msgid "Accounts ({0})"
 msgstr "帳戶（{0}）"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:288
+msgid "Action needed"
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:347
+msgid "Action needed: your hot wallet is inactive"
+msgstr ""
+
 #: src/components/routes/organizer/Payments/Vat/VatSettings.tsx:36
 msgid "Action Required: VAT Information Needed"
 msgstr "需要操作：需提供增值稅資料"
@@ -693,7 +713,7 @@ msgstr "激活日期"
 #: src/components/routes/event/OccurrencesTab/OccurrenceMenu.tsx:211
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:20
 #: src/components/routes/organizer/Payments/CapabilityList.tsx:57
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:142
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:288
 msgid "Active"
 msgstr "活躍"
 
@@ -732,6 +752,10 @@ msgstr "加入簡介和場地，讓參加者知道會有甚麼內容"
 #: src/components/forms/CheckInListForm/index.tsx:144
 msgid "Add a description for this check-in list"
 msgstr "為此簽到列表添加描述"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:364
+msgid "Add a hot wallet"
+msgstr ""
 
 #: src/components/common/BlockBuilder/index.tsx:374
 msgid "Add a link"
@@ -789,7 +813,7 @@ msgstr "新增自訂問題以在結帳時收集額外資訊"
 msgid "Add Date"
 msgstr "新增日期"
 
-#: src/components/modals/PublishEventModal/index.tsx:124
+#: src/components/modals/PublishEventModal/index.tsx:128
 msgid "Add dates"
 msgstr "新增日期"
 
@@ -877,7 +901,7 @@ msgstr "仍然新增此參加者（略過容量限制）"
 msgid "Add this event to your calendar"
 msgstr "將此活動添加到您的日曆"
 
-#: src/components/modals/PublishEventModal/index.tsx:112
+#: src/components/modals/PublishEventModal/index.tsx:116
 #: src/components/routes/event/EventDashboard/SetupChecklist.tsx:89
 #: src/components/routes/event/EventDashboard/SetupChecklist.tsx:95
 msgid "Add tickets"
@@ -887,13 +911,13 @@ msgstr "添加機票"
 msgid "Add tier"
 msgstr "增加層級"
 
-#: src/components/layouts/EventRoom/index.tsx:587
+#: src/components/layouts/EventRoom/index.tsx:592
 msgid "Add to calendar"
 msgstr ""
 
 #: src/components/common/AddEventToCalendarButton/index.tsx:15
 #: src/components/common/AddToCalendarCTA/index.tsx:25
-#: src/components/layouts/EventHomepage/index.tsx:386
+#: src/components/layouts/EventHomepage/index.tsx:393
 msgid "Add to Calendar"
 msgstr "添加到日曆"
 
@@ -1201,7 +1225,7 @@ msgstr "允許搜索引擎索引"
 msgid "Allow search engines to index this event"
 msgstr "允許搜索引擎索引此事件"
 
-#: src/components/routes/product-widget/PaymentReturn/index.tsx:90
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:157
 msgid "Almost there! We're just waiting for your payment to be processed. This should only take a few seconds."
 msgstr "快完成了！我們正在等待您的付款處理。這只需要幾秒鐘。"
 
@@ -1435,7 +1459,7 @@ msgstr "4 月"
 msgid "Archive"
 msgstr "封存"
 
-#: src/components/common/EventCard/index.tsx:165
+#: src/components/common/EventCard/index.tsx:155
 msgid "Archive event"
 msgstr "歸檔活動"
 
@@ -1457,12 +1481,12 @@ msgstr "封存此活動以向公眾隱藏。您可以稍後還原它。"
 msgid "Archive this organizer. This will also archive all events belonging to this organizer."
 msgstr "封存此主辦方。這也將封存屬於此主辦方的所有活動。"
 
-#: src/components/common/EventCard/index.tsx:87
+#: src/components/common/EventCard/index.tsx:77
 #: src/components/common/EventsDashboardStatusButtons/index.tsx:32
 msgid "Archived"
 msgstr "已歸檔"
 
-#: src/components/modals/SwitchOrganizerModal/index.tsx:106
+#: src/components/modals/SwitchOrganizerModal/index.tsx:118
 msgid "Archived Organizers"
 msgstr "已封存的主辦方"
 
@@ -1474,7 +1498,7 @@ msgstr "確定此活動不是垃圾內容嗎？它將立即發佈。"
 msgid "Are you sure you want to activate this attendee?"
 msgstr "您確定要激活該與會者嗎？"
 
-#: src/components/common/EventCard/index.tsx:67
+#: src/components/common/EventCard/index.tsx:57
 msgid "Are you sure you want to archive this event?"
 msgstr "您確定要歸檔此活動嗎?"
 
@@ -1603,7 +1627,7 @@ msgstr "您確定要將門票重新發送到 {0} 嗎？"
 msgid "Are you sure you want to restore this event?"
 msgstr "您確定要還原此活動嗎？"
 
-#: src/components/common/EventCard/index.tsx:68
+#: src/components/common/EventCard/index.tsx:58
 msgid "Are you sure you want to restore this event? It will be restored as a draft event."
 msgstr "您確定要恢復此活動嗎？它將作為草稿恢復。"
 
@@ -1771,8 +1795,8 @@ msgid "attendees"
 msgstr "位參加者"
 
 #: src/components/common/BlockBuilder/registry.ts:85
-#: src/components/common/EventCard/index.tsx:259
-#: src/components/common/EventCard/index.tsx:374
+#: src/components/common/EventCard/index.tsx:246
+#: src/components/common/EventCard/index.tsx:358
 #: src/components/common/OccurrenceAttendeesAndOrders/index.tsx:60
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:451
 #: src/components/common/StatBoxes/index.tsx:73
@@ -1798,7 +1822,7 @@ msgstr "位參加者已簽到"
 msgid "Attendees Exported"
 msgstr "與會者已導出"
 
-#: src/components/common/EventCard/index.tsx:371
+#: src/components/common/EventCard/index.tsx:355
 msgid "Attendees registered"
 msgstr "已註冊參加者"
 
@@ -1913,7 +1937,7 @@ msgstr "等待付款"
 msgid "Awaiting Payment"
 msgstr "等待付款"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:240
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:395
 msgid "Awaiting sweep"
 msgstr ""
 
@@ -1926,8 +1950,8 @@ msgid "Awesome Organizer Ltd."
 msgstr "Awesome Organizer Ltd."
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:375
-msgid "Back"
-msgstr ""
+#~ msgid "Back"
+#~ msgstr ""
 
 #: src/components/routes/admin/Accounts/AccountDetail/index.tsx:106
 msgid "Back to Accounts"
@@ -2039,8 +2063,8 @@ msgid "Billing Settings"
 msgstr "賬單設置"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:362
-msgid "Bitcoin Payout Address (Optional)"
-msgstr ""
+#~ msgid "Bitcoin Payout Address (Optional)"
+#~ msgstr ""
 
 #: src/components/common/BackgroundControls/index.tsx:288
 msgid "Blur"
@@ -2071,7 +2095,7 @@ msgstr "使用自訂標誌、顏色和頁腳訊息打造您的門票品牌。"
 msgid "Brazilian Portuguese"
 msgstr "巴西葡萄牙語"
 
-#: src/components/layouts/EventRoom/index.tsx:379
+#: src/components/layouts/EventRoom/index.tsx:384
 msgid "Breadcrumb"
 msgstr ""
 
@@ -2136,8 +2160,8 @@ msgid "Buyers can add these to their order when they select this product at chec
 msgstr "買家在結帳選擇此產品時，可一併加入訂單。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:435
-msgid "Buyers can now pay with crypto on your events."
-msgstr ""
+#~ msgid "Buyers can now pay with crypto on your events."
+#~ msgstr ""
 
 #: src/components/routes/event/Settings/Sections/PaymentSettings/index.tsx:94
 msgid "Buyers pay in stablecoins on a hosted checkout. Funds settle to your wallet automatically, on-chain, once the payment confirms."
@@ -2218,7 +2242,7 @@ msgstr "無法簽到"
 #: src/components/forms/ProductForm/ProductDrawer.tsx:134
 #: src/components/modals/ManageAttendeeModal/index.tsx:184
 #: src/components/modals/ManageOrderModal/index.tsx:209
-#: src/components/modals/PublishEventModal/index.tsx:227
+#: src/components/modals/PublishEventModal/index.tsx:231
 #: src/components/routes/admin/DeletionRequests/index.tsx:178
 #: src/components/routes/event/messages.tsx:80
 #: src/components/routes/event/OccurrencesTab/index.tsx:532
@@ -2315,8 +2339,8 @@ msgstr "已取消"
 msgid "Cancelling {0} date(s). This may take a moment to complete."
 msgstr "正在取消 {0} 個日期，可能需要一點時間。"
 
-#: src/components/layouts/EventRoom/index.tsx:252
-#: src/components/layouts/EventRoom/index.tsx:531
+#: src/components/layouts/EventRoom/index.tsx:257
+#: src/components/layouts/EventRoom/index.tsx:536
 msgid "capacity"
 msgstr ""
 
@@ -2326,7 +2350,7 @@ msgstr ""
 #: src/components/common/CapacityHelp/index.tsx:63
 #: src/components/common/CapacityHelp/index.tsx:118
 #: src/components/forms/CapaciyAssigmentForm/index.tsx:42
-#: src/components/layouts/EventRoom/index.tsx:250
+#: src/components/layouts/EventRoom/index.tsx:255
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:63
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:508
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1105
@@ -2449,8 +2473,8 @@ msgstr "僅簽到"
 msgid "Check out"
 msgstr "取消簽到"
 
-#: src/components/layouts/EventHomepage/index.tsx:345
-#: src/components/layouts/EventHomepage/index.tsx:346
+#: src/components/layouts/EventHomepage/index.tsx:352
+#: src/components/layouts/EventHomepage/index.tsx:353
 msgid "Check out this event: {0}"
 msgstr "看看這個活動：{0}"
 
@@ -2639,7 +2663,7 @@ msgstr "選擇賬户"
 msgid "Choose an organizer"
 msgstr "選擇主辦方"
 
-#: src/components/routes/events/Dashboard/index.tsx:232
+#: src/components/routes/events/Dashboard/index.tsx:258
 msgid "Choose an Organizer"
 msgstr "選擇一個主辦單位"
 
@@ -2655,7 +2679,7 @@ msgstr "選擇日曆"
 msgid "Choose how the event date is shown on the ticket"
 msgstr "選擇活動日期在票券上的顯示方式"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:113
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:221
 msgid "Choose the currencies you accept and record the wallet your sales settle to. Settling to that wallet needs one wallet connection in the PayRam console — we never ask for or hold your private keys."
 msgstr ""
 
@@ -2664,8 +2688,8 @@ msgid "Choose the default setting for new events. This can be overridden for ind
 msgstr "為新活動選擇預設設置。這可以針對單個活動進行覆蓋。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:235
-msgid "Choose which blockchains and tokens you want to accept from your ticket buyers. You can update these anytime."
-msgstr ""
+#~ msgid "Choose which blockchains and tokens you want to accept from your ticket buyers. You can update these anytime."
+#~ msgstr ""
 
 #: src/components/routes/event/Settings/Sections/PlatformFeesSettings/index.tsx:51
 msgid "Choose who pays the platform fee. This does not affect additional fees you've configured in your account settings."
@@ -2838,6 +2862,10 @@ msgstr "按訂單收集資料"
 #: src/components/common/QuestionsTable/index.tsx:382
 msgid "Collect details per ticket"
 msgstr "按門票收集資料"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:75
+msgid "Collected"
+msgstr ""
 
 #: src/components/common/BackgroundControls/index.tsx:152
 msgid "Color"
@@ -3046,16 +3074,16 @@ msgid "Confirmation sent to"
 msgstr "確認已發送至"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:233
-msgid "Confirmed"
-msgstr ""
+#~ msgid "Confirmed"
+#~ msgstr ""
 
 #: src/components/routes/profile/ConfirmEmailAddress/index.tsx:36
 msgid "Confirming email address..."
 msgstr "確認電子郵件地址..."
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:417
-msgid "Confirming with the payment gateway"
-msgstr ""
+#~ msgid "Confirming with the payment gateway"
+#~ msgstr ""
 
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:52
 msgid "Congratulations! Your event is now visible to the public."
@@ -3066,8 +3094,8 @@ msgstr "恭喜！您的活動現已對公眾可見。"
 #~ msgstr "連結銀行"
 
 #: src/components/routes/event/EventDashboard/SetupChecklist.tsx:126
-msgid "Connect crypto wallet or bank to receive ticket sales"
-msgstr ""
+#~ msgid "Connect crypto wallet or bank to receive ticket sales"
+#~ msgstr ""
 
 #: src/components/common/EmailTemplateSettings/EmailTemplateSettingsBase.tsx:370
 #: src/components/modals/SendMessageModal/index.tsx:298
@@ -3091,8 +3119,8 @@ msgid "Connect Stripe to receive ticket payments directly to your bank account."
 msgstr "連結 Stripe，門票款項會直接入你的銀行帳戶。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:327
-msgid "Connect Web3 Wallet"
-msgstr ""
+#~ msgid "Connect Web3 Wallet"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayoutsSettings/index.tsx:263
 msgid "Connect with Stripe"
@@ -3121,7 +3149,7 @@ msgid "Connection details are required for online events"
 msgstr "線上活動必須填寫連線詳情"
 
 #: src/components/common/WaitlistTable/index.tsx:152
-#: src/components/layouts/EventHomepage/index.tsx:685
+#: src/components/layouts/EventHomepage/index.tsx:695
 #: src/components/layouts/OrganizerRoom/index.tsx:277
 msgid "Contact"
 msgstr "聯絡"
@@ -3146,7 +3174,7 @@ msgstr "內容為必填"
 
 #: src/components/common/WidgetEditor/index.tsx:29
 #: src/components/common/WidgetEditor/index.tsx:222
-#: src/components/layouts/EventHomepage/index.tsx:211
+#: src/components/layouts/EventHomepage/index.tsx:212
 #: src/components/routes/product-widget/SelectProducts/index.tsx:897
 msgid "Continue"
 msgstr "繼續"
@@ -3297,14 +3325,14 @@ msgstr "複製 URL"
 #~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:169
-msgid "Could not activate crypto payments. Please check your payout address and connection, then try again."
-msgstr ""
+#~ msgid "Could not activate crypto payments. Please check your payout address and connection, then try again."
+#~ msgstr ""
 
 #: src/components/common/LocationsTable/index.tsx:40
 msgid "Could not delete location"
 msgstr "無法刪除地點"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:132
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:278
 msgid "Could not initialize crypto payments. Please click setup to try again."
 msgstr ""
 
@@ -3312,7 +3340,7 @@ msgstr ""
 msgid "Could not prepare the bulk update."
 msgstr "無法準備批次更新。"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:251
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:410
 msgid "Could not reach the payment gateway to confirm wallet status."
 msgstr ""
 
@@ -3325,7 +3353,7 @@ msgstr "無法取得地址詳情"
 msgid "Could not save date"
 msgstr "無法儲存日期"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:66
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:174
 msgid "Could not sign you in automatically. Opening the console — use \"Forgot password\" if you don't have your login."
 msgstr ""
 
@@ -3517,7 +3545,7 @@ msgstr "創建活動"
 msgid "Create more tickets or products to offer them as add-ons"
 msgstr "建立更多門票或產品，便可將它們作為附加產品提供"
 
-#: src/components/routes/events/Dashboard/index.tsx:172
+#: src/components/routes/events/Dashboard/index.tsx:198
 msgid "Create new"
 msgstr "創建新的"
 
@@ -3528,7 +3556,7 @@ msgstr "建立新密碼"
 #: src/components/common/GlobalMenu/index.tsx:76
 #: src/components/modals/CreateEventModal/index.tsx:141
 #: src/components/modals/CreateOrganizerModal/index.tsx:18
-#: src/components/modals/SwitchOrganizerModal/index.tsx:96
+#: src/components/modals/SwitchOrganizerModal/index.tsx:108
 msgid "Create Organizer"
 msgstr "創建組織器"
 
@@ -3598,6 +3626,10 @@ msgstr "已建立"
 msgid "Creating {0} dates. This may take a moment."
 msgstr "正在建立 {0} 個日期。這可能需要一些時間。"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:255
+msgid "Creating a deposit wallet also sets the cold wallet your sales sweep to. You also need a hot wallet — it pays the gas that moves your sales to your payout wallet. Set up only the networks you want to accept; one is enough."
+msgstr ""
+
 #: src/components/routes/welcome/index.tsx:495
 msgid "Creating Event..."
 msgstr "建立緊活動..."
@@ -3631,7 +3663,7 @@ msgstr ""
 msgid "Crypto checkout could not be started. Please try again or pick another payment method."
 msgstr ""
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:76
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:184
 msgid "Crypto payments"
 msgstr ""
 
@@ -3647,16 +3679,15 @@ msgstr ""
 msgid "Crypto payments are not available for this event."
 msgstr ""
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:433
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:145
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:291
 msgid "Crypto payments are ready"
 msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:197
-msgid "Crypto payments setup"
-msgstr ""
+#~ msgid "Crypto payments setup"
+#~ msgstr ""
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:100
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:208
 msgid "Crypto payments, powered by PayRam"
 msgstr ""
 
@@ -3860,7 +3891,7 @@ msgstr "Dashboard"
 #: src/components/common/OrderDetails/index.tsx:42
 #: src/components/common/WaitlistTable/index.tsx:184
 #: src/components/forms/QuestionForm/index.tsx:136
-#: src/components/layouts/EventRoom/index.tsx:215
+#: src/components/layouts/EventRoom/index.tsx:220
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:39
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:56
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:24
@@ -4164,7 +4195,7 @@ msgstr ""
 
 #: src/components/common/ProgressStepper/index.tsx:18
 #: src/components/common/ProgressStepper/index.tsx:23
-#: src/components/layouts/EventRoom/index.tsx:209
+#: src/components/layouts/EventRoom/index.tsx:214
 #: src/components/modals/ManageAttendeeModal/index.tsx:242
 #: src/components/modals/ManageOrderModal/index.tsx:268
 #: src/components/routes/event/OccurrencesTab/BookingSummary/index.tsx:103
@@ -4230,7 +4261,7 @@ msgid "Discount Type"
 msgstr "折扣類型"
 
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:37
-#: src/components/layouts/EventRoom/index.tsx:381
+#: src/components/layouts/EventRoom/index.tsx:386
 msgid "Discover"
 msgstr ""
 
@@ -4295,7 +4326,6 @@ msgstr "捐款"
 #: src/components/modals/CreateOrganizerWebhookModal/index.tsx:72
 #: src/components/modals/CreateWebhookModal/index.tsx:72
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:123
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:461
 msgid "Done"
 msgstr "完成"
 
@@ -4332,7 +4362,7 @@ msgstr "下載所有已完成訂單的銷售、參與者和財務報告。"
 msgid "Downloading Invoice"
 msgstr "正在下載發票"
 
-#: src/components/common/EventCard/index.tsx:96
+#: src/components/common/EventCard/index.tsx:86
 #: src/components/layouts/Event/index.tsx:223
 #: src/components/layouts/OrganizerLayout/index.tsx:234
 #: src/components/routes/admin/Announcements/index.tsx:183
@@ -4374,7 +4404,7 @@ msgstr "複製"
 msgid "Duplicate Date"
 msgstr "複製日期"
 
-#: src/components/common/EventCard/index.tsx:159
+#: src/components/common/EventCard/index.tsx:149
 msgid "Duplicate event"
 msgstr "複製活動"
 
@@ -4574,8 +4604,8 @@ msgid "Edit Schedule"
 msgstr "編輯日程"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:155
-msgid "Edit setup"
-msgstr ""
+#~ msgid "Edit setup"
+#~ msgstr ""
 
 #: src/components/routes/account/ManageAccount/sections/Users/index.tsx:122
 msgid "Edit user"
@@ -4832,7 +4862,7 @@ msgstr "結束時間"
 msgid "End time (optional)"
 msgstr "結束時間（選填）"
 
-#: src/components/common/EventCard/index.tsx:90
+#: src/components/common/EventCard/index.tsx:80
 #: src/components/common/EventsDashboardStatusButtons/index.tsx:26
 #: src/components/common/EventStatusBadge/index.tsx:14
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:97
@@ -4944,8 +4974,8 @@ msgid "Enter your name"
 msgstr "輸入您的姓名"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:309
-msgid "Enter your self-custody cold wallet. 97.5% of ticket sales are swept here directly on-chain upon purchase."
-msgstr ""
+#~ msgid "Enter your self-custody cold wallet. 97.5% of ticket sales are swept here directly on-chain upon purchase."
+#~ msgstr ""
 
 #: src/components/routes/organizer/Payments/Vat/VatSettingsForm.tsx:213
 msgid "Enter your VAT number including the country code, without spaces (e.g., IE1234567A, DE123456789)"
@@ -4963,7 +4993,7 @@ msgstr "項"
 msgid "Entries will appear here when customers join the waitlist for sold out products."
 msgstr "當客戶加入已售罄產品的候補名單時，條目將顯示在此處。"
 
-#: src/components/layouts/EventRoom/index.tsx:507
+#: src/components/layouts/EventRoom/index.tsx:512
 msgid "Entry"
 msgstr ""
 
@@ -5017,7 +5047,7 @@ msgstr ""
 #: src/components/routes/admin/Messages/index.tsx:278
 #: src/components/routes/admin/SpamEvents/index.tsx:128
 #: src/components/routes/admin/SpamEvents/index.tsx:230
-#: src/components/routes/events/Dashboard/index.tsx:184
+#: src/components/routes/events/Dashboard/index.tsx:210
 #: src/components/routes/organizer/Reports/CheckInSummaryReport/index.tsx:19
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:41
 #: src/components/routes/organizer/Reports/PlatformFeesReport/index.tsx:43
@@ -5141,14 +5171,14 @@ msgstr "活動已成功還原"
 msgid "Event Settings"
 msgstr "活動設定"
 
-#: src/components/common/EventCard/index.tsx:79
+#: src/components/common/EventCard/index.tsx:69
 #: src/components/common/StatusToggle/index.tsx:62
 #: src/components/layouts/Event/index.tsx:199
-#: src/components/modals/PublishEventModal/index.tsx:144
+#: src/components/modals/PublishEventModal/index.tsx:148
 msgid "Event status update failed. Please try again later"
 msgstr "活動狀態更新失敗。請稍後再試"
 
-#: src/components/common/EventCard/index.tsx:76
+#: src/components/common/EventCard/index.tsx:66
 #: src/components/common/StatusToggle/index.tsx:54
 #: src/components/layouts/Event/index.tsx:196
 msgid "Event status updated"
@@ -5162,7 +5192,7 @@ msgstr "活動標題"
 msgid "Event Too New"
 msgstr "活動太新"
 
-#: src/components/routes/event/EventDashboard/index.tsx:274
+#: src/components/routes/event/EventDashboard/index.tsx:277
 msgid "Event totals"
 msgstr "活動總計"
 
@@ -5255,8 +5285,8 @@ msgid "Everything else — tap to edit"
 msgstr "其餘所有內容 — 輕觸即可編輯"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:317
-msgid "EVM Payout Address (Ethereum / Base / Polygon)"
-msgstr ""
+#~ msgid "EVM Payout Address (Ethereum / Base / Polygon)"
+#~ msgstr ""
 
 #: src/components/common/QuestionsTable/index.tsx:496
 msgid "Examples: \"How did you hear about us?\", \"Company name for invoice\""
@@ -5404,8 +5434,8 @@ msgid "Failed to confirm event as spam"
 msgstr "確認活動為垃圾內容失敗"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:118
-msgid "Failed to connect wallet."
-msgstr ""
+#~ msgid "Failed to connect wallet."
+#~ msgstr ""
 
 #: src/components/modals/CreateAffiliateModal/index.tsx:62
 msgid "Failed to create affiliate"
@@ -5715,7 +5745,7 @@ msgstr "費用處理"
 msgid "Fee override saved"
 msgstr "個別收費已儲存"
 
-#: src/components/common/InlineOrderSummary/index.tsx:156
+#: src/components/common/InlineOrderSummary/index.tsx:159
 #: src/components/common/OrdersTable/index.tsx:270
 #: src/components/forms/ProductForm/index.tsx:486
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:54
@@ -5794,6 +5824,10 @@ msgstr "完成 Stripe 設定"
 #~ msgid "Finish setup"
 #~ msgstr "完成設定"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:252
+msgid "Finish your wallets in PayRam"
+msgstr ""
+
 #: src/components/common/LanguageSwitcher/index.tsx:20
 msgid "Finnish"
 msgstr "芬蘭語"
@@ -5858,9 +5892,17 @@ msgstr "名字必須在 1 至 50 個字符之間"
 msgid "First Used"
 msgstr "首次使用"
 
-#: src/components/modals/PublishEventModal/index.tsx:217
+#: src/constants/eventCategories.ts:9
+msgid "Fitness"
+msgstr "健身"
+
+#: src/components/modals/PublishEventModal/index.tsx:221
 msgid "Fix issues to publish"
 msgstr "請先解決問題再發布"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:364
+msgid "Fix my hot wallet"
+msgstr ""
 
 #: src/components/forms/TaxAndFeeForm/index.tsx:33
 msgid "Fixed"
@@ -5904,12 +5946,12 @@ msgstr "閃光燈關閉"
 msgid "Flash on"
 msgstr "閃光燈開啟"
 
-#: src/components/layouts/EventRoom/index.tsx:285
-#: src/components/layouts/EventRoom/index.tsx:294
+#: src/components/layouts/EventRoom/index.tsx:290
+#: src/components/layouts/EventRoom/index.tsx:299
 msgid "Follow"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:285
+#: src/components/layouts/EventRoom/index.tsx:290
 msgid "Following"
 msgstr ""
 
@@ -5949,8 +5991,8 @@ msgstr "第四個"
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:123
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:133
 #: src/components/forms/ProductForm/index.tsx:289
-#: src/components/layouts/EventRoom/index.tsx:454
-#: src/components/layouts/EventRoom/index.tsx:509
+#: src/components/layouts/EventRoom/index.tsx:459
+#: src/components/layouts/EventRoom/index.tsx:514
 #: src/components/layouts/OrganizerRoom/index.tsx:434
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:157
 #: src/components/routes/product-widget/SelectProducts/Prices/Tiered/index.tsx:228
@@ -5974,7 +6016,7 @@ msgstr "五"
 msgid "Friday"
 msgstr "星期五"
 
-#: src/components/layouts/EventRoom/index.tsx:507
+#: src/components/layouts/EventRoom/index.tsx:512
 #: src/components/routes/event/OccurrencesTab/RecurrenceScheduleDrawer/index.tsx:1067
 msgid "From"
 msgstr "從"
@@ -6029,8 +6071,8 @@ msgid "Gallery"
 msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:231
-msgid "Gateway payout wallet"
-msgstr ""
+#~ msgid "Gateway payout wallet"
+#~ msgstr ""
 
 #: src/components/common/CapacityHelp/index.tsx:64
 msgid "General admission"
@@ -6061,7 +6103,7 @@ msgstr "產生代碼"
 msgid "German"
 msgstr "德國"
 
-#: src/components/layouts/EventHomepage/index.tsx:518
+#: src/components/layouts/EventHomepage/index.tsx:525
 msgid "Get Directions"
 msgstr "取得路線"
 
@@ -6077,7 +6119,7 @@ msgstr "用 Stripe 收款"
 msgid "Get started"
 msgstr "開始使用"
 
-#: src/components/layouts/EventHomepage/index.tsx:210
+#: src/components/layouts/EventHomepage/index.tsx:211
 msgid "Get Tickets"
 msgstr "購票"
 
@@ -6122,7 +6164,7 @@ msgstr "返回主頁"
 msgid "Go to Schedule"
 msgstr "前往排程"
 
-#: src/components/layouts/EventRoom/index.tsx:530
+#: src/components/layouts/EventRoom/index.tsx:535
 msgid "going"
 msgstr ""
 
@@ -6147,7 +6189,7 @@ msgstr "知道了"
 msgid "Greek"
 msgstr "希臘語"
 
-#: src/components/common/EventCard/index.tsx:377
+#: src/components/common/EventCard/index.tsx:361
 msgid "Gross revenue"
 msgstr "總收入"
 
@@ -6239,7 +6281,7 @@ msgstr ""
 msgid "Hero band"
 msgstr ""
 
-#: src/components/routes/event/EventDashboard/index.tsx:215
+#: src/components/routes/event/EventDashboard/index.tsx:218
 msgid "Hi {0} 👋"
 msgstr "你好 {0} 👋"
 
@@ -6417,7 +6459,7 @@ msgstr "荷馬"
 msgid "Host"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:303
+#: src/components/layouts/EventRoom/index.tsx:308
 msgid "Hosted by"
 msgstr ""
 
@@ -6694,16 +6736,16 @@ msgid "Instagram"
 msgstr "Instagram"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:454
-msgid "Instant on-chain sweep upon ticket purchase"
-msgstr ""
+#~ msgid "Instant on-chain sweep upon ticket purchase"
+#~ msgstr ""
 
 #: src/components/layouts/AuthLayout/index.tsx:16
 msgid "Instant Stripe payouts"
 msgstr "Stripe 即時撥款"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:225
-msgid "Instant sweep to your cold wallet"
-msgstr ""
+#~ msgid "Instant sweep to your cold wallet"
+#~ msgstr ""
 
 #: src/components/layouts/Event/index.tsx:143
 #: src/components/layouts/OrganizerLayout/index.tsx:131
@@ -6726,8 +6768,8 @@ msgid "Invalid email format"
 msgstr "電郵格式無效"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:131
-msgid "Invalid EVM address. Must start with 0x followed by 40 hex characters."
-msgstr ""
+#~ msgid "Invalid EVM address. Must start with 0x followed by 40 hex characters."
+#~ msgstr ""
 
 #: src/utilites/imageUploadValidation.ts:50
 msgid "Invalid file type. Please upload a PNG, JPG, WEBP or GIF image."
@@ -6870,7 +6912,7 @@ msgstr "約翰"
 msgid "Johnson"
 msgstr "約翰遜"
 
-#: src/components/layouts/EventHomepage/index.tsx:414
+#: src/components/layouts/EventHomepage/index.tsx:421
 msgid "Join from anywhere"
 msgstr "隨時隨地加入"
 
@@ -7045,6 +7087,10 @@ msgstr "姓氏為必填項"
 msgid "Last Response"
 msgstr "最新響應"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:71
+msgid "Last settlement"
+msgstr ""
+
 #: src/components/common/OrganizerWebhookTable/index.tsx:240
 #: src/components/common/WebhookTable/index.tsx:240
 msgid "Last Triggered"
@@ -7140,7 +7186,7 @@ msgstr "允許連結"
 msgid "List"
 msgstr "清單"
 
-#: src/components/common/EventCard/index.tsx:99
+#: src/components/common/EventCard/index.tsx:89
 #: src/components/layouts/Event/index.tsx:225
 #: src/components/layouts/OrganizerLayout/index.tsx:236
 #: src/components/routes/event/EventDashboard/SetupChecklist.tsx:113
@@ -7194,7 +7240,7 @@ msgstr "加載中..."
 #: src/components/common/LocationPicker/index.tsx:173
 #: src/components/common/LocationPicker/index.tsx:221
 #: src/components/common/LocationPicker/index.tsx:294
-#: src/components/layouts/EventHomepage/index.tsx:496
+#: src/components/layouts/EventHomepage/index.tsx:503
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:470
 #: src/components/routes/event/Settings/index.tsx:57
 #: src/components/routes/event/Settings/Sections/LocationSettings/index.tsx:150
@@ -7313,7 +7359,7 @@ msgstr "管理與會者"
 msgid "Manage dates and times for your recurring event"
 msgstr "管理重複活動的日期和時間"
 
-#: src/components/common/EventCard/index.tsx:154
+#: src/components/common/EventCard/index.tsx:144
 msgid "Manage event"
 msgstr "管理活動"
 
@@ -7574,6 +7620,11 @@ msgstr "監控和管理失敗的後台任務"
 msgid "monno Fee"
 msgstr ""
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:91
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:310
+msgid "Monno fee"
+msgstr ""
+
 #: src/components/routes/organizer/Reports/index.tsx:43
 msgid "monno platform fees and VAT breakdown by transaction"
 msgstr ""
@@ -7642,8 +7693,8 @@ msgstr ""
 msgid "Multi line text box"
 msgstr "多行文本框"
 
-#: src/components/common/EventCard/index.tsx:108
-#: src/components/layouts/EventHomepage/index.tsx:182
+#: src/components/common/EventCard/index.tsx:98
+#: src/components/layouts/EventHomepage/index.tsx:183
 msgid "Multiple locations"
 msgstr "多個地點"
 
@@ -7719,6 +7770,10 @@ msgstr "需要更換 Stripe 帳戶？中斷此帳戶。"
 msgid "Net Revenue"
 msgstr "淨收入"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:376
+msgid "Network"
+msgstr ""
+
 #: src/components/common/OrganizerWebhookTable/index.tsx:266
 #: src/components/common/PromoCodeTable/index.tsx:166
 #: src/components/common/WebhookTable/index.tsx:266
@@ -7777,8 +7832,8 @@ msgid "Next: payment"
 msgstr "下一步：付款"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:295
-msgid "Next: Payout Wallet"
-msgstr ""
+#~ msgid "Next: Payout Wallet"
+#~ msgstr ""
 
 #: src/components/routes/product-widget/CollectInformation/index.tsx:438
 #: src/components/routes/product-widget/Payment/index.tsx:110
@@ -7900,8 +7955,8 @@ msgstr "未找到所選篩選條件的數據。請嘗試調整日期範圍或貨
 msgid "No data to show. Please select a date range"
 msgstr "無數據顯示。請選擇日期範圍"
 
-#: src/components/common/EventCard/index.tsx:229
-#: src/components/common/EventCard/index.tsx:326
+#: src/components/common/EventCard/index.tsx:216
+#: src/components/common/EventCard/index.tsx:310
 msgid "No date added"
 msgstr "未新增日期"
 
@@ -7922,7 +7977,7 @@ msgstr "沒有日期符合你的篩選條件"
 msgid "No dates match your search"
 msgstr "沒有日期符合你的搜尋"
 
-#: src/components/modals/PublishEventModal/index.tsx:122
+#: src/components/modals/PublishEventModal/index.tsx:126
 msgid "No dates scheduled"
 msgstr "未安排日期"
 
@@ -8035,7 +8090,7 @@ msgstr "過去14天沒有主辦方活動"
 msgid "No organizer context available."
 msgstr "沒有可用的主辦方內容。"
 
-#: src/components/modals/SwitchOrganizerModal/index.tsx:57
+#: src/components/modals/SwitchOrganizerModal/index.tsx:58
 msgid "No other organizers available"
 msgstr "沒有其他可用的主辦單位"
 
@@ -8147,7 +8202,7 @@ msgstr "未加收任何税費。"
 msgid "No Tickets Found"
 msgstr "未找到票"
 
-#: src/components/modals/PublishEventModal/index.tsx:110
+#: src/components/modals/PublishEventModal/index.tsx:114
 msgid "No tickets to sell"
 msgstr "沒有可售門票"
 
@@ -8172,8 +8227,8 @@ msgid "No waitlist entries"
 msgstr "沒有候補名單條目"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:103
-msgid "No Web3 wallet extension found (e.g. MetaMask, Rainbow)."
-msgstr ""
+#~ msgid "No Web3 wallet extension found (e.g. MetaMask, Rainbow)."
+#~ msgstr ""
 
 #: src/components/modals/OrganizerWebhookLogsModal/index.tsx:166
 #: src/components/modals/WebhookLogsModal/index.tsx:180
@@ -8189,13 +8244,13 @@ msgstr "沒有 Webhooks"
 msgid "No, keep me here"
 msgstr "否，保留在此"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:108
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:216
 msgid "Non-custodial"
 msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:345
-msgid "Non-custodial: settlements move straight to this address on-chain. We never ask for or hold your private keys."
-msgstr ""
+#~ msgid "Non-custodial: settlements move straight to this address on-chain. We never ask for or hold your private keys."
+#~ msgstr ""
 
 #: src/components/routes/event/OccurrencesTab/OccurrenceBulkEditModal/index.tsx:294
 msgid "non-edited"
@@ -8228,8 +8283,8 @@ msgid "Not Checked In"
 msgstr "未簽到"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:233
-msgid "Not configured"
-msgstr ""
+#~ msgid "Not configured"
+#~ msgstr ""
 
 #: src/components/common/CapacityHelp/index.tsx:65
 msgid "Not counted"
@@ -8238,6 +8293,10 @@ msgstr "不計入"
 #: src/components/common/CheckInStatusModal/index.tsx:124
 msgid "Not Eligible"
 msgstr "不符合條件"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:383
+msgid "Not set up (optional):"
+msgstr ""
 
 #: src/components/common/ProductPriceAvailability/index.tsx:43
 msgid "Not yet on sale"
@@ -8427,7 +8486,7 @@ msgstr "於{dayList}"
 msgid "on {month} {day}"
 msgstr "於{month}{day}日"
 
-#: src/components/common/EventCard/index.tsx:101
+#: src/components/common/EventCard/index.tsx:91
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:103
 #: src/components/routes/organizer/Reports/EventsPerformanceReport/index.tsx:32
 msgid "On Sale"
@@ -8465,6 +8524,10 @@ msgstr "創建事件後，您就可以在這裏看到它。"
 msgid "Once you start collecting data, you'll see it here."
 msgstr "一旦開始收集數據，您將在這裏看到。"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:346
+msgid "One more step: add a hot wallet"
+msgstr ""
+
 #: src/components/forms/ProductForm/ProductPriceTierForm.tsx:54
 #: src/components/forms/ProductForm/ProductPriceTierForm.tsx:66
 msgid "One pool shared by every date."
@@ -8479,7 +8542,7 @@ msgstr ""
 msgid "Ongoing"
 msgstr "持續進行"
 
-#: src/components/common/EventCard/index.tsx:111
+#: src/components/common/EventCard/index.tsx:101
 #: src/components/routes/event/OccurrencesTab/index.tsx:333
 #: src/components/routes/event/OccurrencesTab/OccurrenceEditModal/index.tsx:478
 #: src/components/routes/my-tickets/index.tsx:56
@@ -8494,11 +8557,11 @@ msgstr "線上"
 msgid "Online — provide connection details"
 msgstr "網上 — 請填寫連線資料"
 
-#: src/components/common/EventCard/index.tsx:108
+#: src/components/common/EventCard/index.tsx:98
 msgid "Online & in-person"
 msgstr "網上及實體"
 
-#: src/components/layouts/EventHomepage/index.tsx:183
+#: src/components/layouts/EventHomepage/index.tsx:184
 msgid "Online & in-person — see schedule"
 msgstr "網上及實體 — 詳見排程"
 
@@ -8519,7 +8582,7 @@ msgstr ""
 msgid "Online event"
 msgstr "網上活動"
 
-#: src/components/layouts/EventHomepage/index.tsx:412
+#: src/components/layouts/EventHomepage/index.tsx:419
 msgid "Online Event"
 msgstr "線上活動"
 
@@ -8527,7 +8590,7 @@ msgstr "線上活動"
 msgid "Online Event Details"
 msgstr "在線活動詳情"
 
-#: src/components/layouts/EventRoom/index.tsx:458
+#: src/components/layouts/EventRoom/index.tsx:463
 msgid "Only"
 msgstr ""
 
@@ -8665,7 +8728,7 @@ msgstr "或"
 msgid "or add a single date"
 msgstr "或新增單一日期"
 
-#: src/components/modals/PublishEventModal/index.tsx:100
+#: src/components/modals/PublishEventModal/index.tsx:104
 msgid "Or configure payment methods in Event Settings"
 msgstr ""
 
@@ -8811,7 +8874,7 @@ msgstr "訂單狀態"
 msgid "Order statuses"
 msgstr "訂單狀態"
 
-#: src/components/common/InlineOrderSummary/index.tsx:61
+#: src/components/common/InlineOrderSummary/index.tsx:64
 #: src/components/modals/ManageOrderModal/index.tsx:272
 msgid "Order Summary"
 msgstr "訂單摘要"
@@ -8892,7 +8955,7 @@ msgid "Organization Name"
 msgstr "組織名稱"
 
 #: src/components/common/AdminEventsTable/index.tsx:89
-#: src/components/layouts/EventHomepage/index.tsx:597
+#: src/components/layouts/EventHomepage/index.tsx:604
 #: src/components/modals/EditUserModal/index.tsx:56
 #: src/components/modals/InviteUserModal/index.tsx:47
 #: src/components/routes/account/ManageAccount/sections/Users/index.tsx:99
@@ -8901,7 +8964,7 @@ msgstr "組織名稱"
 #: src/components/routes/admin/Dashboard/index.tsx:378
 #: src/components/routes/admin/SpamEvents/index.tsx:129
 #: src/components/routes/admin/SpamEvents/index.tsx:245
-#: src/components/routes/events/Dashboard/index.tsx:194
+#: src/components/routes/events/Dashboard/index.tsx:220
 #: src/components/routes/product-widget/OrderSummaryAndProducts/index.tsx:355
 msgid "Organizer"
 msgstr "主辦方"
@@ -9051,6 +9114,10 @@ msgstr "已付款"
 msgid "Paid Accounts"
 msgstr "付費帳戶"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:314
+msgid "paid by you"
+msgstr ""
+
 #: src/components/modals/RefundOrderModal/index.tsx:130
 msgid "Partial refund"
 msgstr "部分退款"
@@ -9197,7 +9264,7 @@ msgstr "支付説明"
 msgid "Payment method"
 msgstr "付款方式"
 
-#: src/components/modals/PublishEventModal/index.tsx:96
+#: src/components/modals/PublishEventModal/index.tsx:100
 msgid "Payment method required to publish"
 msgstr ""
 
@@ -9206,8 +9273,8 @@ msgid "Payment Methods"
 msgstr "支付方式"
 
 #: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:92
-msgid "Payment processing"
-msgstr ""
+#~ msgid "Payment processing"
+#~ msgstr ""
 
 #: src/components/common/OrderDetails/index.tsx:96
 #: src/components/modals/ManageOrderModal/index.tsx:151
@@ -9243,21 +9310,29 @@ msgstr "付款條款"
 msgid "Payment unavailable"
 msgstr ""
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:351
+msgid "Payments are landing, but they cannot sweep to your payout wallet yet. A hot wallet pays the gas for the sweep — add one in the PayRam console."
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:352
+msgid "Payments are landing, but they cannot sweep to your payout wallet: the hot wallet attached to you is not active. Activate it, or add an active one, in the PayRam console."
+msgstr ""
+
 #: src/components/routes/product-widget/Payment/PaymentMethods/Stripe/index.tsx:49
 msgid "Payments not available"
 msgstr "付款不可用"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:443
-msgid "Payout Address"
-msgstr ""
+#~ msgid "Payout Address"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:173
-msgid "Payout cold wallet"
-msgstr ""
+#~ msgid "Payout cold wallet"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:427
-msgid "Payout wallet not confirmed yet"
-msgstr ""
+#~ msgid "Payout wallet not confirmed yet"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/index.tsx:100
 #: src/components/routes/organizer/Settings/Sections/PayoutsSettings/index.tsx:407
@@ -9265,8 +9340,17 @@ msgstr ""
 msgid "Payouts"
 msgstr "收款"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:164
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:302
 msgid "PayRam console"
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:83
+msgid "PayRam fee"
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:321
+#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:93
+msgid "PayRam settlement fee"
 msgstr ""
 
 #: src/components/routes/admin/DeletionRequests/index.tsx:85
@@ -9279,7 +9363,7 @@ msgstr "待處理"
 msgid "Pending review"
 msgstr "等待審核"
 
-#: src/components/common/EventCard/index.tsx:93
+#: src/components/common/EventCard/index.tsx:83
 #: src/components/layouts/Event/index.tsx:221
 #: src/components/routes/admin/Messages/index.tsx:124
 msgid "Pending Review"
@@ -9421,13 +9505,12 @@ msgstr "計劃舉辦活動？"
 
 #: src/components/common/PlatformFeesSettings/index.tsx:57
 #: src/components/common/PlatformFeesSettings/index.tsx:153
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:213
 msgid "Platform fee"
 msgstr "平台費用"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:449
-msgid "Platform Fee"
-msgstr ""
+#~ msgid "Platform Fee"
+#~ msgstr ""
 
 #: src/components/common/PlatformFeesSettings/index.tsx:73
 msgid "Platform fee of {0} deducted from your payout"
@@ -9505,8 +9588,8 @@ msgid "Please enter the 5-digit code"
 msgstr "請輸入5位數驗證碼"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:127
-msgid "Please enter your payout cold wallet address."
-msgstr ""
+#~ msgid "Please enter your payout cold wallet address."
+#~ msgstr ""
 
 #: src/components/routes/organizer/Payments/Vat/VatSettingsForm.tsx:145
 msgid "Please enter your VAT number"
@@ -9698,7 +9781,7 @@ msgid "Print to PDF"
 msgstr "列印為PDF"
 
 #: src/components/common/CookieConsentBanner/index.tsx:82
-#: src/components/layouts/EventHomepage/index.tsx:701
+#: src/components/layouts/EventHomepage/index.tsx:711
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:185
 #: src/components/layouts/OrganizerRoom/OrganizerRoomFooter.tsx:17
 msgid "Privacy Policy"
@@ -9925,11 +10008,11 @@ msgstr "發佈"
 msgid "Publish an event to get a public link"
 msgstr ""
 
-#: src/components/modals/PublishEventModal/index.tsx:218
+#: src/components/modals/PublishEventModal/index.tsx:222
 msgid "Publish Anyway"
 msgstr "仍要發布"
 
-#: src/components/modals/PublishEventModal/index.tsx:218
+#: src/components/modals/PublishEventModal/index.tsx:222
 msgid "Publish Event"
 msgstr "發布活動"
 
@@ -9942,7 +10025,7 @@ msgstr "發佈你的活動"
 msgid "Published"
 msgstr "已發佈"
 
-#: src/components/modals/PublishEventModal/index.tsx:166
+#: src/components/modals/PublishEventModal/index.tsx:170
 msgid "Publishing makes your event page public and opens it up for registrations."
 msgstr "發布後，您的活動頁面將公開並開放報名。"
 
@@ -10064,7 +10147,7 @@ msgstr "重新啟用此日期？它會重新開放售票。"
 msgid "Read-only preview of where your room lives."
 msgstr ""
 
-#: src/components/modals/PublishEventModal/index.tsx:162
+#: src/components/modals/PublishEventModal/index.tsx:166
 msgid "Ready to go live?"
 msgstr "準備好發布了嗎？"
 
@@ -10134,7 +10217,6 @@ msgid "Recipients are available after the message is sent"
 msgstr "收件人在訊息發送後可用"
 
 #: src/components/modals/SelectCheckInListModal/index.tsx:66
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:268
 msgid "Recommended"
 msgstr "建議"
 
@@ -10147,19 +10229,19 @@ msgid "Record Refund"
 msgstr "記錄退款"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:411
-msgid "Recording your accepted currencies"
-msgstr ""
+#~ msgid "Recording your accepted currencies"
+#~ msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:228
+#: src/components/layouts/EventRoom/index.tsx:233
 msgid "recurring"
 msgstr ""
 
-#: src/components/common/EventCard/index.tsx:217
-#: src/components/common/EventCard/index.tsx:330
+#: src/components/common/EventCard/index.tsx:204
+#: src/components/common/EventCard/index.tsx:314
 msgid "Recurring"
 msgstr "重複"
 
-#: src/components/layouts/EventHomepage/index.tsx:376
+#: src/components/layouts/EventHomepage/index.tsx:383
 #: src/components/modals/CreateEventModal/index.tsx:240
 #: src/components/routes/event/Settings/index.tsx:75
 msgid "Recurring Event"
@@ -10271,12 +10353,12 @@ msgstr "地區設定"
 msgid "Register"
 msgstr "註冊"
 
-#: src/components/layouts/EventRoom/index.tsx:253
-#: src/components/layouts/EventRoom/index.tsx:613
+#: src/components/layouts/EventRoom/index.tsx:258
+#: src/components/layouts/EventRoom/index.tsx:618
 msgid "registered"
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:503
+#: src/components/layouts/EventRoom/index.tsx:508
 msgid "Registration"
 msgstr ""
 
@@ -10479,7 +10561,7 @@ msgstr "回應詳情"
 msgid "Restore"
 msgstr "還原"
 
-#: src/components/common/EventCard/index.tsx:165
+#: src/components/common/EventCard/index.tsx:155
 msgid "Restore event"
 msgstr "恢復活動"
 
@@ -10543,8 +10625,8 @@ msgid "Reuse a Stripe connection from another organizer in this account."
 msgstr "重用此帳戶中其他主辦方的 Stripe 連線。"
 
 #: src/components/common/AffiliateTable/index.tsx:163
-#: src/components/common/EventCard/index.tsx:263
-#: src/components/common/EventCard/index.tsx:382
+#: src/components/common/EventCard/index.tsx:250
+#: src/components/common/EventCard/index.tsx:366
 #: src/components/common/StatsCharts/index.tsx:66
 #: src/components/routes/admin/Attribution/index.tsx:200
 msgid "Revenue"
@@ -10556,8 +10638,8 @@ msgid "Revenue Summary"
 msgstr "收入摘要"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:381
-msgid "Review & Activate"
-msgstr ""
+#~ msgid "Review & Activate"
+#~ msgstr ""
 
 #: src/components/routes/admin/SpamEvents/index.tsx:102
 msgid "Review events flagged as potential spam by the automated check"
@@ -10577,8 +10659,8 @@ msgstr "撤銷報價"
 msgid "Role"
 msgstr "角色"
 
-#: src/components/layouts/EventRoom/index.tsx:192
-#: src/components/layouts/EventRoom/index.tsx:478
+#: src/components/layouts/EventRoom/index.tsx:197
+#: src/components/layouts/EventRoom/index.tsx:483
 msgid "Running order"
 msgstr ""
 
@@ -10631,7 +10713,7 @@ msgstr "銷售已暫停"
 
 #: src/components/common/ProductPriceAvailability/index.tsx:24
 #: src/components/common/ProductPriceAvailability/index.tsx:63
-#: src/components/layouts/EventHomepage/index.tsx:197
+#: src/components/layouts/EventHomepage/index.tsx:198
 msgid "Sales ended"
 msgstr "銷售結束"
 
@@ -10719,7 +10801,7 @@ msgstr "儲存選擇"
 msgid "Save fee override"
 msgstr "儲存個別收費"
 
-#: src/components/layouts/EventRoom/index.tsx:567
+#: src/components/layouts/EventRoom/index.tsx:572
 msgid "Save for later"
 msgstr ""
 
@@ -10755,7 +10837,7 @@ msgstr "儲存增值稅設定"
 msgid "Save VAT Settings"
 msgstr "儲存增值稅設定"
 
-#: src/components/layouts/EventRoom/index.tsx:567
+#: src/components/layouts/EventRoom/index.tsx:572
 #: src/components/layouts/OrganizerRoom/RoomEventCard.tsx:59
 msgid "Saved"
 msgstr ""
@@ -10773,12 +10855,12 @@ msgid "Saving an override creates a dedicated configuration for this organizer i
 msgstr "如此主辦方目前使用系統預設設定，儲存個別設定時會為它建立專屬設定組合。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:392
-msgid "Saving your crypto settings..."
-msgstr ""
+#~ msgid "Saving your crypto settings..."
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:405
-msgid "Saving your payout wallet"
-msgstr ""
+#~ msgid "Saving your payout wallet"
+#~ msgstr ""
 
 #: src/components/layouts/CheckIn/BottomNav.tsx:15
 msgid "Scan"
@@ -10868,7 +10950,7 @@ msgstr "按賬戶名稱或電子郵件搜尋..."
 msgid "Search by attendee name, email or order #..."
 msgstr "按與會者姓名、電子郵件或訂單號搜索..."
 
-#: src/components/routes/events/Dashboard/index.tsx:151
+#: src/components/routes/events/Dashboard/index.tsx:177
 #: src/components/routes/organizer/Events/index.tsx:48
 msgid "Search by event name..."
 msgstr "按活動名稱搜索..."
@@ -11001,11 +11083,11 @@ msgstr "次要文字顏色"
 msgid "Sections appear on your public page in this order."
 msgstr ""
 
-#: src/components/common/InlineOrderSummary/index.tsx:231
+#: src/components/common/InlineOrderSummary/index.tsx:234
 msgid "Secure Checkout"
 msgstr "安全結帳"
 
-#: src/components/layouts/EventHomepage/index.tsx:439
+#: src/components/layouts/EventHomepage/index.tsx:446
 msgid "See schedule"
 msgstr "查看排程"
 
@@ -11229,7 +11311,7 @@ msgid "Send emails to attendees, ticket holders, or order owners. Messages can b
 msgstr "向參與者、持票人或訂單擁有者發送電子郵件。訊息可以立即發送或安排稍後發送。"
 
 #: src/components/layouts/Event/index.tsx:248
-#: src/components/layouts/EventRoom/index.tsx:630
+#: src/components/layouts/EventRoom/index.tsx:635
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:132
 msgid "Send it to someone who'd come with you."
 msgstr ""
@@ -11371,6 +11453,10 @@ msgstr "為此主辦單位下創建的新活動設定預設設定。"
 msgid "Set how long each date lasts"
 msgstr "設定每個日期的時長"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:315
+msgid "Set in PayRam"
+msgstr ""
+
 #: src/components/common/CapacityHelp/index.tsx:132
 msgid "Set it in each ticket's Quantity field on <0>Tickets & Products</0>, when you create or edit the ticket."
 msgstr "在<0>票務與產品</0>頁面建立或編輯門票時，在每種票的「數量」欄位中設定。"
@@ -11404,10 +11490,10 @@ msgid "Set up check-in lists for different entrances, sessions, or days."
 msgstr "為不同的入口、場次或日期設定簽到列表。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:123
-msgid "Set up crypto payments"
-msgstr ""
+#~ msgid "Set up crypto payments"
+#~ msgstr ""
 
-#: src/components/modals/PublishEventModal/index.tsx:98
+#: src/components/modals/PublishEventModal/index.tsx:102
 msgid "Set up Crypto payments"
 msgstr ""
 
@@ -11433,6 +11519,10 @@ msgstr "設定排程"
 msgid "Set up the tickets you'll sell and their prices"
 msgstr "設定你要售賣的門票及其價格"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:269
+msgid "Set up wallets in PayRam"
+msgstr ""
+
 #: src/components/routes/welcome/index.tsx:44
 msgid "Set up your organization"
 msgstr "設定你嘅機構"
@@ -11445,6 +11535,10 @@ msgstr "設定您的日程"
 #: src/components/routes/welcome/index.tsx:438
 msgid "Set up your schedule in the next steps"
 msgstr "你會在接下來的步驟設定排程"
+
+#: src/components/routes/event/EventDashboard/SetupChecklist.tsx:126
+msgid "Set up your wallets in the PayRam console to receive ticket sales"
+msgstr ""
 
 #: src/components/routes/event/OccurrencesTab/OccurrenceBulkEditModal/index.tsx:38
 msgid "Set, change, or remove the date's location or online details"
@@ -11459,19 +11553,19 @@ msgstr "設定已更新"
 msgid "Settings"
 msgstr "設置"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:222
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:330
 msgid "Settlement"
 msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:453
-msgid "Settlement Speed"
-msgstr ""
+#~ msgid "Settlement Speed"
+#~ msgstr ""
 
 #: src/components/layouts/Event/index.tsx:110
 msgid "Setup & Design"
 msgstr "設定與設計"
 
-#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:131
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:277
 msgid "Setup encountered an issue"
 msgstr ""
 
@@ -11480,7 +11574,7 @@ msgid "Setup takes just a few minutes — you don't need an existing Stripe acco
 msgstr "設定只需幾分鐘 — 毋須已有的 Stripe 帳戶。Stripe 會處理信用卡、電子錢包、各地付款方式和防詐騙，讓你專注於活動本身。"
 
 #: src/components/common/ShareIcon/index.tsx:30
-#: src/components/layouts/EventHomepage/index.tsx:350
+#: src/components/layouts/EventHomepage/index.tsx:357
 #: src/components/layouts/OrganizerLayout/index.tsx:261
 #: src/components/modals/ShareModal/index.tsx:39
 #: src/components/modals/ShareModal/index.tsx:173
@@ -11494,7 +11588,7 @@ msgstr "分享"
 msgid "Share Affiliate Link"
 msgstr "分享推廣連結"
 
-#: src/components/layouts/EventRoom/index.tsx:577
+#: src/components/layouts/EventRoom/index.tsx:582
 msgid "Share event"
 msgstr ""
 
@@ -11515,7 +11609,7 @@ msgid "Share this date"
 msgstr ""
 
 #: src/components/layouts/Event/index.tsx:247
-#: src/components/layouts/EventRoom/index.tsx:629
+#: src/components/layouts/EventRoom/index.tsx:634
 #: src/components/modals/EventLiveCelebrationModal/index.tsx:131
 msgid "Share this event"
 msgstr ""
@@ -11717,7 +11811,7 @@ msgstr "已售出"
 msgid "sold out"
 msgstr "已售罄"
 
-#: src/components/common/EventCard/index.tsx:133
+#: src/components/common/EventCard/index.tsx:123
 #: src/components/common/EventDateRange/index.tsx:65
 #: src/components/common/ProductPriceAvailability/index.tsx:20
 #: src/components/common/ProductPriceAvailability/index.tsx:60
@@ -11727,7 +11821,7 @@ msgid "Sold out"
 msgstr "售罄"
 
 #: src/components/common/ProductsTable/SortableProduct/index.tsx:91
-#: src/components/layouts/EventHomepage/index.tsx:203
+#: src/components/layouts/EventHomepage/index.tsx:204
 #: src/components/routes/event/OccurrencesTab/OccurrenceMenu.tsx:215
 #: src/components/routes/event/Reports/OccurrenceSummaryReport/index.tsx:22
 #: src/components/routes/product-widget/OccurrenceSelector/index.tsx:128
@@ -11817,10 +11911,10 @@ msgid "Split check-in across days, areas, or ticket types. Share the link with s
 msgstr "按日子、區域或門票類型分拆簽到。將連結分享給工作人員即可 — 他們毋須註冊帳戶。"
 
 #: src/constants/eventCategories.ts:9
-msgid "Sports"
-msgstr "體育"
+#~ msgid "Sports"
+#~ msgstr "體育"
 
-#: src/components/layouts/EventRoom/index.tsx:458
+#: src/components/layouts/EventRoom/index.tsx:463
 msgid "spots left"
 msgstr ""
 
@@ -12044,7 +12138,7 @@ msgstr ""
 msgid "Subscribed"
 msgstr ""
 
-#: src/components/common/InlineOrderSummary/index.tsx:148
+#: src/components/common/InlineOrderSummary/index.tsx:151
 #: src/components/common/OrderSummary/index.tsx:53
 msgid "Subtotal"
 msgstr "小計"
@@ -12249,15 +12343,23 @@ msgid "Support Email"
 msgstr "支持電子郵件"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:197
-msgid "Supported tokens"
-msgstr ""
+#~ msgid "Supported tokens"
+#~ msgstr ""
 
 #: src/components/common/LanguageSwitcher/index.tsx:44
 msgid "Swedish"
 msgstr "瑞典語"
 
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:333
+msgid "Swept on-chain to your cold wallet"
+msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:98
+msgid "Swept to your cold wallet"
+msgstr ""
+
 #: src/components/layouts/OrganizerLayout/index.tsx:92
-#: src/components/modals/SwitchOrganizerModal/index.tsx:46
+#: src/components/modals/SwitchOrganizerModal/index.tsx:47
 msgid "Switch Organizer"
 msgstr "切換主辦單位"
 
@@ -12342,7 +12444,7 @@ msgstr "成功刪除税費"
 msgid "Tax Summary"
 msgstr "稅務摘要"
 
-#: src/components/common/InlineOrderSummary/index.tsx:189
+#: src/components/common/InlineOrderSummary/index.tsx:192
 #: src/components/forms/ProductForm/index.tsx:483
 #: src/components/routes/organizer/Reports/RevenueSummaryReport/index.tsx:48
 msgid "Taxes"
@@ -12412,7 +12514,7 @@ msgstr "範本儲存成功"
 msgid "Term"
 msgstr "關鍵字"
 
-#: src/components/layouts/EventHomepage/index.tsx:707
+#: src/components/layouts/EventHomepage/index.tsx:717
 #: src/components/layouts/EventRoom/EventRoomChrome.tsx:188
 #: src/components/layouts/OrganizerRoom/OrganizerRoomFooter.tsx:20
 msgid "Terms of Service"
@@ -12818,15 +12920,15 @@ msgstr "只限此日期"
 msgid "This disconnects {stripeAccountId} from this organizer. Paid ticket sales will stop working until you connect a Stripe account again."
 msgstr "此操作將中斷 {stripeAccountId} 與此主辦方的連接。在您重新連接 Stripe 帳戶之前，付費門票銷售將無法進行。"
 
-#: src/components/layouts/EventHomepage/index.tsx:400
+#: src/components/layouts/EventHomepage/index.tsx:407
 msgid "This event has ended"
 msgstr "此活動已結束"
 
-#: src/components/modals/PublishEventModal/index.tsx:111
+#: src/components/modals/PublishEventModal/index.tsx:115
 msgid "This event has no tickets or products yet, so attendees won't be able to register."
 msgstr "此活動尚未有門票或商品，參加者將無法報名。"
 
-#: src/components/modals/PublishEventModal/index.tsx:97
+#: src/components/modals/PublishEventModal/index.tsx:101
 msgid "This event has paid tickets, but no active payment method (Crypto, Stripe, or Offline Payments) is configured."
 msgstr ""
 
@@ -12846,7 +12948,7 @@ msgstr "該活動正在等待人工審核，審核完成前無法發佈。"
 msgid "This event is pending manual review and is not visible to the public"
 msgstr "該活動正在等待人工審核，公眾無法看到"
 
-#: src/components/common/EventCard/index.tsx:62
+#: src/components/common/EventCard/index.tsx:52
 msgid "This event is pending manual review and its status cannot be changed until the review is complete."
 msgstr "該活動正在等待人工審核，審核完成前無法更改其狀態。"
 
@@ -12923,6 +13025,10 @@ msgstr "此訂單已退款。"
 msgid "This order has been cancelled."
 msgstr "此訂單已取消。"
 
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:176
+msgid "This order has expired. If a payment left your wallet, it did not reach us in time — contact the organizer with your transaction details."
+msgstr ""
+
 #: src/components/routes/product-widget/CollectInformation/index.tsx:346
 msgid "This order has expired. Please start again."
 msgstr "此訂單已過期。請重新開始。"
@@ -12983,7 +13089,7 @@ msgstr "此產品已售罄"
 msgid "This product won't appear on the event page on its own — buyers only see it as an add-on to the products it's attached to."
 msgstr "此產品不會單獨出現在活動頁面 — 買家只會在所連結的產品下看到它作為附加產品。"
 
-#: src/components/modals/PublishEventModal/index.tsx:123
+#: src/components/modals/PublishEventModal/index.tsx:127
 msgid "This recurring event has no dates yet, so there's nothing for attendees to book."
 msgstr "此重複活動尚未有日期，參加者無法預訂。"
 
@@ -13201,7 +13307,7 @@ msgstr "級別"
 msgid "TikTok"
 msgstr "TikTok"
 
-#: src/components/layouts/EventRoom/index.tsx:224
+#: src/components/layouts/EventRoom/index.tsx:229
 #: src/components/routes/event/OccurrencesTab/index.tsx:307
 #: src/components/routes/event/Settings/Sections/AgendaSettings/index.tsx:91
 msgid "Time"
@@ -13294,7 +13400,7 @@ msgid "total"
 msgstr "總計"
 
 #: src/components/common/AdminOrdersTable/index.tsx:81
-#: src/components/common/InlineOrderSummary/index.tsx:219
+#: src/components/common/InlineOrderSummary/index.tsx:222
 #: src/components/common/OrderSummary/index.tsx:104
 #: src/components/layouts/CheckIn/tabs/StatsTab.tsx:99
 #: src/components/modals/ManageOrderModal/index.tsx:113
@@ -13323,7 +13429,7 @@ msgstr "總收款"
 msgid "Total Discount Amount"
 msgstr "折扣總金額"
 
-#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:100
+#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:102
 msgid "Total due"
 msgstr ""
 
@@ -13396,8 +13502,8 @@ msgid "Tracking & Analytics"
 msgstr "追蹤與分析"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:353
-msgid "Tron Payout Address (Optional)"
-msgstr ""
+#~ msgid "Tron Payout Address (Optional)"
+#~ msgstr ""
 
 #: src/components/layouts/CheckIn/tabs/SearchTab.tsx:176
 msgid "Try a different search term or filter"
@@ -13448,6 +13554,10 @@ msgstr "開啟聲音"
 #: src/components/routes/organizer/Settings/Sections/SocialLinks/index.tsx:89
 msgid "Twitch"
 msgstr "Twitch"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:225
+msgid "Two fees apply when your sales settle: PayRam's 1–5% settlement fee, which your buyer pays as a visible markup at checkout, and Monno's operator fee, which comes out of what you receive."
+msgstr ""
 
 #: src/components/common/CapacityHelp/index.tsx:112
 msgid "Two settings decide how many people can book a date. Whichever is lower is what you can sell."
@@ -13731,8 +13841,8 @@ msgid "Updates as you type."
 msgstr "輸入時即時更新。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:399
-msgid "Updating your merchant project"
-msgstr ""
+#~ msgid "Updating your merchant project"
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/ImageAssetSettings/index.tsx:39
 msgid "Upload a cover image for your organizer"
@@ -13978,7 +14088,7 @@ msgid "VAT: not registered"
 msgstr "增值稅：未登記"
 
 #: src/components/common/BlockBuilder/registry.ts:69
-#: src/components/layouts/EventRoom/index.tsx:237
+#: src/components/layouts/EventRoom/index.tsx:242
 msgid "Venue"
 msgstr ""
 
@@ -14083,7 +14193,7 @@ msgstr "查看答案"
 msgid "View Attendee Details"
 msgstr "查看參會者詳情"
 
-#: src/components/layouts/EventRoom/index.tsx:444
+#: src/components/layouts/EventRoom/index.tsx:449
 msgid "View calendar"
 msgstr ""
 
@@ -14104,7 +14214,7 @@ msgstr "查看 {0} {1} 的詳情"
 msgid "View Event"
 msgstr "查看活動"
 
-#: src/components/common/EventCard/index.tsx:149
+#: src/components/common/EventCard/index.tsx:139
 msgid "View event page"
 msgstr "查看活動頁面"
 
@@ -14117,7 +14227,7 @@ msgstr "查看活動頁面"
 msgid "View logs"
 msgstr "查看日誌"
 
-#: src/components/layouts/EventHomepage/index.tsx:559
+#: src/components/layouts/EventHomepage/index.tsx:566
 msgid "View Map"
 msgstr "查看地圖"
 
@@ -14125,7 +14235,7 @@ msgstr "查看地圖"
 msgid "View Message"
 msgstr "查看訊息"
 
-#: src/components/layouts/EventHomepage/index.tsx:468
+#: src/components/layouts/EventHomepage/index.tsx:475
 msgid "View on Google Maps"
 msgstr "在谷歌地圖上查看"
 
@@ -14223,7 +14333,11 @@ msgid "Waitlist offer expired"
 msgstr "候補名單報價已過期"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:115
-msgid "Wallet connected: {0}...{1}"
+#~ msgid "Wallet connected: {0}...{1}"
+#~ msgstr ""
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:236
+msgid "Wallet setup not confirmed"
 msgstr ""
 
 #: src/components/routes/admin/Configurations/index.tsx:217
@@ -14234,9 +14348,13 @@ msgstr "警告：這是 {0} 預設配置。變更將影響所有自動分配此�
 msgid "Warning: This is the system default configuration. Changes will affect all accounts that don't have a specific configuration assigned."
 msgstr "警告：這是系統預設配置。變更將影響所有未分配特定配置的帳戶。"
 
-#: src/components/routes/product-widget/PaymentReturn/index.tsx:89
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:156
 msgid "We could not process your payment. Please try again or contact support."
 msgstr "我們無法處理您的付款。請重試或聯繫技術支持。"
+
+#: src/components/routes/organizer/Settings/Sections/PayRamSettings/index.tsx:239
+msgid "We could not reach PayRam to confirm your wallets, so crypto is not live yet. Set up (or recheck) the networks you accept in the PayRam console — one is enough to start."
+msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayoutsSettings/index.tsx:167
 msgid "We couldn't copy that Stripe connection. Please try again."
@@ -14294,6 +14412,14 @@ msgstr "載入此頁面時遇到問題。請重試。"
 msgid "We partner with Stripe to send payouts straight to your bank account."
 msgstr "我們與 Stripe 合作，將款項直接轉入你的銀行帳戶。"
 
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:167
+msgid "We received {receivedLabel} of {expectedLabel} for this order. That is less than the total, so it cannot be confirmed automatically yet. We will take you to your ticket as soon as it is resolved — you can safely close this page."
+msgstr ""
+
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:175
+msgid "We received {receivedLabel} of {expectedLabel}, a shortfall, and this order has now expired. The organizer has been notified of the shortfall and will be in touch about your ticket."
+msgstr ""
+
 #: src/components/routes/event/TicketDesigner/index.tsx:148
 msgid "We recommend a square logo with minimum dimensions of 200x200px"
 msgstr "我們建議使用最小尺寸為200x200像素的方形標誌"
@@ -14318,7 +14444,7 @@ msgstr "我們已向 {0} 傳送驗證連結"
 msgid "We use cookies to help us understand how the site is used and to improve your experience."
 msgstr "我們使用 Cookie 來幫助我們了解網站的使用情況並改善您的體驗。"
 
-#: src/components/routes/product-widget/PaymentReturn/index.tsx:100
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:190
 msgid "We were unable to confirm your payment. Please try again or contact support."
 msgstr "我們無法確認您的付款。請重試或聯繫技術支持。"
 
@@ -14351,9 +14477,13 @@ msgstr "我們將把您的門票發送到此郵箱"
 msgid "We'll validate your VAT number in the background. If there are any issues, we'll let you know."
 msgstr "我們將在後台驗證您的增值稅號碼。如果有任何問題，我們會通知您。"
 
-#: src/components/routes/product-widget/PaymentReturn/index.tsx:91
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:158
 msgid "We're processing your order. Please wait..."
 msgstr "我們正在處理您的訂單。請稍候..."
+
+#: src/components/routes/product-widget/PaymentReturn/index.tsx:183
+msgid "We're still waiting for your crypto payment to be confirmed on-chain. This can take a few minutes. You can safely close this page — your ticket will be emailed to you once it is confirmed."
+msgstr ""
 
 #: src/components/routes/event/OccurrencesTab/rescheduleMessageTemplate.ts:75
 msgid "We've made changes to the schedule for \"{title}\" — {description} affecting {affectedCount} session(s)."
@@ -14446,7 +14576,7 @@ msgstr "歡迎加入！請登錄以繼續。"
 msgid "Welcome back"
 msgstr "歡迎回來"
 
-#: src/components/routes/event/EventDashboard/index.tsx:209
+#: src/components/routes/event/EventDashboard/index.tsx:212
 msgid "Welcome back{0} 👋"
 msgstr "歡迎回來{0} 👋"
 
@@ -14628,8 +14758,8 @@ msgid "When offline payments are enabled, users will be able to complete their o
 msgstr "啟用線下支付後，用户可以完成訂單並收到門票。他們的門票將清楚地顯示訂單未支付，簽到工具會通知簽到工作人員訂單是否需要支付。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:306
-msgid "Where should your sales settle?"
-msgstr ""
+#~ msgid "Where should your sales settle?"
+#~ msgstr ""
 
 #: src/components/routes/admin/Announcements/index.tsx:462
 msgid "Where the button links to"
@@ -14651,7 +14781,7 @@ msgstr "這項活動由誰組織？"
 msgid "Who should be asked this question?"
 msgstr "這個問題應該問誰？"
 
-#: src/components/layouts/EventRoom/index.tsx:598
+#: src/components/layouts/EventRoom/index.tsx:603
 msgid "Who's coming"
 msgstr ""
 
@@ -14899,10 +15029,14 @@ msgid "You'll be able to set up dates, schedules, and recurrence rules in the ne
 msgstr "你可以在下一步設定日期、排程和重複規則。"
 
 #: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:80
-msgid "You'll choose the coin and network on the next screen (USDT or USDC). Your tickets are confirmed automatically once the payment confirms."
+#~ msgid "You'll choose the coin and network on the next screen (USDT or USDC). Your tickets are confirmed automatically once the payment confirms."
+#~ msgstr ""
+
+#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:80
+msgid "You'll choose the coin and network on the next screen. Your tickets are confirmed automatically once the payment confirms."
 msgstr ""
 
-#: src/components/layouts/EventRoom/index.tsx:592
+#: src/components/layouts/EventRoom/index.tsx:597
 msgid "You'll finish checkout on the ticket platform."
 msgstr ""
 
@@ -14978,7 +15112,7 @@ msgstr "您的精彩網站 🎉"
 msgid "Your check-in list has been created successfully. Share the link below with your check-in staff."
 msgstr "您的簽到名單已成功建立。與您的簽到工作人員共享以下連結。"
 
-#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:106
+#: src/components/routes/product-widget/Payment/PaymentMethods/PayRam/index.tsx:108
 msgid "Your checkout is held for you until"
 msgstr ""
 
@@ -15063,7 +15197,7 @@ msgstr "您的密碼"
 msgid "Your payment is processing."
 msgstr "您的付款正在處理中。"
 
-#: src/components/common/InlineOrderSummary/index.tsx:233
+#: src/components/common/InlineOrderSummary/index.tsx:236
 msgid "Your payment is protected with bank-level encryption"
 msgstr "您的付款受到銀行級加密保護"
 
@@ -15096,8 +15230,8 @@ msgid "Your saved date filter is no longer available — showing all dates."
 msgstr "你儲存的日期篩選條件已失效 — 現正顯示所有日期。"
 
 #: src/components/routes/organizer/Settings/Sections/PayRamSettings/CryptoConnectWizardModal.tsx:429
-msgid "Your settings were saved, but the payment gateway has not confirmed your payout wallet. Finish the wallet step in the PayRam console, then reopen this setup."
-msgstr ""
+#~ msgid "Your settings were saved, but the payment gateway has not confirmed your payout wallet. Finish the wallet step in the PayRam console, then reopen this setup."
+#~ msgstr ""
 
 #: src/components/routes/organizer/Settings/Sections/PayoutsSettings/index.tsx:116
 msgid "Your Stripe account itself isn't affected, and no data is lost — you can reconnect at any time."
