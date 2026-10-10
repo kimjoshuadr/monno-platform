@@ -39,10 +39,11 @@ test.describe('stripe removal', () => {
     await expect(section).not.toContainText(/stripe/i);
     await expect(section.getByText(/online card payments are unavailable/i)).toBeVisible();
 
-    // Offline is the only method and it is locked on.
+    // Offline is the only method, and it is a normal control again now that crypto
+    // is a real gateway — the deployment no longer forces it on.
     const offline = section.getByRole('checkbox', { name: /pay via invoice or bank transfer/i });
     await expect(offline).toBeChecked();
-    await expect(offline).toBeDisabled();
+    await expect(offline).toBeEnabled();
 
     // Invoice settings are provider-agnostic and still render and save.
     await expect(section.getByText('Invoice Settings')).toBeVisible();

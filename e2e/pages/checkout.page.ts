@@ -49,21 +49,47 @@ export class CheckoutPage {
     await this.gotoPublicEvent(eventId, slug);
   }
 
+  /**
+   * On phones the rail is a bottom sheet, so the buy controls are off-canvas until
+   * it is opened — the way a buyer reaches them is the page's "Get tickets" action
+   * (or the pinned bar). Above ~761px both are hidden and the rail is on screen, so
+   * this is a no-op; checkout pages carry neither control, so it is one there too.
+   */
+  private async openTicketSheetIfCollapsed(): Promise<void> {
+    if (this.surface !== this.page) {
+      return;
+    }
+    const sheet = this.page.locator('.rail-sheet');
+    if ((await sheet.count()) === 0 || (await sheet.getAttribute('data-open')) === 'true') {
+      return;
+    }
+    const cta = this.page.locator('.ticket-cta').first();
+    const trigger = (await cta.count()) > 0 ? cta : this.page.locator('.sticky-ticket-bar button').first();
+    if (await trigger.isVisible()) {
+      await trigger.click();
+      await this.page.locator('.rail-sheet[data-open="true"]').waitFor({ state: 'attached', timeout: 5_000 });
+    }
+  }
+
   async setFirstProductQuantity(quantity: number): Promise<void> {
+    await this.openTicketSheetIfCollapsed();
     await setWidgetQuantity(this.surface, quantity);
   }
 
   async setQuantityForProduct(productTitle: string, quantity: number): Promise<void> {
+    await this.openTicketSheetIfCollapsed();
     const row = this.surface.locator('.hi-product-row').filter({ hasText: productTitle });
     await setWidgetQuantity(row, quantity);
   }
 
   async setAddonQuantity(addonTitle: string, quantity: number): Promise<void> {
+    await this.openTicketSheetIfCollapsed();
     const addonRow = this.surface.locator('.hi-product-addon').filter({ hasText: addonTitle });
     await setWidgetQuantity(addonRow, quantity);
   }
 
   async applyPromoCode(code: string): Promise<void> {
+    await this.openTicketSheetIfCollapsed();
     await this.surface.getByText('Have a promo code?').click();
     await this.surface.locator('.hi-promo-code-input').fill(code);
     await this.surface.getByTestId('promo-code-apply-button').click();
@@ -88,6 +114,7 @@ export class CheckoutPage {
   }
 
   async continueToCheckout(): Promise<void> {
+    await this.openTicketSheetIfCollapsed();
     await this.surface.getByTestId('checkout-continue-button').click();
     await this.surface.waitForURL(/\/checkout\/\d+\/[^/]+\/details/);
   }
