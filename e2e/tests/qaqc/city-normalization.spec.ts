@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { test, expect } from '../../fixtures';
 import { createLiveEventWithPaidTicket } from '../../api/factory';
+import { API_BASE_URL } from '../../utils/env';
 
 const MONNO_URL = process.env.MONNO_URL ?? 'http://localhost:3000';
 const SHOTS = path.join(process.cwd(), 'test-results', 'normalization');
@@ -26,6 +27,13 @@ const CASES: Case[] = [
   { label: 'junk-city-state-fallback', city: 'Atlantis', state: 'Metro Manila', expect: 'Manila' },
   // Nothing recognisable at all: no city is shown, anywhere.
   { label: 'junk-both', city: 'Atlantis', state: 'Nowhereland', expect: '' },
+  // Accented input folds onto the ASCII known names.
+  { label: 'las-pinas-accented', city: 'las piñas', expect: 'Las Piñas' },
+  { label: 'zurich-accented', city: 'Zürich', expect: 'Zurich' },
+  // "City, Region/Country" — the head names the city.
+  { label: 'comma-suffixed', city: 'Manila, Philippines', expect: 'Manila' },
+  // The PH region code resolves to its capital.
+  { label: 'ncr', city: 'NCR', expect: 'Manila' },
 ];
 
 test('city normalization: platform city strings fold onto the known set', async ({ api, account, page }) => {
@@ -113,6 +121,25 @@ test('city normalization: platform city strings fold onto the known set', async 
   await expect(page.getByText('Nothing matches that yet')).toBeVisible({ timeout: 20_000 });
   const atlantis = await page.request.get(`${MONNO_URL}/discover/atlantis/`);
   expect(atlantis.status()).toBe(404);
+
+  // 4b) Slugs: the accented extras resolve at their transliterated slugs — the
+  //     same spelling the platform's OG lookup transliterates to.
+  await page.goto(
+    `${MONNO_URL}/discover/las-pinas/?q=${encodeURIComponent(created[6].title)}`,
+    { waitUntil: 'networkidle' },
+  );
+  await expect(page.locator(`a[href="/event/${created[6].eventId}/"]`).first()).toBeVisible({
+    timeout: 20_000,
+  });
+  const paranaque = await page.request.get(`${MONNO_URL}/discover/paranaque/`);
+  expect(paranaque.status()).toBe(200);
+  const og = await page.request.get(`${API_BASE_URL}public/og/city/las-pinas`);
+  expect(og.status(), 'the OG card must exist for the transliterated slug').toBe(200);
+
+  // 4c) The explore search folds too: "pinas" finds the Las Piñas tile.
+  await page.goto(`${MONNO_URL}/discover/`, { waitUntil: 'networkidle' });
+  await page.locator('[data-od-id="explore-city-filter"]').fill('pinas');
+  await expect(page.locator('[data-od-id="explore-las-pinas"]')).toBeVisible({ timeout: 10_000 });
 
   // 5) The landing grid: Manila is no longer a filler — it has an event.
   await page.goto(`${MONNO_URL}/`, { waitUntil: 'networkidle' });
