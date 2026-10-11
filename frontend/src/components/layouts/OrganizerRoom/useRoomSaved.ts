@@ -1,40 +1,69 @@
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useMemo} from "react";
+import {useGetMe} from "../../../queries/useGetMe.ts";
+import {useGetMySavedEvents} from "../../../queries/useGetMySavedEvents.ts";
+import {useSaveEvent} from "../../../mutations/useSaveEvent.ts";
+import {useUnsaveEvent} from "../../../mutations/useUnsaveEvent.ts";
 
-const STORAGE_KEY = "room.saved.v1";
+const LOGIN_PATH = "/auth/login";
+const PREVIOUS_URL_KEY = "previous_url";
 
 /**
- * Saved events, kept per browser — the port of monno's `useSaved`.
+ * Saved events, account-scoped through the real API — the platform's half of
+ * monno's `useSaved`. A signed-in visitor's saves live on `user_saved_events`
+ * and show up on the website's profile too; a signed-out click is handed to
+ * sign-in with the page remembered, so saving needs an account here as well.
  *
- * The platform has no saved-events API, so this stays client-side exactly like the
- * website's, and the server never learns about it.
+ * Keys stay the surfaces' own: `event:{id}` from the event room, `{id}-single`
+ * (or `{id}-{occurrenceId}`) from the room's calendar — both normalise to the
+ * event id the API stores.
  */
-export const useRoomSaved = () => {
-    const [saved, setSaved] = useState<string[]>([]);
-    const [ready, setReady] = useState(false);
+const eventIdFromKey = (key: string): number | null => {
+    const match = key.match(/^(?:event:)?(\d+)/);
+    return match ? Number(match[1]) : null;
+};
 
-    useEffect(() => {
-        try {
-            const raw = window.localStorage?.getItem(STORAGE_KEY);
-            setSaved(raw ? (JSON.parse(raw) as string[]) : []);
-        } catch {
-            setSaved([]);
-        }
-        setReady(true);
-    }, []);
+export const useRoomSaved = () => {
+    const {data: me} = useGetMe();
+    const signedIn = Boolean(me?.id);
+    const {data, isPending} = useGetMySavedEvents(signedIn);
+    const saveMutation = useSaveEvent();
+    const unsaveMutation = useUnsaveEvent();
+
+    const savedIds = useMemo(
+        () => new Set((data ?? []).map((item) => Number(item.event_id))),
+        [data],
+    );
 
     const toggle = useCallback((key: string) => {
-        setSaved((current) => {
-            const next = current.includes(key) ? current.filter((item) => item !== key) : [...current, key];
-            try {
-                window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(next));
-            } catch {
-                // Storage unavailable (private mode) — the toggle still works for this session.
-            }
-            return next;
-        });
-    }, []);
+        const eventId = eventIdFromKey(key);
+        if (eventId === null) return;
 
-    const isSaved = useCallback((key: string) => saved.includes(key), [saved]);
+        if (!signedIn) {
+            // Saved events need an account: remember where they were and hand over.
+            window.localStorage?.setItem(PREVIOUS_URL_KEY, window.location.href);
+            window.location.href = LOGIN_PATH;
+            return;
+        }
 
-    return {ready, saved, isSaved, toggle};
+        if (savedIds.has(eventId)) {
+            unsaveMutation.mutate(eventId);
+            return;
+        }
+        saveMutation.mutate(eventId);
+    }, [signedIn, savedIds, saveMutation, unsaveMutation]);
+
+    const isSaved = useCallback(
+        (key: string) => {
+            const eventId = eventIdFromKey(key);
+            return eventId !== null && savedIds.has(eventId);
+        },
+        [savedIds],
+    );
+
+    return {
+        ready: signedIn ? !isPending : true,
+        saved: [...savedIds].map((id) => `event:${id}`),
+        isSaved,
+        toggle,
+    };
 };

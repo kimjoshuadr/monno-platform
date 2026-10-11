@@ -227,12 +227,15 @@ use HiEvents\Http\Actions\Products\GetProductsAction;
 use HiEvents\Http\Actions\Products\SortProductsAction;
 use HiEvents\Http\Actions\Profile\CreateMyFollowAction;
 use HiEvents\Http\Actions\Profile\CreateMyReviewAction;
+use HiEvents\Http\Actions\Profile\CreateMySavedEventAction;
 use HiEvents\Http\Actions\Profile\DeleteMyFollowAction;
 use HiEvents\Http\Actions\Profile\DeleteMyReviewAction;
+use HiEvents\Http\Actions\Profile\DeleteMySavedEventAction;
 use HiEvents\Http\Actions\Profile\EditMyReviewAction;
 use HiEvents\Http\Actions\Profile\GetMyFollowsAction;
 use HiEvents\Http\Actions\Profile\GetMyInterestsAction;
 use HiEvents\Http\Actions\Profile\GetMyReviewsAction;
+use HiEvents\Http\Actions\Profile\GetMySavedEventsAction;
 use HiEvents\Http\Actions\Profile\GetMyTicketsAction;
 use HiEvents\Http\Actions\Profile\GetProfileAction;
 use HiEvents\Http\Actions\Profile\UpdateMyInterestsAction;
@@ -356,6 +359,10 @@ $router->middleware(['auth:api', 'email.verified'])->group(
         $router->get('/me/follows', GetMyFollowsAction::class);
         $router->post('/me/follows', CreateMyFollowAction::class);
         $router->delete('/me/follows/{organizer_id}', DeleteMyFollowAction::class);
+
+        $router->get('/me/saved-events', GetMySavedEventsAction::class);
+        $router->post('/me/saved-events', CreateMySavedEventAction::class);
+        $router->delete('/me/saved-events/{event_id}', DeleteMySavedEventAction::class);
 
         $router->get('/me/interests', GetMyInterestsAction::class);
         $router->put('/me/interests', UpdateMyInterestsAction::class);
