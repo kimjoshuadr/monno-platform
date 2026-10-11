@@ -356,6 +356,15 @@ export class ApiClient {
     );
   }
 
+  updateEventLocation(
+    eventId: number,
+    payload: { event_location: { type: 'IN_PERSON' | 'ONLINE'; location_id?: number } },
+  ): Promise<void> {
+    return check(
+      this.request.patch(`events/${eventId}/event-location`, { headers: jsonHeaders, data: payload }),
+    );
+  }
+
   createOccurrence(eventId: number, payload: UpdateOccurrencePayload): Promise<Occurrence> {
     return unwrap<Occurrence>(
       this.request.post(`events/${eventId}/occurrences`, { headers: jsonHeaders, data: payload }),
