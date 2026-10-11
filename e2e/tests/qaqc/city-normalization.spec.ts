@@ -21,7 +21,11 @@ const CASES: Case[] = [
   { label: 'mandaluyong-city', city: 'mandaluyong city', expect: 'Mandaluyong' },
   { label: 'las-pinas', city: 'las pinas', expect: 'Las Piñas' },
   { label: 'state-fallback', city: '', state: 'Metro Manila', expect: 'Manila' },
-  { label: 'unknown', city: 'Atlantis', expect: 'Atlantis' },
+  // A junk city with a valid region falls back to the region; the junk string
+  // itself must never render.
+  { label: 'junk-city-state-fallback', city: 'Atlantis', state: 'Metro Manila', expect: 'Manila' },
+  // Nothing recognisable at all: no city is shown, anywhere.
+  { label: 'junk-both', city: 'Atlantis', state: 'Nowhereland', expect: '' },
 ];
 
 test('city normalization: platform city strings fold onto the known set', async ({ api, account, page }) => {
@@ -29,7 +33,7 @@ test('city normalization: platform city strings fold onto the known set', async 
   await mkdir(SHOTS, { recursive: true });
   await api.updateOrganizerStatus(account.organizerId, 'LIVE');
 
-  const created: { c: Case; eventId: number }[] = [];
+  const created: { c: Case; eventId: number; title: string }[] = [];
   for (const c of CASES) {
     const event = await createLiveEventWithPaidTicket(api, account.organizerId, 25);
     const location = await api.createOrganizerLocation(account.organizerId, {
@@ -46,42 +50,67 @@ test('city normalization: platform city strings fold onto the known set', async 
     await api.updateEventLocation(event.eventId, {
       event_location: { type: 'IN_PERSON', location_id: location.id },
     });
-    created.push({ c, eventId: event.eventId });
+    created.push({ c, eventId: event.eventId, title: event.title });
     console.log(`created ${c.label}: raw city "${c.city || '(blank)'}" -> event ${event.eventId}`);
   }
 
-  // 1) Every variant renders its canonical city in the event page breadcrumb.
+  // 1) Known variants render their canonical city in the breadcrumb; junk
+  //    strings never render — a junk city falls back to its region, and with
+  //    nothing recognisable at all, no city is shown.
   for (const { c, eventId } of created) {
     await page.goto(`${MONNO_URL}/event/${eventId}/`, { waitUntil: 'networkidle' });
-    const city = await page.locator('.event-crumbs .meta-row > span:not([aria-hidden])').innerText();
-    console.log(`${c.label}: raw "${c.city || '(blank)'}" rendered as "${city}"`);
-    expect(city, `${c.label} should render as ${c.expect}`).toBe(c.expect);
-    if (c.label === 'qc') {
-      await page.locator('.event-crumbs').screenshot({ path: `${SHOTS}/normalization-crumb-qc.png` });
+    const citySpans = page.locator('.event-crumbs .meta-row > span:not([aria-hidden])');
+    // The event's own column only — the site footer legitimately says
+    // "Makati City, Metro Manila" and must not trip the raw-string checks.
+    const content = await page.locator('.event-layout').innerText();
+    if (c.city) {
+      expect(content, `${c.label}: the raw city "${c.city}" must never render`).not.toContain(c.city);
+    }
+    if (c.state) {
+      expect(content, `${c.label}: the raw state "${c.state}" must never render`).not.toContain(c.state);
+    }
+    if (c.expect) {
+      const city = await citySpans.innerText();
+      console.log(`${c.label}: raw "${c.city || '(blank)'}" rendered as "${city}"`);
+      expect(city, `${c.label} should render as ${c.expect}`).toBe(c.expect);
+      if (c.label === 'qc') {
+        await page.locator('.event-crumbs').screenshot({ path: `${SHOTS}/normalization-crumb-qc.png` });
+      }
+    } else {
+      await expect(citySpans, `${c.label} should have no city crumb`).toHaveCount(0);
+      await expect(page.locator('h1')).toBeVisible();
+      console.log(`${c.label}: nothing recognisable — no city shown`);
     }
   }
 
   // The pool revalidates every 5s — let the city surfaces pick the new events up.
   await page.waitForTimeout(7000);
 
-  // 2) The "qc" event is on the Quezon City page, in its own feed.
-  await page.goto(`${MONNO_URL}/discover/quezon-city/`, { waitUntil: 'networkidle' });
+  // 2) The "qc" event is on the Quezon City page, in its own feed. Scoped by
+  //    the event's unique title so accumulated test events can't push it off
+  //    page one.
+  await page.goto(
+    `${MONNO_URL}/discover/quezon-city/?q=${encodeURIComponent(created[0].title)}`,
+    { waitUntil: 'networkidle' },
+  );
   await expect(page.locator(`a[href="/event/${created[0].eventId}/"]`).first()).toBeVisible({
     timeout: 20_000,
   });
   await page.screenshot({ path: `${SHOTS}/normalization-qc-feed.png`, fullPage: true });
 
   // 3) The state-fallback event lands on Manila — a city that had no events.
-  await page.goto(`${MONNO_URL}/discover/manila/`, { waitUntil: 'networkidle' });
+  await page.goto(
+    `${MONNO_URL}/discover/manila/?q=${encodeURIComponent(created[3].title)}`,
+    { waitUntil: 'networkidle' },
+  );
   await expect(page.locator(`a[href="/event/${created[3].eventId}/"]`).first()).toBeVisible({
     timeout: 20_000,
   });
 
-  // 4) The unknown city keeps its name in feeds (search finds it) but has no page.
+  // 4) The unknown city is not surfaced anywhere: search finds nothing and the
+  //    city page does not exist.
   await page.goto(`${MONNO_URL}/discover/?q=Atlantis`, { waitUntil: 'networkidle' });
-  await expect(page.locator(`a[href="/event/${created[4].eventId}/"]`).first()).toBeVisible({
-    timeout: 20_000,
-  });
+  await expect(page.getByText('Nothing matches that yet')).toBeVisible({ timeout: 20_000 });
   const atlantis = await page.request.get(`${MONNO_URL}/discover/atlantis/`);
   expect(atlantis.status()).toBe(404);
 
