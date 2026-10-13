@@ -1,8 +1,9 @@
-import {Badge, Table, Text, Button, ActionIcon, Group, Tooltip, Stack} from "@mantine/core";
+import {Badge, Switch, Table, Text, Button, ActionIcon, Group, Tooltip, Stack} from "@mantine/core";
 import {t} from "@lingui/macro";
 import {AdminEvent} from "../../../api/admin.client";
 import {IconChevronDown, IconChevronUp, IconEye, IconUserCheck} from "@tabler/icons-react";
 import {IdParam} from "../../../types";
+import {useSetEventFeatured} from "../../../mutations/useSetEventFeatured";
 import tableStyles from "../../../styles/admin-table.module.scss";
 
 interface AdminEventsTableProps {
@@ -14,6 +15,26 @@ interface AdminEventsTableProps {
     onImpersonate?: (userId: IdParam, accountId: IdParam) => void;
     isImpersonating?: boolean;
 }
+
+/**
+ * The superadmin's featured tick — the only place the flag is set, because the
+ * public site's hero floats and featured rail are the platform's editorial
+ * call rather than the organizer's.
+ */
+const FeaturedSwitch = ({event}: {event: AdminEvent}) => {
+    const setEventFeatured = useSetEventFeatured();
+
+    return (
+        <Switch
+            checked={event.featured}
+            disabled={setEventFeatured.isPending}
+            onChange={(value) =>
+                setEventFeatured.mutate({eventId: event.id, featured: value.currentTarget.checked})
+            }
+            aria-label={t`Feature ${event.title}`}
+        />
+    );
+};
 
 const AdminEventsTable = ({events, onSort, sortBy, sortDirection, onViewEvent, onImpersonate, isImpersonating}: AdminEventsTableProps) => {
     if (!events || events.length === 0) {
@@ -111,6 +132,7 @@ const AdminEventsTable = ({events, onSort, sortBy, sortDirection, onViewEvent, o
                             </Table.Th>
                             <Table.Th>{t`Statistics`}</Table.Th>
                             <Table.Th>{t`Status`}</Table.Th>
+                            <Table.Th>{t`Featured`}</Table.Th>
                             <Table.Th>{t`Actions`}</Table.Th>
                         </Table.Tr>
                     </Table.Thead>
@@ -153,6 +175,9 @@ const AdminEventsTable = ({events, onSort, sortBy, sortDirection, onViewEvent, o
                                     <Badge color={getStatusBadgeColor(event.status)} variant="light">
                                         {event.status}
                                     </Badge>
+                                </Table.Td>
+                                <Table.Td>
+                                    <FeaturedSwitch event={event}/>
                                 </Table.Td>
                                 <Table.Td>
                                     <Group gap="xs">

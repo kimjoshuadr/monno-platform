@@ -1,5 +1,5 @@
 import {t} from "@lingui/macro";
-import {Button, Select, Switch, TextInput} from "@mantine/core";
+import {Button, Select, TextInput} from "@mantine/core";
 import {IconCalendarRepeat} from "@tabler/icons-react";
 import {useForm} from "@mantine/form";
 import {NavLink, useParams} from "react-router";
@@ -34,7 +34,6 @@ export const EventDetailsForm = () => {
             currency: '',
             category: '',
             tagline: '',
-            featured: false,
             image_alt: '',
         }
     });
@@ -51,7 +50,6 @@ export const EventDetailsForm = () => {
                 currency: eventQuery.data.currency,
                 category: eventQuery.data.category,
                 tagline: eventQuery.data.tagline || '',
-                featured: !!eventQuery.data.featured,
                 image_alt: eventQuery.data.image_alt || '',
             });
         }
@@ -102,12 +100,6 @@ export const EventDetailsForm = () => {
                         description={t`Describes the cover image for screen readers and search engines.`}
                         placeholder={t`Crowd under red light`}
                         maxLength={255}
-                    />
-
-                    <Switch
-                        {...form.getInputProps('featured', {type: 'checkbox'})}
-                        label={t`Featured event`}
-                        description={t`Featured events are highlighted in rails and on the home page.`}
                     />
 
                     <Select

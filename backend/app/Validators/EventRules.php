@@ -22,7 +22,10 @@ trait EventRules
 
             // Public-site display fields
             'tagline' => ['nullable', 'string', 'max:200'],
-            'featured' => ['boolean'],
+            // `featured` is deliberately absent: the public site's hero and
+            // featured rail are the platform's editorial call, ticked by a
+            // superadmin (POST /admin/events/{id}/featured), never by the
+            // organizer whose event it is.
             'image_alt' => ['nullable', 'string', 'max:255'],
             'agenda' => ['nullable', 'array', 'max:50'],
             'agenda.*.time' => ['nullable', 'string', 'max:20'],

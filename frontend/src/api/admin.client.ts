@@ -289,6 +289,7 @@ export interface AdminEvent {
     user_id: IdParam;
     attendees_count: number;
     slug: string;
+    featured: boolean;
     currency: string;
     statistics: AdminEventStatistics | null;
 }
@@ -490,6 +491,14 @@ export const adminClient = {
                 sort_direction: params.sort_direction || 'desc',
             }
         });
+        return response.data;
+    },
+
+    setEventFeatured: async (eventId: IdParam, featured: boolean) => {
+        const response = await api.post<{ data: { id: IdParam; featured: boolean } }>(
+            `admin/events/${eventId}/featured`,
+            { featured }
+        );
         return response.data;
     },
 

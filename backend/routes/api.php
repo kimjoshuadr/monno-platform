@@ -25,6 +25,7 @@ use HiEvents\Http\Actions\Admin\DeletionRequests\AdminRequestAccountDeletionActi
 use HiEvents\Http\Actions\Admin\DeletionRequests\GetAllAccountDeletionRequestsAction;
 use HiEvents\Http\Actions\Admin\Events\GetAllEventsAction as GetAllAdminEventsAction;
 use HiEvents\Http\Actions\Admin\Events\GetUpcomingEventsAction;
+use HiEvents\Http\Actions\Admin\Events\SetEventFeaturedAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\DeleteAllFailedJobsAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\DeleteFailedJobAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\GetAllFailedJobsAction;
@@ -619,6 +620,7 @@ $router->prefix('/admin')->middleware(['auth:api'])->group(
         $router->get('/users', GetAllUsersAction::class);
         $router->get('/events', GetAllAdminEventsAction::class);
         $router->get('/events/upcoming', GetUpcomingEventsAction::class);
+        $router->post('/events/{event_id}/featured', SetEventFeaturedAction::class);
         $router->get('/orders', GetAllOrdersAction::class);
         $router->post('/impersonate/{user_id}', StartImpersonationAction::class);
         $router->post('/stop-impersonation', StopImpersonationAction::class);

@@ -27,6 +27,7 @@ class AdminEventResource extends BaseResource
             'account_id' => $this->getAccountId(),
             'user_id' => $this->getUserId(),
             'slug' => $this->getSlug(),
+            'featured' => $this->isFeatured(),
             // The event's own currency: without it the admin table could only
             // ever quote sales in its hardcoded default.
             'currency' => $this->getCurrency(),
