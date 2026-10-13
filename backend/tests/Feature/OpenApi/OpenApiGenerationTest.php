@@ -53,6 +53,14 @@ class OpenApiGenerationTest extends TestCase
         );
 
         $eventsListSchema = $document['paths']['/events']['get']['responses']['200']['content']['application/json']['schema'];
+        // Scramble wraps monno's feed response in a union; the paginated
+        // branch is the one carrying data/links/meta.
+        if (isset($eventsListSchema['anyOf'])) {
+            $eventsListSchema = array_first(array_filter(
+                $eventsListSchema['anyOf'],
+                static fn (array $branch) => isset($branch['properties']),
+            )) ?? [];
+        }
         $this->assertSame(
             ['data', 'links', 'meta'],
             array_keys($eventsListSchema['properties']),
