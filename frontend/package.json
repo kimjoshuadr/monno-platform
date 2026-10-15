@@ -36,7 +36,7 @@
     "@mantine/notifications": "^9.2.2",
     "@mantine/nprogress": "^9.2.2",
     "@mantine/tiptap": "^9.2.2",
-    "@react-pdf/renderer": "^4.5.1",
+    "@react-pdf/renderer": "^4.9.0",
     "@react-router/node": "^7.1.5",
     "@remix-run/node": "^2.16.8",
     "@sentry/node": "^10.73.0",
