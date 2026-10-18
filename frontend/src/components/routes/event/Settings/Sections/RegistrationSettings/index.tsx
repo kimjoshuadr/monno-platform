@@ -130,14 +130,18 @@ export const RegistrationSettings = () => {
                         mt="md"
                     />
 
-                    <Text size="xs" c="dimmed" mt="xl" mb="xs">
-                        {t`Preview`}
-                    </Text>
-                    <Button component="span" disabled>
-                        {buttonLabel}
-                    </Button>
+                    <Stack mt="md" gap={6}>
+                        <Text size="xs" c="dimmed">{t`Preview`}</Text>
+                        {/* A real-looking button, not a disabled one: the label is what
+                            is being previewed, and the disabled palette made it almost
+                            unreadable against its own background. `component="span"`
+                            keeps it inert, so it is never a tab stop either. */}
+                        <Button component="span" w="fit-content">
+                            {buttonLabel}
+                        </Button>
+                    </Stack>
 
-                    <Button loading={updateMutation.isPending} type="submit" mt="xl" ml="md">
+                    <Button loading={updateMutation.isPending} type="submit" mt="xl">
                         {t`Save`}
                     </Button>
                 </fieldset>
