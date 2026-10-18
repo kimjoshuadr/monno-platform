@@ -137,9 +137,14 @@ export const AgendaSettings = () => {
                         {t`Add agenda item`}
                     </Button>
 
-                    <Button loading={updateMutation.isPending} type="submit" mt="xl">
-                        {t`Save`}
-                    </Button>
+                    {/* Buttons are inline-flex, so a bare Save here would share the
+                        row with "Add agenda item" and sit a few pixels lower than it.
+                        Wrapped, Save takes its own line like every other section. */}
+                    <Group mt="xl">
+                        <Button loading={updateMutation.isPending} type="submit">
+                            {t`Save`}
+                        </Button>
+                    </Group>
                 </fieldset>
             </form>
         </Card>
