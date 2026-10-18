@@ -190,6 +190,30 @@ export const EventRoom = ({
     // A finished event keeps its page but offers nothing to buy.
     const ended = event.lifecycle_status === EventLifecycleStatus.ENDED;
 
+    // Tickets sold by the organizer elsewhere: the room links out instead of
+    // selling. http(s) only — a bad link must never become a button.
+    const external = useMemo(() => {
+        const settings = event.settings;
+        if (settings?.ticketing_mode !== 'EXTERNAL') return null;
+
+        const url = settings.external_ticket_url?.trim();
+        if (!url) return null;
+
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+        } catch {
+            return null;
+        }
+
+        return {url, label: settings.get_tickets_button_text?.trim() || undefined};
+    }, [event]);
+
+    // The label their buy button carries, wherever this page draws one.
+    const ticketLabel = external?.label || t`Get tickets`;
+    // No price is shown unless the organizer has published one for this event.
+    const showPrice = !external || price > 0;
+
     // The host's own mark, wherever the page draws it: their logo when uploaded, otherwise
     // their initials (two letters, the way the website writes a monogram).
     const organizerLogo = organizer?.images?.find((image) => image.type === "ORGANIZER_LOGO");
@@ -269,7 +293,15 @@ export const EventRoom = ({
                         </div>
                     </div>
                 ) : null}
-                {attendance.capacity ? (
+                {external ? (
+                    <div className="fact">
+                        <IconUsers size={18}/>
+                        <div>
+                            <dt>{t`Tickets`}</dt>
+                            <dd>{t`Sold by the organizer`}</dd>
+                        </div>
+                    </div>
+                ) : attendance.capacity ? (
                     <div className="fact">
                         <IconUsers size={18}/>
                         <div>
@@ -483,7 +515,7 @@ export const EventRoom = ({
                             <span className={`badge${price === 0 ? " badge-free" : ""}`}>
                                 {price === 0 ? t`Free` : compactPrice(price, currency)}
                             </span>
-                            {spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 60 ? (
+                            {!external && spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 60 ? (
                                 <span className="badge">
                                     {t`Only`} {spotsLeft} {t`spots left`}
                                 </span>
@@ -502,10 +534,12 @@ export const EventRoom = ({
                                 onClick={() => setSheetOpen(true)}
                                 data-od-id="event-get-tickets"
                             >
-                                <span>{t`Get tickets`}</span>
-                                <span className="ticket-cta-price">
-                                    {price === 0 ? t`Free` : compactPrice(price, currency)}
-                                </span>
+                                <span>{ticketLabel}</span>
+                                {showPrice ? (
+                                    <span className="ticket-cta-price">
+                                        {price === 0 ? t`Free` : compactPrice(price, currency)}
+                                    </span>
+                                ) : null}
                                 <IconArrowRight size={16}/>
                             </button>
                         )}
@@ -560,10 +594,10 @@ export const EventRoom = ({
                             data-open={sheetOpen ? "true" : undefined}
                             role={sheetOpen ? "dialog" : undefined}
                             aria-modal={sheetOpen ? true : undefined}
-                            aria-label={t`Get tickets`}
+                            aria-label={ticketLabel}
                         >
                             <div className="rail-sheet-head">
-                                <span className="rail-sheet-title">{t`Get tickets`}</span>
+                                <span className="rail-sheet-title">{ticketLabel}</span>
                                 <button
                                     type="button"
                                     className="rail-sheet-close"
@@ -576,12 +610,14 @@ export const EventRoom = ({
                             <div className="rail-sheet-body">
                                 <div className="ticket-card" data-od-id="event-ticket-card">
                                     <div className="price-row">
-                                        <div>
-                                            <span className="price-label">{price === 0 ? t`Entry` : t`From`}</span>
-                                            <div className="price-tag">
-                                                {price === 0 ? t`Free` : formatCurrency(price, currency)}
+                                        {showPrice ? (
+                                            <div>
+                                                <span className="price-label">{price === 0 ? t`Entry` : t`From`}</span>
+                                                <div className="price-tag">
+                                                    {price === 0 ? t`Free` : formatCurrency(price, currency)}
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : null}
                                         {start ? (
                                             <div className="price-when">
                                                 <span>{start.format("ddd")}</span>
@@ -590,7 +626,7 @@ export const EventRoom = ({
                                         ) : null}
                                     </div>
 
-                                    {attendance.capacity ? (
+                                    {attendance.capacity && !external ? (
                                         <div className="stack-xs" style={{marginTop: 18}}>
                                             <div
                                                 className="progress"
@@ -662,11 +698,13 @@ export const EventRoom = ({
                                     </div>
 
                                     <p className="rail-note">
-                                        {t`You'll finish checkout on the ticket platform.`}
+                                        {external
+                                            ? t`You'll finish your order on the organizer's website.`
+                                            : t`You'll finish checkout on the ticket platform.`}
                                     </p>
                                 </div>
 
-                                {attendeesVisible ? (
+                                {attendeesVisible && !external ? (
                                     <div className="panel who-coming" data-od-id="event-who-coming">
                                         <h2 className="block-title">{t`Who's coming`}</h2>
                                         <div className="who-coming-row">
@@ -696,8 +734,12 @@ export const EventRoom = ({
                 {ended ? null : (
                     <div className="sticky-ticket-bar" data-od-id="event-sticky-tickets">
                         <div className="sticky-ticket-bar-copy">
-                            <span className="sticky-ticket-bar-label">{t`From`}</span>
-                            <strong>{price === 0 ? t`Free` : compactPrice(price, currency)}</strong>
+                            <span className="sticky-ticket-bar-label">
+                                {external ? t`Tickets` : t`From`}
+                            </span>
+                            {showPrice ? (
+                                <strong>{price === 0 ? t`Free` : compactPrice(price, currency)}</strong>
+                            ) : null}
                         </div>
                         <button
                             type="button"
@@ -705,7 +747,7 @@ export const EventRoom = ({
                             onClick={() => setSheetOpen(true)}
                             data-od-id="event-get-tickets-sticky"
                         >
-                            {t`Get tickets`}
+                            {ticketLabel}
                             <IconArrowRight size={16}/>
                         </button>
                     </div>
