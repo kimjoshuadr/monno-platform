@@ -22,12 +22,14 @@ import {
     IconMapPin,
     IconPercentage,
     IconRepeat,
+    IconTicket,
 } from "@tabler/icons-react";
 import {useMediaQuery} from "@mantine/hooks";
 import {useEffect, useMemo, useState} from "react";
 import {Card} from "../../../common/Card";
 import {PaymentAndInvoicingSettings} from "./Sections/PaymentSettings";
 import {PlatformFeesSettings} from "./Sections/PlatformFeesSettings";
+import {RegistrationSettings} from "./Sections/RegistrationSettings";
 import {WaitlistSettings} from "./Sections/WaitlistSettings";
 import {RecurringEventSettings} from "./Sections/RecurringEventSettings";
 import {DangerZoneSettings} from "./Sections/DangerZoneSettings";
@@ -69,6 +71,12 @@ export const Settings = () => {
                 label: t`Checkout`,
                 icon: IconHome,
                 component: HomepageAndCheckoutSettings
+            },
+            {
+                id: 'registration-settings',
+                label: t`Registration`,
+                icon: IconTicket,
+                component: RegistrationSettings,
             },
             ...(isRecurring ? [{
                 id: 'recurring-event-settings',

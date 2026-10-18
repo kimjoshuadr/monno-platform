@@ -685,6 +685,20 @@
       line-height: 1.55;
     }
 
+    .hi-external-registration {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .hi-external-registration-note {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.55;
+        text-align: center;
+        color: var(--hi-muted);
+      }
+    }
+
     .hi-continue-button {
       background: var(--hi-accent);
       color: var(--hi-accent-contrast);

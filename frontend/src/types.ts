@@ -374,6 +374,8 @@ export interface EventSettings {
     homepage_blocks?: HomepageBlock[];
     continue_button_text: string;
     get_tickets_button_text?: string;
+    ticketing_mode?: 'PLATFORM' | 'EXTERNAL';
+    external_ticket_url?: string;
     email_footer_message: string;
     pre_checkout_message: string;
     product_page_message: string;

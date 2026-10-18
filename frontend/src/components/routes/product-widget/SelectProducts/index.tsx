@@ -64,6 +64,11 @@ import {UserGeneratedContent} from "../../../common/UserGeneratedContent";
 
 const AFFILIATE_EXPIRY_DAYS = 30;
 
+// External-registration links leave the site in a new tab. Kept as constants
+// so the lingui lint rule sees identifiers, not raw strings, in JSX.
+const EXTERNAL_LINK_TARGET = '_blank';
+const EXTERNAL_LINK_REL = 'noopener noreferrer';
+
 const buildCheckoutPath = (
     eventId: string | undefined,
     orderShortId: string | undefined,
@@ -982,6 +987,45 @@ const SelectProducts = (props: SelectProductsProps) => {
     );
 
     const showRecurringSelector = isRecurring && activeOccurrences.length > 0;
+
+    // Tickets are sold by the organizer off-platform: render the outbound CTA
+    // instead of product selection, promo codes and the checkout button.
+    const externalTicketUrl = event?.settings?.ticketing_mode === 'EXTERNAL'
+        ? event?.settings?.external_ticket_url
+        : undefined;
+
+    if (externalTicketUrl) {
+        return (
+            <div className={'hi-product-widget-container'}
+                 ref={resizeRef}
+                 style={{
+                     '--widget-background-color': props.colors?.background,
+                     '--widget-primary-color': props.colors?.primary,
+                     '--widget-primary-text-color': props.colors?.primaryText,
+                     '--widget-secondary-color': props.colors?.secondary,
+                     '--widget-secondary-text-color': props.colors?.secondaryText,
+                     '--widget-padding': props?.padding,
+                 } as React.CSSProperties}>
+                <div className={'hi-external-registration'}>
+                    <Button
+                        component={'a'}
+                        href={externalTicketUrl}
+                        target={EXTERNAL_LINK_TARGET}
+                        rel={EXTERNAL_LINK_REL}
+                        fullWidth
+                        className={'hi-continue-button'}
+                        data-testid="external-registration-button"
+                        ref={props.continueButtonRef as React.Ref<HTMLAnchorElement>}
+                    >
+                        {event?.settings?.get_tickets_button_text || t`Get Tickets`}
+                    </Button>
+                    <p className={'hi-external-registration-note'}>
+                        {t`Tickets for this event are sold by the organizer. You'll be taken to their website to complete your order.`}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={'hi-product-widget-container'}
