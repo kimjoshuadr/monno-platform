@@ -31,4 +31,28 @@ class EventSettingsResourcePublicTest extends TestCase
 
         $this->assertFalse($resource['allow_copy_details_to_all_attendees']);
     }
+
+    public function test_public_resource_exposes_external_registration_fields(): void
+    {
+        $settings = (new EventSettingDomainObject)
+            ->setTicketingMode('EXTERNAL')
+            ->setExternalTicketUrl('https://tickets.example.com/my-event');
+
+        $resource = (new EventSettingsResourcePublic($settings))->toArray(Request::create('/'));
+
+        // Load-bearing: the website only swaps its checkout CTA for the outbound
+        // link when both fields reach the public payload.
+        $this->assertSame('EXTERNAL', $resource['ticketing_mode']);
+        $this->assertSame('https://tickets.example.com/my-event', $resource['external_ticket_url']);
+    }
+
+    public function test_public_resource_defaults_to_platform_ticketing(): void
+    {
+        $settings = new EventSettingDomainObject;
+
+        $resource = (new EventSettingsResourcePublic($settings))->toArray(Request::create('/'));
+
+        $this->assertSame('PLATFORM', $resource['ticketing_mode']);
+        $this->assertNull($resource['external_ticket_url']);
+    }
 }

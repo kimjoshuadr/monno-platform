@@ -10,6 +10,7 @@ use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Resources\Waitlist\WaitlistEntryResource;
 use HiEvents\Services\Application\Handlers\Waitlist\CreateWaitlistEntryHandler;
 use HiEvents\Services\Application\Handlers\Waitlist\DTO\CreateWaitlistEntryDTO;
+use HiEvents\Services\Domain\Event\ExternalRegistrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -18,6 +19,7 @@ class CreateWaitlistEntryActionPublic extends BasePublicEventAction
     public function __construct(
         private readonly CreateWaitlistEntryHandler $handler,
         private readonly EventRepositoryInterface $eventRepository,
+        private readonly ExternalRegistrationService $externalRegistrationService,
     ) {}
 
     public function __invoke(CreateWaitlistEntryRequest $request, int $eventId): Response|JsonResponse
@@ -26,6 +28,12 @@ class CreateWaitlistEntryActionPublic extends BasePublicEventAction
 
         if (! $this->canUserViewEvent($event)) {
             return $this->notFoundResponse();
+        }
+
+        $externalSettings = $this->externalRegistrationService->getEventSettings($eventId);
+
+        if ($externalSettings?->isTicketingExternal()) {
+            return $this->externalTicketingResponse($externalSettings);
         }
 
         try {

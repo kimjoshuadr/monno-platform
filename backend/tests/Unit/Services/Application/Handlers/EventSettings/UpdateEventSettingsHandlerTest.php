@@ -11,6 +11,7 @@ use HiEvents\Services\Application\Handlers\EventSettings\UpdateEventSettingsHand
 use HiEvents\Services\Infrastructure\HtmlPurifier\HtmlPurifierService;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Tests\TestCase;
@@ -217,10 +218,133 @@ class UpdateEventSettingsHandlerTest extends TestCase
         $this->assertSame([null], $captured);
     }
 
+    public function test_persists_external_ticketing_mode_with_trimmed_url(): void
+    {
+        Event::fake();
+
+        $existingSettings = new EventSettingDomainObject;
+
+        $this->eventSettingsRepository
+            ->shouldReceive('findFirstWhere')
+            ->with(['event_id' => 1])
+            ->twice()
+            ->andReturn($existingSettings);
+
+        $captured = ['missing'];
+        $this->eventSettingsRepository
+            ->shouldReceive('updateWhere')
+            ->once()
+            ->andReturnUsing(function (...$args) use (&$captured) {
+                foreach ($args as $arg) {
+                    if (is_array($arg) && array_key_exists('ticketing_mode', $arg)) {
+                        $captured = [$arg['ticketing_mode'], $arg['external_ticket_url']];
+                    }
+                }
+
+                return 1;
+            });
+
+        $this->handler->handle($this->createDTO(
+            ticketing_mode: 'EXTERNAL',
+            external_ticket_url: '  https://tickets.example.com/my-event  ',
+        ));
+
+        $this->assertSame(['EXTERNAL', 'https://tickets.example.com/my-event'], $captured);
+    }
+
+    public function test_clears_external_url_when_returning_to_platform_ticketing(): void
+    {
+        Event::fake();
+
+        $existingSettings = (new EventSettingDomainObject)
+            ->setTicketingMode('EXTERNAL')
+            ->setExternalTicketUrl('https://tickets.example.com/my-event');
+
+        $this->eventSettingsRepository
+            ->shouldReceive('findFirstWhere')
+            ->with(['event_id' => 1])
+            ->twice()
+            ->andReturn($existingSettings);
+
+        $captured = ['missing'];
+        $this->eventSettingsRepository
+            ->shouldReceive('updateWhere')
+            ->once()
+            ->andReturnUsing(function (...$args) use (&$captured) {
+                foreach ($args as $arg) {
+                    if (is_array($arg) && array_key_exists('ticketing_mode', $arg)) {
+                        $captured = [$arg['ticketing_mode'], $arg['external_ticket_url']];
+                    }
+                }
+
+                return 1;
+            });
+
+        $this->handler->handle($this->createDTO(ticketing_mode: 'PLATFORM'));
+
+        $this->assertSame(['PLATFORM', null], $captured);
+    }
+
+    public function test_keeps_existing_external_url_when_request_omits_the_fields(): void
+    {
+        Event::fake();
+
+        // Older clients PUT the full settings form without the external-registration
+        // fields; that must not silently switch the event back to platform ticketing.
+        $existingSettings = (new EventSettingDomainObject)
+            ->setTicketingMode('EXTERNAL')
+            ->setExternalTicketUrl('https://tickets.example.com/my-event');
+
+        $this->eventSettingsRepository
+            ->shouldReceive('findFirstWhere')
+            ->with(['event_id' => 1])
+            ->twice()
+            ->andReturn($existingSettings);
+
+        $captured = ['missing'];
+        $this->eventSettingsRepository
+            ->shouldReceive('updateWhere')
+            ->once()
+            ->andReturnUsing(function (...$args) use (&$captured) {
+                foreach ($args as $arg) {
+                    if (is_array($arg) && array_key_exists('ticketing_mode', $arg)) {
+                        $captured = [$arg['ticketing_mode'], $arg['external_ticket_url']];
+                    }
+                }
+
+                return 1;
+            });
+
+        $this->handler->handle($this->createDTO());
+
+        $this->assertSame(['EXTERNAL', 'https://tickets.example.com/my-event'], $captured);
+    }
+
+    public function test_rejects_external_ticketing_without_a_url(): void
+    {
+        Event::fake();
+
+        $this->eventSettingsRepository
+            ->shouldReceive('findFirstWhere')
+            ->with(['event_id' => 1])
+            ->once()
+            ->andReturn(new EventSettingDomainObject);
+
+        $this->eventSettingsRepository
+            ->shouldReceive('updateWhere')
+            ->never();
+
+        $this->expectException(ValidationException::class);
+
+        $this->handler->handle($this->createDTO(ticketing_mode: 'EXTERNAL'));
+    }
+
     private function createDTO(
         ?bool $waitlist_auto_process = null,
         bool $allow_copy_details_to_all_attendees = true,
         ?string $get_tickets_button_text = null,
+        ?string $ticketing_mode = null,
+        ?string $external_ticket_url = null,
     ): UpdateEventSettingsDTO {
         return UpdateEventSettingsDTO::fromArray([
             'account_id' => 1,
@@ -249,6 +373,8 @@ class UpdateEventSettingsHandlerTest extends TestCase
             'allow_copy_details_to_all_attendees' => $allow_copy_details_to_all_attendees,
             'waitlist_auto_process' => $waitlist_auto_process,
             'waitlist_offer_timeout_minutes' => 60,
+            'ticketing_mode' => $ticketing_mode,
+            'external_ticket_url' => $external_ticket_url,
         ]);
     }
 }

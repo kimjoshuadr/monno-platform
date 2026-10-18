@@ -61,6 +61,33 @@ class PartialUpdateEventSettingsHandlerTest extends TestCase
         $this->assertSame('Get Tickets', $dto->get_tickets_button_text);
     }
 
+    public function test_explicit_external_registration_fields_are_passed_through(): void
+    {
+        $dto = $this->runPartialUpdate(
+            existingValue: true,
+            settings: [
+                'ticketing_mode' => 'EXTERNAL',
+                'external_ticket_url' => 'https://tickets.example.com/my-event',
+            ],
+        );
+
+        $this->assertSame('EXTERNAL', $dto->ticketing_mode?->name);
+        $this->assertSame('https://tickets.example.com/my-event', $dto->external_ticket_url);
+    }
+
+    public function test_omitted_external_registration_fields_fall_back_to_existing_values(): void
+    {
+        $dto = $this->runPartialUpdate(
+            existingValue: true,
+            settings: [],
+            existingTicketingMode: 'EXTERNAL',
+            existingExternalTicketUrl: 'https://tickets.example.com/my-event',
+        );
+
+        $this->assertSame('EXTERNAL', $dto->ticketing_mode?->name);
+        $this->assertSame('https://tickets.example.com/my-event', $dto->external_ticket_url);
+    }
+
     /**
      * Drives the partial handler and returns the UpdateEventSettingsDTO it forwards
      * to the (mocked) full handler, so we can assert how the field was resolved.
@@ -69,10 +96,14 @@ class PartialUpdateEventSettingsHandlerTest extends TestCase
         bool $existingValue,
         array $settings,
         ?string $existingGetTicketsButtonText = null,
+        ?string $existingTicketingMode = null,
+        ?string $existingExternalTicketUrl = null,
     ): UpdateEventSettingsDTO {
         $existingSettings = (new EventSettingDomainObject)
             ->setAllowCopyDetailsToAllAttendees($existingValue)
             ->setGetTicketsButtonText($existingGetTicketsButtonText)
+            ->setTicketingMode($existingTicketingMode ?? 'PLATFORM')
+            ->setExternalTicketUrl($existingExternalTicketUrl)
             ->setPaymentProviders([]);
 
         $repository = Mockery::mock(EventSettingsRepositoryInterface::class);

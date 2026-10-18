@@ -103,4 +103,74 @@ class UpdateEventSettingsRequestTest extends TestCase
 
         $this->assertFalse($validator->errors()->has('allow_copy_details_to_all_attendees'));
     }
+
+    public function test_external_ticketing_mode_accepts_a_valid_https_url(): void
+    {
+        $validator = Validator::make(
+            [
+                'ticketing_mode' => 'EXTERNAL',
+                'external_ticket_url' => 'https://tickets.example.com/my-event',
+            ],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('ticketing_mode'));
+        $this->assertFalse($validator->errors()->has('external_ticket_url'));
+    }
+
+    public function test_ticketing_mode_must_be_a_known_mode(): void
+    {
+        $validator = Validator::make(
+            ['ticketing_mode' => 'SOMEWHERE_ELSE'],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertTrue($validator->errors()->has('ticketing_mode'));
+    }
+
+    public function test_external_ticket_url_is_required_when_mode_is_external(): void
+    {
+        $validator = Validator::make(
+            ['ticketing_mode' => 'EXTERNAL'],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertTrue($validator->errors()->has('external_ticket_url'));
+    }
+
+    public function test_external_ticket_url_is_optional_when_mode_is_platform(): void
+    {
+        $validator = Validator::make(
+            ['ticketing_mode' => 'PLATFORM'],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('external_ticket_url'));
+    }
+
+    public function test_external_ticket_url_rejects_non_http_schemes(): void
+    {
+        $validator = Validator::make(
+            [
+                'ticketing_mode' => 'EXTERNAL',
+                'external_ticket_url' => 'javascript:alert(1)',
+            ],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertTrue($validator->errors()->has('external_ticket_url'));
+    }
+
+    public function test_external_ticket_url_rejects_plain_strings(): void
+    {
+        $validator = Validator::make(
+            [
+                'ticketing_mode' => 'EXTERNAL',
+                'external_ticket_url' => 'not-a-url',
+            ],
+            (new UpdateEventSettingsRequest)->rules()
+        );
+
+        $this->assertTrue($validator->errors()->has('external_ticket_url'));
+    }
 }

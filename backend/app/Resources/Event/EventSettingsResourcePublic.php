@@ -50,6 +50,10 @@ class EventSettingsResourcePublic extends JsonResource
             'website_url' => $this->getWebsiteUrl(),
             'maps_url' => $this->getMapsUrl(),
 
+            // External registration: websites swap the checkout CTA for this link
+            'ticketing_mode' => $this->getTicketingMode(),
+            'external_ticket_url' => $this->getExternalTicketUrl(),
+
             // Ticket design settings
             'ticket_design_settings' => $this->getTicketDesignSettings(),
 
