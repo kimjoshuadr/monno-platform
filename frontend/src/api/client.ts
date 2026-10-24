@@ -21,6 +21,7 @@ const ALLOWED_UNAUTHENTICATED_PATHS = [
     'print',
     '/order/',
     'widget',
+    '/embed/',
     '/product/',
     'check-in',
     '/events/',

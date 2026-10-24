@@ -602,6 +602,20 @@ export const router: RouteObject[] = [
         errorElement: <ErrorPage />,
     },
     {
+        path: "/embed/event/:eventId/card",
+        async lazy() {
+            const EventCardEmbed = await import("./components/routes/embed/EventCard");
+            return {Component: EventCardEmbed.default};
+        },
+    },
+    {
+        path: "/embed/organizer/:organizerId/calendar",
+        async lazy() {
+            const OrganizerCalendarEmbed = await import("./components/routes/embed/OrganizerCalendar");
+            return {Component: OrganizerCalendarEmbed.default};
+        },
+    },
+    {
         path: "/widget/:eventId",
         async lazy() {
             const ProductWidget = await import("./components/layouts/ProductWidget");
