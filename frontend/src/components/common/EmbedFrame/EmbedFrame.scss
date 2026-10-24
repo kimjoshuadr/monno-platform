@@ -1,0 +1,265 @@
+/* The embed pages' own language — card and calendar. Colours come in as
+   `--e-*` from EmbedFrame; radii follow `data-radius`. */
+.monno-embed-frame {
+  --e-card-radius: 16px;
+  --e-control-radius: 999px;
+  background: var(--e-bg);
+  color: var(--e-text);
+  font-family: var(--monno-body, "Plus Jakarta Sans", system-ui, sans-serif);
+  padding: 4px;
+
+  &[data-radius='soft'] {
+    --e-card-radius: 12px;
+    --e-control-radius: 12px;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .e-title {
+    margin: 0;
+    font-family: var(--monno-display, "Outfit", system-ui, sans-serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .e-muted {
+    color: var(--e-muted);
+  }
+
+  .e-pill {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: var(--e-control-radius);
+    background: var(--e-accent);
+    color: var(--e-accent-text);
+    font-family: var(--monno-display, "Outfit", system-ui, sans-serif);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      filter: brightness(0.94);
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: 3px solid #1478c9;
+      outline-offset: 3px;
+    }
+
+    &[aria-disabled='true'] {
+      opacity: 0.45;
+      cursor: default;
+      transform: none;
+    }
+  }
+
+  .e-chip {
+    display: inline-grid;
+    place-items: center;
+    min-width: 48px;
+    padding: 6px 8px 7px;
+    border-radius: 12px;
+    background: var(--e-surface);
+    color: var(--e-text);
+    border: 1px solid var(--e-border);
+    line-height: 1;
+
+    span {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--e-muted);
+    }
+
+    strong {
+      margin-top: 3px;
+      font-family: var(--monno-display, "Outfit", system-ui, sans-serif);
+      font-size: 20px;
+    }
+  }
+
+  .e-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--e-border);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .monno-embed-footer {
+    margin-top: 10px;
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .e-pill {
+      transition: none;
+
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+}
+
+/* ---- event card ---- */
+.e-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--e-card-radius);
+  border: 1px solid var(--e-border);
+  background: var(--e-surface);
+}
+
+.e-card-cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: color-mix(in srgb, var(--e-text) 8%, var(--e-surface));
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .e-chip {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    background: #ffffff;
+    color: #0b0b0c;
+    border-color: transparent;
+
+    span {
+      color: #6e7178;
+    }
+  }
+}
+
+.e-card-body {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px 18px;
+
+  .e-title {
+    font-size: 19px;
+  }
+}
+
+.e-card-meta {
+  margin: 0;
+  font-size: 14px;
+}
+
+.e-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+
+  .e-price {
+    font-family: var(--monno-display, "Outfit", system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 17px;
+  }
+}
+
+/* ---- calendar ---- */
+.e-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 2px 14px;
+
+  .e-title {
+    font-size: 18px;
+  }
+}
+
+.e-cal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--e-border);
+}
+
+.e-cal-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--e-border);
+
+  .e-title {
+    font-size: 16px;
+  }
+
+  .e-cal-meta {
+    margin: 3px 0 0;
+    font-size: 13.5px;
+  }
+
+  .e-pill {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 420px) {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    .e-pill {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+.e-cal-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.e-cal-empty {
+  padding: 28px 16px;
+  text-align: center;
+  border: 1px dashed var(--e-border);
+  border-radius: var(--e-card-radius);
+
+  p {
+    margin: 0 0 12px;
+  }
+}
+
+.e-cal-more {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

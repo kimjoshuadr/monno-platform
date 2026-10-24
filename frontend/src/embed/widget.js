@@ -1,9 +1,11 @@
 /* eslint-disable lingui/no-unlocalized-strings */
 (function(scriptElement) {
-    const isScriptLoaded = () => !!window.hiEventWidgetLoaded;
+    // monno embeds. Old `data-hievents-*` snippets keep working: every attribute,
+    // class, message and return parameter is read under both names.
+    const isScriptLoaded = () => !!(window.monnoEmbedLoaded || window.hiEventWidgetLoaded);
 
     const logError = (e) => {
-        try { console.error('HiEvent widget error:', e); } catch (ignored) { /* noop */ }
+        try { console.error('monno embed error:', e); } catch (ignored) { /* noop */ }
     };
 
     const safe = (fn) => function () {
@@ -15,13 +17,14 @@
     };
 
     const loadWidget = safe(() => {
+        window.monnoEmbedLoaded = true;
         window.hiEventWidgetLoaded = true;
 
         let scriptOrigin;
         try {
             scriptOrigin = new URL(scriptElement.src).origin;
         } catch (e) {
-            console.error('HiEvent widget error: Invalid script URL');
+            console.error('monno embed error: Invalid script URL');
             return;
         }
 
@@ -33,12 +36,34 @@
         ].join(' ');
         const ALLOW = `payment ${scriptOrigin}; publickey-credentials-get ${scriptOrigin}`;
         const MOBILE_BREAKPOINT = 640;
+
+        /** Ink or white, whichever reads better on a hex colour (WCAG luminance). */
+        const textOn = (hex) => {
+            const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex || '').trim());
+            if (!m) return '#ffffff';
+            const h = m[1].length === 3 ? m[1].split('').map((c) => c + c).join('') : m[1];
+            const lin = (i) => {
+                const c = parseInt(h.slice(i, i + 2), 16) / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            };
+            const L = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+            const onWhite = 1.05 / (L + 0.05);
+            const onInk = (L + 0.05) / 0.0545;
+            return onInk >= onWhite ? '#0b0b0c' : '#ffffff';
+        };
+
+        /** The monno mark, small, for the button. */
+        const MARK_SVG = '<svg viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="mg" x1="12%" y1="8%" x2="88%" y2="96%">'
+            + '<stop offset="0" stop-color="#0FCFF6"/><stop offset=".4" stop-color="#B2D64A"/><stop offset=".74" stop-color="#FEB52A"/><stop offset="1" stop-color="#FD5A3C"/>'
+            + '</linearGradient></defs><rect x="58" y="58" width="396" height="396" rx="104" fill="none" stroke="url(#mg)" stroke-width="40"/>'
+            + '<rect x="96" y="96" width="320" height="320" rx="72" fill="#fff"/>'
+            + '<rect x="161" y="158" width="66" height="196" rx="33" fill="#0B0B0C"/><rect x="285" y="158" width="66" height="196" rx="33" fill="#0B0B0C"/></svg>';
         const MODAL_WIDTH = 760;
 
         const topParams = new URLSearchParams(window.location.search);
-        const returnEventId = topParams.get('hievents_event');
-        const returnOrderId = topParams.get('hievents_order');
-        const returnSession = topParams.get('hievents_session');
+        const returnEventId = topParams.get('monno_event') || topParams.get('hievents_event');
+        const returnOrderId = topParams.get('monno_order') || topParams.get('hievents_order');
+        const returnSession = topParams.get('monno_session') || topParams.get('hievents_session');
         const isPaymentReturn = !!(returnEventId && returnOrderId);
 
         const stripParams = (keys) => {
@@ -51,7 +76,7 @@
             }
         };
 
-        const OWNED_PARAMS = ['hievents_event', 'hievents_order', 'hievents_session'];
+        const OWNED_PARAMS = ['monno_event', 'monno_order', 'monno_session', 'hievents_event', 'hievents_order', 'hievents_session'];
         const STRIPE_RETURN_PARAMS = ['payment_intent', 'payment_intent_client_secret', 'redirect_status'];
         const parentBaseUrl = stripParams(OWNED_PARAMS.concat(STRIPE_RETURN_PARAMS));
 
@@ -89,7 +114,7 @@
         };
 
         const openCheckoutModal = (path) => {
-            if (modal || typeof path !== 'string' || !path.startsWith('/checkout/')) {
+            if (modal || typeof path !== 'string' || !(path.startsWith('/checkout/') || path.startsWith('/widget/'))) {
                 return;
             }
 
@@ -118,7 +143,7 @@
             const backdrop = document.createElement('div');
             const bs = backdrop.style;
             setFullScreenFixed(backdrop);
-            bs.background = 'rgba(0, 0, 0, 0.6)';
+            bs.background = 'rgba(11, 11, 12, 0.66)';
             bs.display = 'flex';
             bs.flexDirection = 'column';
             bs.boxSizing = 'border-box';
@@ -135,7 +160,7 @@
             ds.display = 'flex';
             ds.flexDirection = 'column';
             ds.flex = '0 0 auto';
-            ds.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.3)';
+            ds.boxShadow = '0 24px 64px rgba(11, 11, 12, 0.35)';
 
             const closeBtn = document.createElement('button');
             closeBtn.type = 'button';
@@ -143,19 +168,21 @@
             closeBtn.textContent = '×';
             const cs = closeBtn.style;
             cs.position = 'absolute';
-            cs.top = '10px';
-            cs.right = '10px';
+            cs.top = '12px';
+            cs.right = '12px';
             cs.zIndex = '2';
-            cs.width = '34px';
-            cs.height = '34px';
+            cs.width = '36px';
+            cs.height = '36px';
             cs.padding = '0';
             cs.border = 'none';
             cs.borderRadius = '50%';
             cs.cursor = 'pointer';
-            cs.background = 'rgba(0, 0, 0, 0.06)';
-            cs.color = '#111111';
+            cs.background = '#f5f6f8';
+            cs.color = '#0b0b0c';
+            cs.border = '1px solid #e4e6ea';
             cs.fontSize = '22px';
             cs.lineHeight = '34px';
+            cs.fontFamily = 'system-ui, sans-serif';
             cs.textAlign = 'center';
 
             const spinner = document.createElement('div');
@@ -165,8 +192,8 @@
             sp.display = 'flex';
             sp.alignItems = 'center';
             sp.justifyContent = 'center';
-            sp.color = '#888888';
-            sp.fontFamily = 'sans-serif';
+            sp.color = '#6e7178';
+            sp.fontFamily = '"Plus Jakarta Sans", system-ui, sans-serif';
             sp.fontSize = '14px';
             spinner.textContent = 'Loading…';
 
@@ -251,7 +278,7 @@
                 document.body.style.overflow = 'hidden';
                 document.body.appendChild(host);
             } catch (e) {
-                console.error('HiEvent widget error: failed to open checkout modal');
+                console.error('monno embed error: failed to open checkout modal');
                 inerted.forEach((el) => {
                     try { el.removeAttribute('inert'); } catch (err) { /* noop */ }
                 });
@@ -306,7 +333,8 @@
                 return;
             }
             const data = event.data || {};
-            switch (data.type) {
+            const type = typeof data.type === 'string' ? data.type.replace(/^monno:/, 'hievents:') : data.type;
+            switch (type) {
                 case 'resize': {
                     const height = Number(data.height);
                     if (Number.isFinite(height) && data.iframeId && resizableIframes.has(data.iframeId)) {
@@ -317,7 +345,9 @@
                     break;
                 }
                 case 'hievents:open-checkout':
-                    openCheckoutModal(data.path);
+                    // Card and calendar embeds send an event id; the widget
+                    // sends the checkout path it has already built.
+                    openCheckoutModal(data.path || (data.eventId ? widgetModalPath(data.eventId, data.params) : null));
                     break;
                 case 'hievents:close-checkout':
                     closeCheckoutModal();
@@ -346,40 +376,114 @@
         }));
 
         const widgetInstanceId = Math.random().toString(36).slice(2);
-        const widgets = document.querySelectorAll('.hievents-widget');
-        widgets.forEach((widget, index) => {
-            const eventId = widget.getAttribute('data-hievents-id');
-            if (!eventId) {
-                console.error('HiEvent widget error: data-hievents-id is required');
-                return;
-            }
 
+        /** `data-monno-<name>`, falling back to the original `data-hievents-<name>`. */
+        const attr = (el, name) => el.getAttribute(`data-monno-${name}`) ?? el.getAttribute(`data-hievents-${name}`);
+
+        /** Every styling attribute becomes a query param the embed page reads
+         *  (`data-monno-primary-color` → `PrimaryColor`, `…-theme` → `Theme`). */
+        const styleParams = (el) => {
+            const params = [];
+            Array.from(el.attributes).forEach((a) => {
+                const match = /^data-(monno|hievents)-(.+)$/.exec(a.name);
+                if (!match || match[2] === 'id' || match[2] === 'type' || match[2] === 'organizer-id') return;
+                const paramName = ('-' + match[2]).replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                params.push(`${paramName}=${encodeURIComponent(a.value)}`);
+            });
+            return params;
+        };
+
+        /** The ticket picker, opened in the on-page modal: it navigates to
+         *  checkout inside the same sheet. */
+        const widgetModalPath = (eventId, params) =>
+            `/widget/${encodeURIComponent(eventId)}?` + (Array.isArray(params) ? params.join('&') : '');
+
+        const makeFrame = (el, path, params, index, title) => {
             const iframe = document.createElement('iframe');
             iframe.setAttribute('sandbox', SANDBOX);
             iframe.setAttribute('allow', ALLOW);
-            iframe.setAttribute('title', 'monno Widget');
+            iframe.setAttribute('title', title);
             iframe.style.border = 'none';
             iframe.style.width = '100%';
+            iframe.style.display = 'block';
 
-            const iframeId = `hievents-iframe-${widgetInstanceId}-${index}`;
+            const iframeId = `monno-iframe-${widgetInstanceId}-${index}`;
             iframe.id = iframeId;
 
-            const parentUrlParam = `parentUrl=${encodeURIComponent(parentBaseUrl)}`;
-            const src = `${scriptOrigin}/widget/${encodeURIComponent(eventId)}?iframeId=${iframeId}&${parentUrlParam}&`;
+            const base = [`iframeId=${iframeId}`, `parentUrl=${encodeURIComponent(parentBaseUrl)}`];
+            iframe.src = `${scriptOrigin}${path}?` + base.concat(params).join('&');
+            el.appendChild(iframe);
 
-            const params = [];
-            Array.from(widget.attributes).forEach((attr) => {
-                if (attr.name.startsWith('data-hievents-') && attr.name !== 'data-hievents-id') {
-                    const paramName = attr.name.substring(13).replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-                    params.push(`${paramName}=${encodeURIComponent(attr.value)}`);
-                }
-            });
-
-            iframe.src = src + params.join('&');
-            widget.appendChild(iframe);
-
-            if (widget.getAttribute('data-hievents-autoresize') !== 'false') {
+            if (attr(el, 'autoresize') !== 'false') {
                 resizableIframes.add(iframeId);
+            }
+        };
+
+        /** A self-contained pill in a closed shadow root, so the host page's CSS
+         *  can neither break it nor be broken by it. */
+        const makeButton = (el, eventId, params) => {
+            const host = document.createElement('span');
+            host.style.display = 'inline-block';
+            const root = host.attachShadow({ mode: 'closed' });
+            const accent = attr(el, 'accent') || '#0b0b0c';
+            const variant = attr(el, 'variant') === 'outline' ? 'outline' : 'solid';
+            const label = attr(el, 'label') || 'Get tickets';
+            const radius = attr(el, 'radius') === 'soft' ? '12px' : '999px';
+            const ink = textOn(accent);
+
+            const style = document.createElement('style');
+            style.textContent = `
+                button{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:10px;
+                  min-height:48px;padding:0 22px 0 14px;border-radius:${radius};cursor:pointer;
+                  font:600 15px/1 "Outfit","Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+                  letter-spacing:.005em;transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
+                button.solid{background:${accent};color:${ink};border:1px solid ${accent}}
+                button.outline{background:transparent;color:${accent};border:1.5px solid ${accent}}
+                button:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(11,11,12,.18)}
+                button:focus-visible{outline:3px solid #1478c9;outline-offset:3px}
+                svg{width:22px;height:22px;flex:none}
+                @media (prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}`;
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = variant;
+            button.innerHTML = MARK_SVG;
+            button.appendChild(document.createTextNode(label));
+            button.addEventListener('click', safe(() => openCheckoutModal(widgetModalPath(eventId, params))));
+
+            root.appendChild(style);
+            root.appendChild(button);
+            el.appendChild(host);
+        };
+
+        const embeds = document.querySelectorAll('.monno-embed, .hievents-widget');
+        embeds.forEach((el, index) => {
+            const rawType = (attr(el, 'type') || attr(el, 'widget-type') || 'tickets').toLowerCase();
+            const type = rawType === 'widget' ? 'tickets' : rawType;
+            const params = styleParams(el);
+
+            if (type === 'calendar') {
+                const organizerId = attr(el, 'organizer-id') || attr(el, 'id');
+                if (!organizerId) {
+                    console.error('monno embed error: data-monno-organizer-id is required for a calendar');
+                    return;
+                }
+                makeFrame(el, `/embed/organizer/${encodeURIComponent(organizerId)}/calendar`, params, index, 'monno calendar');
+                return;
+            }
+
+            const eventId = attr(el, 'id');
+            if (!eventId) {
+                console.error('monno embed error: data-monno-id is required');
+                return;
+            }
+
+            if (type === 'button') {
+                makeButton(el, eventId, params);
+            } else if (type === 'card') {
+                makeFrame(el, `/embed/event/${encodeURIComponent(eventId)}/card`, params, index, 'monno event');
+            } else {
+                makeFrame(el, `/widget/${encodeURIComponent(eventId)}`, params, index, 'monno tickets');
             }
         });
 
@@ -409,7 +513,7 @@
             try {
                 window.history.replaceState({}, document.title, parentBaseUrl);
             } catch (e) {
-                console.error('HiEvent widget error: Unable to clean return URL');
+                console.error('monno embed error: Unable to clean return URL');
             }
         } else {
             const resume = readResume();

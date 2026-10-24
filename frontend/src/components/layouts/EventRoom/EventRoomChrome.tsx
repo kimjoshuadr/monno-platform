@@ -15,23 +15,12 @@ import { PoweredByFooter } from '../../common/PoweredByFooter';
  * attribution the licence requires — because those obligations belong to the
  * surface that actually sells the ticket.
  */
-const SITE = (getConfig('VITE_MONNO_SITE_URL', 'http://localhost:3000') ?? 'http://localhost:3000');
+// The website helpers live in `utilites/monnoSite.ts`; re-exported here so
+// existing imports keep working.
+export {monnoSiteUrl, monnoEventUrl} from '../../../utilites/monnoSite.ts';
+import {monnoSiteUrl} from '../../../utilites/monnoSite.ts';
 
-/** The website the chrome's content links point at, without a trailing slash. */
-export const monnoSiteUrl = (): string => SITE.replace(/\/+$/, '');
-
-/**
- * The main website's page for a platform event.
- *
- * The site shows any LIVE platform event at `/event/{id}/` — the id is the stable
- * key, because a platform slug is derived from the title and two events can share
- * one. Every event has a page there, so every share can point at it; the old
- * per-event path mapping is gone.
- */
-export const monnoEventUrl = (eventId?: number | string | null): string | undefined => {
-    if (eventId === undefined || eventId === null || eventId === '') return undefined;
-    return `${monnoSiteUrl()}/event/${eventId}/`;
-};
+const SITE = monnoSiteUrl();
 
 const NAV = [
     { href: '/discover/', label: t`Discover` },

@@ -21,10 +21,10 @@ const buildReturnUrl = (eventId: string, orderShortId: string, sessionId: string
         try {
             const url = new URL(parentUrl);
             if (url.protocol === 'https:' || url.protocol === 'http:') {
-                url.searchParams.set('hievents_event', eventId);
-                url.searchParams.set('hievents_order', orderShortId);
+                url.searchParams.set('monno_event', eventId);
+                url.searchParams.set('monno_order', orderShortId);
                 if (sessionId) {
-                    url.searchParams.set('hievents_session', sessionId);
+                    url.searchParams.set('monno_session', sessionId);
                 }
                 return url.toString();
             }

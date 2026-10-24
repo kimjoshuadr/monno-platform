@@ -1,6 +1,6 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {Badge, UnstyledButton, VisuallyHidden} from '@mantine/core';
-import {IconChevronLeft} from "@tabler/icons-react";
+import {IconChevronLeft, IconCompass, IconLayoutDashboard, IconTicket, IconWorld} from "@tabler/icons-react";
 import {t} from "@lingui/macro";
 import classes from './Sidebar.module.scss';
 import {NavItem} from "../types";
@@ -8,6 +8,7 @@ import {NavLink} from "react-router";
 import classNames from "classnames";
 import {useMediaQuery} from "@mantine/hooks";
 import {getConfig} from "../../../../utilites/config.ts";
+import {monnoSiteUrl} from "../../../../utilites/monnoSite.ts";
 
 interface SidebarProps {
     sidebarOpen: boolean;
@@ -23,6 +24,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                                     sidebarFooter,
                                                 }) => {
     const isMobile = useMediaQuery('(max-width: 768px)');
+    // Media queries are client-only; the drawer's website links wait for
+    // mount so the server HTML and the first client render match.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
     const renderLinks = () => {
         return navItems.map((item) => {
@@ -81,15 +86,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
         <div className={classNames(`${classes.sidebar} ${sidebarOpen ? classes.open : classes.closed}`)}>
             <div className={classes.logo}>
-                <NavLink to={`/manage/events`}>
+                <a href={monnoSiteUrl('/')} title={t`Go to the monno website`}>
                     <img
                         src={getConfig("VITE_APP_LOGO_LIGHT", "/logos/monno-text-dark.svg")}
                         alt={t`${getConfig("VITE_APP_NAME", "monno")} logo`}
                     />
-                </NavLink>
+                </a>
             </div>
             <div className={classes.nav}>
                 {renderLinks()}
+                {/* On phones the topbar has no room for the website links, so
+                    the drawer carries them — the same set as the user menu. */}
+                {mounted && isMobile && (
+                    <>
+                        <div className={classes.sectionHeading}>{t`monno`}</div>
+                        <NavLink to="/manage/events" className={classes.link} onClick={() => setSidebarOpen(false)}>
+                            <IconLayoutDashboard size={20} className={classes.linkIcon} stroke={1.5}/>
+                            <span>{t`Dashboard`}</span>
+                        </NavLink>
+                        <a href={monnoSiteUrl('/')} className={classes.link}>
+                            <IconWorld size={20} className={classes.linkIcon} stroke={1.5}/>
+                            <span>{t`monno website`}</span>
+                        </a>
+                        <a href={monnoSiteUrl('/profile/')} className={classes.link}>
+                            <IconTicket size={20} className={classes.linkIcon} stroke={1.5}/>
+                            <span>{t`My tickets`}</span>
+                        </a>
+                        <a href={monnoSiteUrl('/discover/')} className={classes.link}>
+                            <IconCompass size={20} className={classes.linkIcon} stroke={1.5}/>
+                            <span>{t`Discover events`}</span>
+                        </a>
+                    </>
+                )}
             </div>
             {sidebarFooter && (
                 <div className={classes.sidebarFooter}>

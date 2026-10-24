@@ -49,7 +49,7 @@ import {SidebarCallout} from "../../common/SidebarCallout";
 import {useGetMe} from "../../../queries/useGetMe.ts";
 import {useResendEmailConfirmation} from "../../../mutations/useResendEmailConfirmation.ts";
 import {useMemo, useState} from "react";
-import {monnoEventUrl} from "../EventRoom/EventRoomChrome";
+import {monnoEventUrl} from "../../../utilites/monnoSite.ts";
 import {EventType} from "../../../types.ts";
 import {useGetEventOccurrence} from "../../../queries/useGetEventOccurrence.ts";
 import {prettyDate} from "../../../utilites/dates.ts";
@@ -141,7 +141,7 @@ const EventLayout = () => {
 
         // 5. INTEGRATIONS
         {label: t`Integrations`},
-        {link: 'widget', label: t`Widget Embed`, icon: IconDeviceTabletCode},
+        {link: 'widget', label: t`Embeds`, icon: IconDeviceTabletCode},
         {link: 'webhooks', label: t`Webhooks`, icon: IconWebhook},
 
 
@@ -273,7 +273,24 @@ const EventLayout = () => {
                     )}
                 </div>
             )}
-            actionGroupContent={(
+            actionGroupContent={event?.status === 'LIVE' ? (
+                // Live events have their public page on the website — open that.
+                <Button
+                    component="a"
+                    href={monnoEventUrl(event.id)}
+                    target={'_blank'}
+                    rel="noreferrer"
+                    variant={'transparent'}
+                    leftSection={<IconExternalLink size={17}/>}
+                    className={classes.eventPageButton}
+                    title={t`View on website`}
+                >
+                    <div className={classes.eventPageButtonText}>
+                        <span className={classes.desktop}>{t`View on website`}</span>
+                        <span className={classes.mobile}>{t`Website`}</span>
+                    </div>
+                </Button>
+            ) : (
                 <Button
                     component={NavLink}
                     to={`/event/${eventId}/${event?.slug}`}
@@ -284,14 +301,9 @@ const EventLayout = () => {
                     title={t`Preview Event page`}
                 >
                     <div className={classes.eventPageButtonText}>
-                                <span className={classes.desktop}>
-                                    {t`Preview Event page`}
-                                </span>
-                        <span className={classes.mobile}>
-                                    {t`Event Page`}
-                                </span>
+                        <span className={classes.desktop}>{t`Preview Event page`}</span>
+                        <span className={classes.mobile}>{t`Preview`}</span>
                     </div>
-
                 </Button>
             )}
             sidebarFooter={

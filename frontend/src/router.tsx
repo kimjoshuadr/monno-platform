@@ -339,6 +339,13 @@ export const router: RouteObject[] = [
                 }
             },
             {
+                path: "embeds",
+                async lazy() {
+                    const OrganizerEmbeds = await import("./components/routes/organizer/Embeds");
+                    return { Component: OrganizerEmbeds.default };
+                }
+            },
+            {
                 path: "webhooks",
                 async lazy() {
                     const Webhooks = await import("./components/routes/organizer/Webhooks");
@@ -600,6 +607,20 @@ export const router: RouteObject[] = [
             return { Component: PublicEvent.default };
         },
         errorElement: <ErrorPage />,
+    },
+    {
+        path: "/embed/event/:eventId/card",
+        async lazy() {
+            const EventCardEmbed = await import("./components/routes/embed/EventCard");
+            return {Component: EventCardEmbed.default};
+        },
+    },
+    {
+        path: "/embed/organizer/:organizerId/calendar",
+        async lazy() {
+            const OrganizerCalendarEmbed = await import("./components/routes/embed/OrganizerCalendar");
+            return {Component: OrganizerCalendarEmbed.default};
+        },
     },
     {
         path: "/widget/:eventId",
