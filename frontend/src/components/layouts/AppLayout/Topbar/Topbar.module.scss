@@ -126,6 +126,42 @@
     }
   }
 
+  .siteNav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 18px;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      color: rgba(245, 246, 248, 0.72);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.16s ease, background-color 0.16s ease;
+
+      &:hover,
+      &.active {
+        color: #f5f6f8;
+        background: rgba(245, 246, 248, 0.1);
+      }
+
+      &:focus-visible {
+        outline: 2px solid #60aaf3;
+        outline-offset: 2px;
+      }
+    }
+
+    @include mixins.respond-below(md) {
+      display: none;
+    }
+  }
+
   .actionGroup {
     display: flex;
     align-items: center;

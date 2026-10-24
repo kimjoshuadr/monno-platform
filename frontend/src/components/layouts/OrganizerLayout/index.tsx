@@ -23,6 +23,7 @@ import { NavLink, useLocation, useParams } from "react-router";
 import { Button, Modal, Stack, Text, Tooltip } from "@mantine/core";
 import { useGetOrganizer } from "../../../queries/useGetOrganizer.ts";
 import { useGetOrganizerEvents } from "../../../queries/useGetOrganizerEvents.ts";
+import { monnoOrganizerUrl } from "../../../utilites/monnoSite.ts";
 import { useGeoStatus } from "../../../queries/useGeoStatus.ts";
 import { useState } from "react";
 import { CreateEventModal } from "../../modals/CreateEventModal";
@@ -266,7 +267,24 @@ const OrganizerLayout = () => {
                         )}
                     </>
                 )}
-                actionGroupContent={(
+                actionGroupContent={hasPublicPage ? (
+                    // A room exists on the website from the first LIVE event —
+                    // that is the page people actually see, so open it.
+                    <Button
+                        component="a"
+                        href={monnoOrganizerUrl(organizerId)}
+                        target={'_blank'}
+                        rel="noreferrer"
+                        variant={'transparent'}
+                        className={classes.viewHomepageButton}
+                        leftSection={<IconExternalLink size={17} />}
+                        title={t`View room on website`}
+                    >
+                        <span className={classes.viewHomepageButtonTextDesktop}>
+                            {t`View room on website`}
+                        </span>
+                    </Button>
+                ) : (
                     <Button
                         component={NavLink}
                         to={`/events/${organizerId}/${organizer?.slug || ''}`}
@@ -274,10 +292,10 @@ const OrganizerLayout = () => {
                         variant={'transparent'}
                         className={classes.viewHomepageButton}
                         leftSection={<IconExternalLink size={17} />}
-                        title={t`View Organizer Homepage`}
+                        title={t`Preview organizer page`}
                     >
                         <span className={classes.viewHomepageButtonTextDesktop}>
-                            {t`View Organizer Homepage`}
+                            {t`Preview organizer page`}
                         </span>
                     </Button>
                 )}
