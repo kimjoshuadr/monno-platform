@@ -3,7 +3,7 @@ import {useLocation, useParams} from "react-router";
 import '../../../styles/widget/default.scss';
 import {useGetEventPublic} from "../../../queries/useGetEventPublic.ts";
 import SelectProducts from "../../routes/product-widget/SelectProducts";
-import {useMemo} from "react";
+import {useEffect, useMemo} from "react";
 import {Loader} from "@mantine/core";
 import {t} from "@lingui/macro";
 import {embedPalette, resolveEmbedTheme} from "../../../utilites/colour.ts";
@@ -54,9 +54,16 @@ const ProductWidget = () => {
                 bodyBackground: searchParams.get("BackgroundColor") || palette.background,
             },
             continueButtonText: searchParams.get("ContinueButtonText") || 'Continue',
-            padding: searchParams.get("Padding") || '10px',
+            padding: searchParams.get("Padding") || '16px',
         };
     }, [location.search]);
+
+    // Paint the whole document with the widget ground, not the app's grey.
+    useEffect(() => {
+        const ground = settings.colors.bodyBackground;
+        [document.documentElement, document.body].forEach((node) =>
+            node.style.setProperty('background-color', ground, 'important'));
+    }, [settings.colors.bodyBackground]);
 
     if (eventQuery.isError || (eventQuery.isFetched && !eventQuery.data)) {
         return (

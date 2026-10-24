@@ -315,6 +315,18 @@
 .embedSlot {
   position: relative;
   min-height: 120px;
+
+  /* A button and a card sit centred in the page, the way they usually are. */
+  &[data-type='button'],
+  &[data-type='card'] {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &[data-type='button'] {
+    padding: 24px 0;
+  }
 }
 
 .previewFrame {
@@ -325,6 +337,7 @@
   border-radius: 12px;
 
   &[data-card] {
+    width: 100%;
     max-width: 380px;
     min-height: 470px;
   }

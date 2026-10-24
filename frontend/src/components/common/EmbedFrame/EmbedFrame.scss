@@ -3,10 +3,15 @@
 .monno-embed-frame {
   --e-card-radius: 16px;
   --e-control-radius: 999px;
-  background: var(--e-bg);
+  background: transparent;
   color: var(--e-text);
   font-family: var(--monno-body, "Plus Jakarta Sans", system-ui, sans-serif);
-  padding: 4px;
+  /* Room for focus rings and the card's hairline on every side. */
+  padding: 16px;
+
+  @media (max-width: 420px) {
+    padding: 12px;
+  }
 
   &[data-radius='soft'] {
     --e-card-radius: 12px;
@@ -102,7 +107,10 @@
   }
 
   .monno-embed-footer {
-    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 0;
     opacity: 0.85;
   }
 
@@ -188,7 +196,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 2px 2px 14px;
+  margin: 0 0 12px;
 
   .e-title {
     font-size: 18px;
@@ -207,7 +215,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
-  padding: 14px 2px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--e-border);
 
   .e-title {
@@ -240,7 +248,10 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  /* Cards keep a sensible width and the row centres, so two events on a wide
+     page do not leave an empty column hanging on the right. */
+  grid-template-columns: repeat(auto-fit, minmax(230px, 300px));
+  justify-content: center;
   gap: 12px;
 }
 
@@ -257,7 +268,7 @@
 
 .e-cal-more {
   display: inline-block;
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: 14px;
   font-weight: 600;
   text-decoration: underline;

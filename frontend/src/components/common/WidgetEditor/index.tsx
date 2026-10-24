@@ -113,6 +113,21 @@ export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: st
     const [eventAccent, setEventAccent] = useState<string | null>(null);
     const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
     const [pageTone, setPageTone] = useState<'light' | 'dark'>('light');
+    const [frameHeight, setFrameHeight] = useState<number | null>(null);
+
+    // Card and calendar previews report their height the way they do on a real
+    // site, so the frame fits them exactly instead of leaving a blank band.
+    useEffect(() => {
+        const onMessage = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            const data = event.data || {};
+            if (data.type === 'resize' && data.iframeId === 'monno-preview' && Number.isFinite(Number(data.height))) {
+                setFrameHeight(Math.min(Number(data.height), 4000));
+            }
+        };
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, []);
 
     const set = <K extends keyof EmbedOptions>(key: K, value: EmbedOptions[K]) =>
         setOptions((current) => ({...current, [key]: value}));
@@ -152,6 +167,10 @@ export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: st
         react: reactSnippet(full),
         wordpress: wordpressSnippet(full),
     };
+
+    const previewKey = `${options.type}-${eventId}-${organizerId}-${previewQuery(full)}`;
+    // A new preview starts unsized until it reports its own height.
+    useEffect(() => setFrameHeight(null), [previewKey]);
 
     const publicUrl = options.type === 'calendar' ? monnoOrganizerUrl(organizerId) : monnoEventUrl(eventId);
     const palette = embedPalette(resolveEmbedTheme(options.theme), options.accent);
@@ -364,7 +383,7 @@ export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: st
                     <div className={classes.page}>
                         <div className={classes.fakeNav}><i/><span/><span/><span/></div>
                         <div className={classes.fakeHero}><span/><span/></div>
-                        <div className={classes.embedSlot}>
+                        <div className={classes.embedSlot} data-type={options.type}>
                             {!ready || (needsEvent && !eventQuery.isFetched) ? (
                                 <LoadingMask/>
                             ) : options.type === 'tickets' ? (
@@ -390,9 +409,11 @@ export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: st
                                     key={`${options.type}-${eventId}-${organizerId}-${previewQuery(full)}`}
                                     className={classes.previewFrame}
                                     title={t`Embed preview`}
-                                    src={options.type === 'card'
-                                        ? `/embed/event/${eventId}/card?${previewQuery(full)}`
-                                        : `/embed/organizer/${organizerId}/calendar?${previewQuery(full)}`}
+                                    style={frameHeight ? {height: frameHeight, minHeight: 0} : undefined}
+                                    src={(options.type === 'card'
+                                        ? `/embed/event/${eventId}/card?`
+                                        : `/embed/organizer/${organizerId}/calendar?`)
+                                        + `${previewQuery(full)}&iframeId=monno-preview`}
                                     data-card={options.type === 'card' || undefined}
                                 />
                             )}
