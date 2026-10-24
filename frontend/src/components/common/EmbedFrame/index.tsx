@@ -27,6 +27,22 @@ export const EmbedFrame = ({children}: { children: React.ReactNode }) => {
         };
     }, [location.search]);
 
+    // Transparent all the way down — the app's global body colour (the
+    // dashboard grey, `!important`) would otherwise frame the embed in a box.
+    // The card and the calendar sit straight on the host page; Theme picks the
+    // text colour that suits it.
+    useEffect(() => {
+        const targets = [document.documentElement, document.body];
+        targets.forEach((node) => {
+            node.style.setProperty('background-color', 'transparent', 'important');
+            node.style.setProperty('margin', '0');
+            // A colour-scheme mismatch with the host page makes the browser
+            // paint the iframe opaque; `normal` keeps it see-through.
+            node.style.setProperty('color-scheme', 'normal', 'important');
+        });
+        return () => targets.forEach((node) => node.style.removeProperty('background-color'));
+    }, []);
+
     useEffect(() => {
         const el = ref.current;
         if (!el) return;
