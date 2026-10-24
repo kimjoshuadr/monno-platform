@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {Badge, UnstyledButton, VisuallyHidden} from '@mantine/core';
 import {IconChevronLeft, IconCompass, IconLayoutDashboard, IconTicket, IconWorld} from "@tabler/icons-react";
 import {t} from "@lingui/macro";
@@ -24,6 +24,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                                     sidebarFooter,
                                                 }) => {
     const isMobile = useMediaQuery('(max-width: 768px)');
+    // Media queries are client-only; the drawer's website links wait for
+    // mount so the server HTML and the first client render match.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
     const renderLinks = () => {
         return navItems.map((item) => {
@@ -93,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {renderLinks()}
                 {/* On phones the topbar has no room for the website links, so
                     the drawer carries them — the same set as the user menu. */}
-                {isMobile && (
+                {mounted && isMobile && (
                     <>
                         <div className={classes.sectionHeading}>{t`monno`}</div>
                         <NavLink to="/manage/events" className={classes.link} onClick={() => setSidebarOpen(false)}>

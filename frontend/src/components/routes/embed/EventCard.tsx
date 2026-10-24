@@ -2,7 +2,8 @@ import {useParams} from "react-router";
 import {t} from "@lingui/macro";
 import {Loader} from "@mantine/core";
 import {useGetEventPublic} from "../../../queries/useGetEventPublic.ts";
-import {EmbedFrame, openEmbedCheckout} from "../../common/EmbedFrame";
+import {EmbedFrame} from "../../common/EmbedFrame";
+import {openEmbedCheckout} from "../../../utilites/embedCheckout.ts";
 import {roomDateParts, roomPriceLabel, toRoomEvents} from "../../../utilites/roomData.ts";
 import {monnoEventUrl} from "../../../utilites/monnoSite.ts";
 

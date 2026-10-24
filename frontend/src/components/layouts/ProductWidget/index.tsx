@@ -1,3 +1,4 @@
+/* eslint-disable lingui/no-unlocalized-strings -- query keys and colour codes only */
 import {useLocation, useParams} from "react-router";
 import '../../../styles/widget/default.scss';
 import {useGetEventPublic} from "../../../queries/useGetEventPublic.ts";

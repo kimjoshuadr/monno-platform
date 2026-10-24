@@ -1,3 +1,4 @@
+/* eslint-disable lingui/no-unlocalized-strings -- colour codes and theme names only */
 /**
  * Colour helpers for the embeds: pick readable text for an organizer's accent,
  * and build the monno palette an embed is drawn in.

@@ -1,371 +1,448 @@
+/* eslint-disable lingui/no-unlocalized-strings -- option values, storage keys and colour codes only; UI copy goes through `t` */
 import classes from './WidgetEditor.module.scss';
 import SelectProducts from "../../routes/product-widget/SelectProducts";
-import {Accordion, ColorInput, Group, NumberInput, Stack, Switch, Tabs, Text, Textarea, TextInput} from "@mantine/core";
-import {t, Trans} from "@lingui/macro";
-import {matches, useForm} from "@mantine/form";
+import {
+    Button,
+    ColorInput,
+    CopyButton as MantineCopy,
+    NumberInput,
+    Select,
+    SegmentedControl,
+    Switch,
+    Tabs,
+    Text,
+    TextInput,
+} from "@mantine/core";
+import {t} from "@lingui/macro";
 import {useEffect, useState} from "react";
-import {CopyButton} from "../CopyButton";
 import {useParams} from "react-router";
-import {IconCode, IconPalette, IconSettings} from "@tabler/icons-react";
+import {
+    IconCalendarEvent,
+    IconCheck,
+    IconCopy,
+    IconDeviceDesktop,
+    IconDeviceMobile,
+    IconExternalLink,
+    IconId,
+    IconPointer,
+    IconTicket,
+} from "@tabler/icons-react";
+import QRCode from "react-qr-code";
 import {useGetEventSettings} from "../../../queries/useGetEventSettings.ts";
+import {useGetEvent} from "../../../queries/useGetEvent.ts";
+import {useGetOrganizerEvents} from "../../../queries/useGetOrganizerEvents.ts";
 import {LoadingMask} from '../LoadingMask';
 import {Event} from '../../../types.ts';
-import {useGetEvent} from "../../../queries/useGetEvent.ts";
+import {embedPalette, resolveEmbedTheme} from "../../../utilites/colour.ts";
+import {
+    EmbedOptions,
+    EmbedType,
+    htmlSnippet,
+    previewQuery,
+    reactSnippet,
+    wordpressSnippet,
+} from "../../../utilites/embedCode.ts";
+import {monnoEventUrl, monnoOrganizerUrl} from "../../../utilites/monnoSite.ts";
+import '../../../styles/widget/default.scss';
 
-export const WidgetEditor = () => {
-    const {eventId} = useParams();
+/** The brand's own swatches: ink, then the spectrum. */
+const SWATCHES = ['#0B0B0C', '#1478C9', '#0FCFF6', '#2BE09D', '#B2D64A', '#F6D52C', '#FEB52A', '#FD7E2B', '#FD5A3C'];
+
+const embedTypes = (): { value: EmbedType; label: string; hint: string; icon: typeof IconTicket }[] => [
+    {value: 'tickets', label: t`Ticket widget`, hint: t`The full ticket picker, inline on your page.`, icon: IconTicket},
+    {value: 'button', label: t`Button`, hint: t`One pill that opens checkout on your site.`, icon: IconPointer},
+    {value: 'card', label: t`Event card`, hint: t`Photo, date and price — for blogs and link pages.`, icon: IconId},
+    {value: 'calendar', label: t`Calendar`, hint: t`Every upcoming date from your organizer.`, icon: IconCalendarEvent},
+];
+
+const storageKey = (scope: string) => `monno.embed.${scope}`;
+
+/**
+ * The Embeds page: choose what to put on your own site, style it in monno's
+ * language with your accent, copy the code. The preview is the real thing —
+ * the ticket picker itself, or the embed page the snippet loads.
+ *
+ * Event scope (`/manage/event/:eventId/widget`) embeds that event; organizer
+ * scope (`/manage/organizer/:organizerId/embeds`) starts on the calendar and
+ * picks an event for the other types.
+ */
+export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: string } = {}) => {
+    const params = useParams();
+    const isOrganizerScope = !!organizerScopeId;
+    const [pickedEventId, setPickedEventId] = useState<string | null>(null);
+    const eventId = isOrganizerScope ? pickedEventId ?? undefined : params.eventId;
+
     const eventQuery = useGetEvent(eventId);
+    const {data: eventSettings} = useGetEventSettings(eventId);
+    const organizerId = organizerScopeId ?? (eventQuery.data?.organizer?.id ? String(eventQuery.data.organizer.id) : undefined);
 
-    const colorMessage = t`Color must be a valid hex color code. Example: #ffffff`;
-    const colorRegex = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
-    const {data: eventSettings, isFetched: isEventSettingsFetched} = useGetEventSettings(eventId);
-    const form = useForm({
-        initialValues: {
-            background_color: "#ffffff",
-            primary_color: "#828282",
-            primary_text_color: "#ffffff",
-            secondary_color: "#f5f5f5",
-            secondary_text_color: "#828282",
-            continue_button_text: t`Continue`,
-            padding: 20,
-            autoResize: true,
-        },
-        validate: {
-            background_color: matches(colorRegex, colorMessage),
-            primary_color: matches(colorRegex, colorMessage),
-            primary_text_color: matches(colorRegex, colorMessage),
-            secondary_color: matches(colorRegex, colorMessage),
-            secondary_text_color: matches(colorRegex, colorMessage),
-        },
+    const {data: organizerEvents} = useGetOrganizerEvents(organizerScopeId ?? '', {
+        pageNumber: 1,
+        perPage: 100,
+        sortBy: 'start_date',
+        sortDirection: 'desc',
+        filterFields: {},
     });
 
-    const [htmlEmbedCode, setHtmlEmbedCode] = useState<string>("");
-    const [reactComponentCode, setReactComponentCode] = useState<string>("");
-    const [reactUsageCode, setReactUsageCode] = useState<string>("");
-    const [accordionValue, setAccordionValue] = useState<string[]>(['colors', 'appearance', 'embedding']);
-    const currentLocation = typeof window !== "undefined" ? window?.location : undefined;
-    const embedUrl = `${currentLocation?.protocol}//${currentLocation?.host}/widget.js`;
-    const embedScript = `<script async src="${embedUrl}"></script>`;
+    const scope = isOrganizerScope ? `organizer.${organizerScopeId}` : `event.${params.eventId}`;
+    const [options, setOptions] = useState<EmbedOptions>({
+        type: isOrganizerScope ? 'calendar' : 'tickets',
+        theme: 'light',
+        accent: '#0B0B0C',
+        radius: 'round',
+        label: t`Get tickets`,
+        variant: 'solid',
+        layout: 'list',
+        limit: 6,
+        continueText: t`Continue`,
+        autoResize: true,
+    });
+    const [restored, setRestored] = useState(false);
 
+    // Saved choices load after mount, so the server render and the first
+    // client render agree.
     useEffect(() => {
-        setHtmlEmbedCode(
-            '<div ' +
-            'data-hievents-id="' + eventId + '" ' +
-            'data-hievents-primary-color="' + form.values.primary_color + '" ' +
-            'data-hievents-primary-text-color="' + form.values.primary_text_color + '" ' +
-            'data-hievents-secondary-color="' + form.values.secondary_color + '" ' +
-            'data-hievents-secondary-text-color="' + form.values.secondary_text_color + '" ' +
-            'data-hievents-background-color="' + form.values.background_color + '" ' +
-            'data-hievents-widget-type="widget" ' +
-            'data-hievents-widget-version="1.0" ' +
-            'data-hievents-locale="en" ' +
-            'data-hievents-padding="' + form.values.padding + 'px" ' +
-            'data-hievents-autoresize="' + form.values.autoResize + '" ' +
-            'data-hievents-continue-button-text="' + form.values.continue_button_text + '" ' +
-            'class="hievents-widget">' +
-            '</div>'
-        );
-
-        setReactComponentCode(`
-import React, { useEffect } from 'react';
-
-const HiEventsWidget = ({
-  eventId,
-  primaryColor = "${form.values.primary_color}",
-  primaryTextColor = "${form.values.primary_text_color}",
-  secondaryColor = "${form.values.secondary_color}",
-  secondaryTextColor = "${form.values.secondary_text_color}",
-  backgroundColor = "${form.values.background_color}",
-  widgetType = "widget",
-  widgetVersion = "1.0",
-  locale = "en"
-}) => {
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "${embedUrl}";
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  return (
-    <div
-      data-hievents-id={eventId}
-      data-hievents-primary-color={primaryColor}
-      data-hievents-primary-text-color={primaryTextColor}
-      data-hievents-secondary-color={secondaryColor}
-      data-hievents-secondary-text-color={secondaryTextColor}
-      data-hievents-background-color={backgroundColor}
-      data-hievents-widget-type={widgetType}
-      data-hievents-widget-version={widgetVersion}
-      data-hievents-locale={locale}
-      className="hievents-widget"
-    />
-  );
-};
-
-export default HiEventsWidget;
-        `);
-
-        setReactUsageCode(`
-import React from 'react';
-import HiEventsWidget from './HiEventsWidget';
-
-const App = () => {
-  return (
-    <div>
-      <h1>My Website</h1>
-      <HiEventsWidget 
-        eventId="${eventId}"
-        primaryColor="${form.values.primary_color}"
-        primaryTextColor="${form.values.primary_text_color}"
-        secondaryColor="${form.values.secondary_color}"
-        secondaryTextColor="${form.values.secondary_text_color}"
-        backgroundColor="${form.values.background_color}"
-        widgetType="widget"
-        widgetVersion="1.0"
-        locale="en"
-      />
-    </div>
-  );
-};
-
-export default App;
-        `);
-
-        form.validate();
-    }, [form.values, eventId]);
-
-    useEffect(() => {
-        if (eventSettings) {
-            form.setValues({
-                background_color: eventSettings.homepage_background_color,
-                primary_color: eventSettings.homepage_primary_color,
-                primary_text_color: eventSettings.homepage_primary_text_color,
-                secondary_color: eventSettings.homepage_secondary_color,
-                secondary_text_color: eventSettings.homepage_secondary_text_color,
-                continue_button_text: eventSettings.continue_button_text,
-            });
+        try {
+            const saved = window.localStorage.getItem(storageKey(scope));
+            if (saved) setOptions((current) => ({...current, ...JSON.parse(saved)}));
+        } catch {
+            /* storage unavailable — start from the defaults */
         }
-    }, [isEventSettingsFetched, eventSettings]);
+        setRestored(true);
+    }, [scope]);
+    const [eventAccent, setEventAccent] = useState<string | null>(null);
+    const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+    const [pageTone, setPageTone] = useState<'light' | 'dark'>('light');
+
+    const set = <K extends keyof EmbedOptions>(key: K, value: EmbedOptions[K]) =>
+        setOptions((current) => ({...current, [key]: value}));
+
+    // Choices are remembered per event / organizer on this device only.
+    useEffect(() => {
+        if (!restored) return;
+        try {
+            window.localStorage.setItem(storageKey(scope), JSON.stringify(options));
+        } catch {
+            /* storage unavailable — choices simply do not persist */
+        }
+    }, [options, scope, restored]);
+
+    // The event's own accent (its page theme) is the default tint.
+    useEffect(() => {
+        const accent = eventSettings?.homepage_theme_settings?.accent;
+        if (accent) {
+            setEventAccent(accent);
+            setOptions((current) => current.accent === '#0B0B0C' ? {...current, accent} : current);
+        }
+    }, [eventSettings]);
+
+    // Organizer scope: preselect the soonest event for the per-event types.
+    useEffect(() => {
+        if (isOrganizerScope && !pickedEventId && organizerEvents?.data?.length) {
+            setPickedEventId(String(organizerEvents.data[0].id));
+        }
+    }, [isOrganizerScope, pickedEventId, organizerEvents]);
+
+    const full: EmbedOptions = {...options, eventId, organizerId};
+    const needsEvent = options.type !== 'calendar';
+    const ready = needsEvent ? !!eventId : !!organizerId;
+
+    const snippets = {
+        html: htmlSnippet(full),
+        react: reactSnippet(full),
+        wordpress: wordpressSnippet(full),
+    };
+
+    const publicUrl = options.type === 'calendar' ? monnoOrganizerUrl(organizerId) : monnoEventUrl(eventId);
+    const palette = embedPalette(resolveEmbedTheme(options.theme), options.accent);
 
     return (
         <div className={classes.container}>
             <div className={classes.sidebar}>
-                <div className={classes.sticky}>
-                    <div className={classes.header}>
-                        <h2>{t`Widget Settings`}</h2>
-                        <Text c="dimmed" size="sm">{t`Create a custom widget to sell tickets on your site.`}</Text>
+                <header className={classes.header}>
+                    <h2>{t`Embeds`}</h2>
+                    <Text c="dimmed" size="sm">
+                        {t`Sell from your own website. Checkout opens right on your page, and buyers get monno tickets.`}
+                    </Text>
+                </header>
+
+                <section className={classes.section}>
+                    <h3 className={classes.sectionTitle}>{t`What to embed`}</h3>
+                    <div className={classes.typeGrid} role="radiogroup" aria-label={t`Embed type`}>
+                        {embedTypes().map((type) => (
+                            <button
+                                key={type.value}
+                                type="button"
+                                role="radio"
+                                aria-checked={options.type === type.value}
+                                className={classes.typeCard}
+                                onClick={() => set('type', type.value)}
+                            >
+                                <type.icon size={22} stroke={1.6}/>
+                                <strong>{type.label}</strong>
+                                <span>{type.hint}</span>
+                            </button>
+                        ))}
                     </div>
 
-                    <Accordion
-                        multiple
-                        value={accordionValue}
-                        onChange={setAccordionValue}
-                        variant="contained"
-                        className={classes.accordion}
-                    >
-                        <Accordion.Item value="colors" className={classes.accordionItem}>
-                            <Accordion.Control icon={<IconPalette size={20}/>}>
-                                <Text fw={500}>{t`Colors`}</Text>
-                            </Accordion.Control>
-                            <Accordion.Panel>
-                                <Stack gap="sm">
-                                    <Text size="xs" c="dimmed">
-                                        {t`These settings apply only to copied embed code and won't be stored.`}
-                                    </Text>
-                                    <ColorInput
-                                        label={t`Background Color`}
-                                        placeholder="#RRGGBB"
-                                        {...form.getInputProps('background_color')}
-                                        size="sm"
-                                    />
-                                    <ColorInput
-                                        label={t`Primary Color`}
-                                        placeholder="#RRGGBB"
-                                        {...form.getInputProps('primary_color')}
-                                        size="sm"
-                                    />
-                                    <ColorInput
-                                        label={t`Primary Text Color`}
-                                        placeholder="#RRGGBB"
-                                        {...form.getInputProps('primary_text_color')}
-                                        size="sm"
-                                    />
-                                    <ColorInput
-                                        label={t`Secondary Color`}
-                                        placeholder="#RRGGBB"
-                                        {...form.getInputProps('secondary_color')}
-                                        size="sm"
-                                    />
-                                    <ColorInput
-                                        label={t`Secondary Text Color`}
-                                        placeholder="#RRGGBB"
-                                        {...form.getInputProps('secondary_text_color')}
-                                        size="sm"
-                                    />
-                                </Stack>
-                            </Accordion.Panel>
-                        </Accordion.Item>
+                    {isOrganizerScope && needsEvent ? (
+                        <Select
+                            mt="md"
+                            label={t`Event`}
+                            placeholder={t`Choose an event`}
+                            data={(organizerEvents?.data ?? []).map((event) => ({value: String(event.id), label: event.title}))}
+                            value={pickedEventId}
+                            onChange={setPickedEventId}
+                            searchable
+                        />
+                    ) : null}
+                </section>
 
-                        <Accordion.Item value="appearance" className={classes.accordionItem}>
-                            <Accordion.Control icon={<IconSettings size={20}/>}>
-                                <Text fw={500}>{t`Appearance`}</Text>
-                            </Accordion.Control>
-                            <Accordion.Panel>
-                                <Stack gap="sm">
-                                    <TextInput
-                                        label={t`Continue Button Text`}
-                                        placeholder={t`Continue`}
-                                        {...form.getInputProps('continue_button_text')}
-                                        size="sm"
-                                    />
-                                    <NumberInput
-                                        label={t`Padding`}
-                                        min={0}
-                                        max={500}
-                                        placeholder={t`20`}
-                                        rightSection={`px`}
-                                        {...form.getInputProps('padding')}
-                                        size="sm"
-                                    />
-                                    <Switch
-                                        label={t`Auto Resize`}
-                                        {...form.getInputProps('autoResize', {type: 'checkbox'})}
-                                        description={t`Automatically resize the widget height based on the content. When disabled, the widget will fill the height of the container.`}
-                                    />
-                                </Stack>
-                            </Accordion.Panel>
-                        </Accordion.Item>
+                <section className={classes.section}>
+                    <h3 className={classes.sectionTitle}>{t`Style`}</h3>
+                    <Text size="sm" fw={600} mb={6}>{t`Appearance`}</Text>
+                    <SegmentedControl
+                        fullWidth
+                        radius="xl"
+                        value={options.theme}
+                        onChange={(value) => set('theme', value as EmbedOptions['theme'])}
+                        data={[
+                            {value: 'light', label: t`Light`},
+                            {value: 'dark', label: t`Dark`},
+                            {value: 'auto', label: t`Match visitor`},
+                        ]}
+                    />
 
-                        <Accordion.Item value="embedding" className={classes.accordionItem}>
-                            <Accordion.Control icon={<IconCode size={20}/>}>
-                                <Text fw={500}>{t`Embed Code`}</Text>
-                            </Accordion.Control>
-                            <Accordion.Panel>
-                                <Tabs defaultValue="html">
-                                    <Tabs.List>
-                                        <Tabs.Tab value="html">HTML</Tabs.Tab>
-                                        <Tabs.Tab value="react">React</Tabs.Tab>
-                                    </Tabs.List>
+                    <ColorInput
+                        mt="md"
+                        label={t`Accent`}
+                        description={t`Used on the button and selected tickets. Text colour adjusts itself.`}
+                        value={options.accent}
+                        onChange={(value) => set('accent', value)}
+                        swatches={SWATCHES}
+                        swatchesPerRow={9}
+                        format="hex"
+                    />
+                    {eventAccent && options.accent.toLowerCase() !== eventAccent.toLowerCase() ? (
+                        <button type="button" className={classes.textLink} onClick={() => set('accent', eventAccent)}>
+                            {t`Reset to the event's colour`}
+                        </button>
+                    ) : null}
 
-                                    <Tabs.Panel value="html" pt="sm">
-                                        <Stack gap="sm">
-                                            <Textarea
-                                                onChange={void 0}
-                                                description={t`Place this in the <head> of your website.`}
-                                                label={(
-                                                    <Group gap="xs">
-                                                        {t`Embed Script`}
-                                                        <CopyButton value={embedScript}/>
-                                                    </Group>)
-                                                }
-                                                rows={3}
-                                                value={embedScript}
-                                                size="sm"
-                                            />
-                                            <Textarea
-                                                onChange={void 0}
-                                                description={t`Paste this where you want the widget to appear.`}
-                                                label={(
-                                                    <Group gap="xs">
-                                                        {t`Embed Code`}
-                                                        <CopyButton value={htmlEmbedCode}/>
-                                                    </Group>)
-                                                }
-                                                rows={6}
-                                                value={htmlEmbedCode}
-                                                size="sm"
-                                            />
-                                        </Stack>
-                                    </Tabs.Panel>
+                    <Text size="sm" fw={600} mt="md" mb={6}>{t`Corners`}</Text>
+                    <SegmentedControl
+                        fullWidth
+                        radius="xl"
+                        value={options.radius}
+                        onChange={(value) => set('radius', value as EmbedOptions['radius'])}
+                        data={[
+                            {value: 'round', label: t`Round`},
+                            {value: 'soft', label: t`Soft`},
+                        ]}
+                    />
 
-                                    <Tabs.Panel value="react" pt="sm">
-                                        <Stack gap="sm">
-                                            <Textarea
-                                                onChange={void 0}
-                                                description={t`Here is the React component you can use to embed the widget in your application.`}
-                                                label={(
-                                                    <Group gap="xs">
-                                                        {t`Component Code`}
-                                                        <CopyButton value={reactComponentCode}/>
-                                                    </Group>)
-                                                }
-                                                rows={6}
-                                                value={reactComponentCode}
-                                                size="sm"
-                                            />
-                                            <Textarea
-                                                onChange={void 0}
-                                                description={t`Here is an example of how you can use the component in your application.`}
-                                                label={(
-                                                    <Group gap="xs">
-                                                        {t`Usage Example`}
-                                                        <CopyButton value={reactUsageCode}/>
-                                                    </Group>)
-                                                }
-                                                rows={6}
-                                                value={reactUsageCode}
-                                                size="sm"
-                                            />
-                                        </Stack>
-                                    </Tabs.Panel>
-                                </Tabs>
-                            </Accordion.Panel>
-                        </Accordion.Item>
-                    </Accordion>
-                </div>
+                    {options.type === 'button' ? (
+                        <>
+                            <TextInput mt="md" label={t`Button label`} value={options.label}
+                                       onChange={(e) => set('label', e.currentTarget.value)}/>
+                            <Text size="sm" fw={600} mt="md" mb={6}>{t`Button style`}</Text>
+                            <SegmentedControl
+                                fullWidth
+                                radius="xl"
+                                value={options.variant}
+                                onChange={(value) => set('variant', value as EmbedOptions['variant'])}
+                                data={[{value: 'solid', label: t`Solid`}, {value: 'outline', label: t`Outline`}]}
+                            />
+                        </>
+                    ) : null}
+
+                    {options.type === 'calendar' ? (
+                        <>
+                            <Text size="sm" fw={600} mt="md" mb={6}>{t`Layout`}</Text>
+                            <SegmentedControl
+                                fullWidth
+                                radius="xl"
+                                value={options.layout}
+                                onChange={(value) => set('layout', value as EmbedOptions['layout'])}
+                                data={[{value: 'list', label: t`List`}, {value: 'cards', label: t`Cards`}]}
+                            />
+                            <NumberInput mt="md" label={t`Dates to show`} min={1} max={24} value={options.limit}
+                                         onChange={(value) => set('limit', Number(value) || 6)}/>
+                        </>
+                    ) : null}
+
+                    {options.type === 'tickets' ? (
+                        <TextInput mt="md" label={t`Continue button text`} value={options.continueText}
+                                   onChange={(e) => set('continueText', e.currentTarget.value)}/>
+                    ) : null}
+
+                    {options.type !== 'button' ? (
+                        <Switch
+                            mt="md"
+                            checked={options.autoResize}
+                            onChange={(e) => set('autoResize', e.currentTarget.checked)}
+                            label={t`Fit height to content`}
+                            description={t`Off: the embed fills the height of its container.`}
+                        />
+                    ) : null}
+                </section>
+
+                <section className={classes.section}>
+                    <h3 className={classes.sectionTitle}>{t`Add it to your site`}</h3>
+                    {!ready ? (
+                        <Text size="sm" c="dimmed">{t`Choose an event to get the code.`}</Text>
+                    ) : (
+                        <Tabs defaultValue="html" radius="xl" variant="pills" classNames={{list: classes.tabs}}>
+                            <Tabs.List>
+                                <Tabs.Tab value="html">{t`HTML`}</Tabs.Tab>
+                                <Tabs.Tab value="wordpress">{t`WordPress`}</Tabs.Tab>
+                                <Tabs.Tab value="react">{t`React`}</Tabs.Tab>
+                                <Tabs.Tab value="link">{t`Link`}</Tabs.Tab>
+                            </Tabs.List>
+
+                            <Tabs.Panel value="html" pt="sm">
+                                <Text size="xs" c="dimmed" mb={8}>{t`Paste where the embed should appear. The script line can go once in your page's <head>.`}</Text>
+                                <CodeBlock code={snippets.html}/>
+                            </Tabs.Panel>
+                            <Tabs.Panel value="wordpress" pt="sm">
+                                <Text size="xs" c="dimmed" mb={8}>{t`In the block editor add a "Custom HTML" block and paste this. Nothing to install.`}</Text>
+                                <CodeBlock code={snippets.wordpress}/>
+                            </Tabs.Panel>
+                            <Tabs.Panel value="react" pt="sm">
+                                <Text size="xs" c="dimmed" mb={8}>{t`A drop-in component. Render <MonnoEmbed /> where it should appear.`}</Text>
+                                <CodeBlock code={snippets.react}/>
+                            </Tabs.Panel>
+                            <Tabs.Panel value="link" pt="sm">
+                                <Text size="xs" c="dimmed" mb={8}>{t`No website? Share the page — or print the QR code.`}</Text>
+                                {publicUrl ? (
+                                    <div className={classes.linkPanel}>
+                                        <CodeBlock code={publicUrl}/>
+                                        <div className={classes.qr}>
+                                            <QRCode value={publicUrl} size={132}/>
+                                        </div>
+                                        <Button component="a" href={publicUrl} target="_blank" rel="noreferrer"
+                                                variant="default" radius="xl" leftSection={<IconExternalLink size={16}/>}>
+                                            {t`Open page`}
+                                        </Button>
+                                    </div>
+                                ) : null}
+                            </Tabs.Panel>
+                        </Tabs>
+                    )}
+                </section>
             </div>
 
             <div className={classes.previewContainer}>
-                <h2>{t`Widget Preview`}</h2>
-                <section className={classes.stickyContainer}>
-                    <div className={classes.browserChrome}>
-                        <div className={classes.browserActionButtons}>
-                            <div/>
-                            <div/>
-                            <div/>
-                        </div>
-                        <div className={classes.browserAddressBar}>
-                            <div>
-                                <Trans><span>https://</span>your-website.com</Trans>
-                            </div>
-                        </div>
+                <div className={classes.previewBar}>
+                    <h2>{t`Preview`}</h2>
+                    <div className={classes.previewControls}>
+                        <SegmentedControl
+                            size="xs"
+                            radius="xl"
+                            value={device}
+                            onChange={(value) => setDevice(value as 'desktop' | 'mobile')}
+                            data={[
+                                {value: 'desktop', label: <span className={classes.segIcon}><IconDeviceDesktop size={15}/>{t`Desktop`}</span>},
+                                {value: 'mobile', label: <span className={classes.segIcon}><IconDeviceMobile size={15}/>{t`Mobile`}</span>},
+                            ]}
+                        />
+                        <SegmentedControl
+                            size="xs"
+                            radius="xl"
+                            value={pageTone}
+                            onChange={(value) => setPageTone(value as 'light' | 'dark')}
+                            data={[{value: 'light', label: t`Light site`}, {value: 'dark', label: t`Dark site`}]}
+                        />
                     </div>
-                    <div className={classes.websitePlaceholder}>
-                        <h1>{t`Your awesome website 🎉`}</h1>
-                        <p className={classes.lorem}>
-                            {t`Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam placerat elementum...`}
-                        </p>
+                </div>
 
-                        <div className={classes.widgetWrapper}>
-                            {!eventQuery.isFetched ?
-                                <LoadingMask/> :
-                                <SelectProducts
-                                    event={eventQuery.data as Event}
-                                    widgetMode={'preview'}
-                                    colors={{
-                                        primary: form.values.primary_color,
-                                        primaryText: form.values.primary_text_color,
-                                        secondary: form.values.secondary_color,
-                                        secondaryText: form.values.secondary_text_color,
-                                        background: form.values.background_color,
-                                    }}
-                                    continueButtonText={form.values.continue_button_text}
-                                    padding={form.values.padding + 'px'}
+                <section className={classes.browser} data-device={device} data-tone={pageTone}>
+                    <div className={classes.browserChrome}>
+                        <span className={classes.dots}><i/><i/><i/></span>
+                        <span className={classes.address}>{t`your-website.com`}</span>
+                    </div>
+                    <div className={classes.page}>
+                        <div className={classes.fakeNav}><i/><span/><span/><span/></div>
+                        <div className={classes.fakeHero}><span/><span/></div>
+                        <div className={classes.embedSlot}>
+                            {!ready || (needsEvent && !eventQuery.isFetched) ? (
+                                <LoadingMask/>
+                            ) : options.type === 'tickets' ? (
+                                <div className="monno-embed-root" data-radius={options.radius}>
+                                    <SelectProducts
+                                        event={eventQuery.data as Event}
+                                        widgetMode={'preview'}
+                                        colors={{
+                                            primary: palette.text,
+                                            primaryText: palette.text,
+                                            secondary: palette.accent,
+                                            secondaryText: palette.accentText,
+                                            background: palette.background,
+                                        }}
+                                        continueButtonText={options.continueText}
+                                        padding={'16px'}
+                                    />
+                                </div>
+                            ) : options.type === 'button' ? (
+                                <ButtonPreview options={options}/>
+                            ) : (
+                                <iframe
+                                    key={`${options.type}-${eventId}-${organizerId}-${previewQuery(full)}`}
+                                    className={classes.previewFrame}
+                                    title={t`Embed preview`}
+                                    src={options.type === 'card'
+                                        ? `/embed/event/${eventId}/card?${previewQuery(full)}`
+                                        : `/embed/organizer/${organizerId}/calendar?${previewQuery(full)}`}
+                                    data-card={options.type === 'card' || undefined}
                                 />
-                            }
+                            )}
                         </div>
-
-                        <p className={classes.lorem}>
-                            {t`Nam placerat elementum...`}
-                        </p>
+                        <div className={classes.fakeText}><span/><span/><span/></div>
                     </div>
                 </section>
             </div>
         </div>
     );
 };
+
+/** The button as the snippet draws it (the real one lives in a shadow root). */
+const ButtonPreview = ({options}: { options: EmbedOptions }) => {
+    const palette = embedPalette('light', options.accent);
+    const solid = options.variant === 'solid';
+    return (
+        <button
+            type="button"
+            className={classes.buttonPreview}
+            style={{
+                background: solid ? palette.accent : 'transparent',
+                color: solid ? palette.accentText : palette.accent,
+                borderColor: palette.accent,
+                borderRadius: options.radius === 'soft' ? 12 : 999,
+            }}
+        >
+            <img src="/favicon.svg" alt="" width={22} height={22}/>
+            {options.label || t`Get tickets`}
+        </button>
+    );
+};
+
+const CodeBlock = ({code}: { code: string }) => (
+    <div className={classes.code}>
+        <pre><code>{code}</code></pre>
+        <MantineCopy value={code} timeout={2000}>
+            {({copied, copy}) => (
+                <Button
+                    size="xs"
+                    radius="xl"
+                    variant={copied ? 'light' : 'filled'}
+                    color={copied ? 'teal' : 'dark'}
+                    leftSection={copied ? <IconCheck size={14}/> : <IconCopy size={14}/>}
+                    onClick={copy}
+                    className={classes.copy}
+                >
+                    {copied ? t`Copied` : t`Copy`}
+                </Button>
+            )}
+        </MantineCopy>
+    </div>
+);

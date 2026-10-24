@@ -339,6 +339,13 @@ export const router: RouteObject[] = [
                 }
             },
             {
+                path: "embeds",
+                async lazy() {
+                    const OrganizerEmbeds = await import("./components/routes/organizer/Embeds");
+                    return { Component: OrganizerEmbeds.default };
+                }
+            },
+            {
                 path: "webhooks",
                 async lazy() {
                     const Webhooks = await import("./components/routes/organizer/Webhooks");

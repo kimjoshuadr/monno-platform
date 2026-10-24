@@ -5,6 +5,7 @@ import {
     IconCalendarPlus,
     IconChartPie,
     IconChevronRight,
+    IconCode,
     IconDashboard,
     IconExternalLink,
     IconEye,
@@ -130,6 +131,7 @@ const OrganizerLayout = () => {
         { link: 'locations', label: t`Locations`, icon: IconMapPin },
 
         { label: t`Integrations` },
+        { link: 'embeds', label: t`Embeds`, icon: IconCode },
         { link: 'webhooks', label: t`Webhooks`, icon: IconWebhook },
     ];
 

@@ -1,10 +1,12 @@
+/* eslint-disable lingui/no-unlocalized-strings -- query keys and layout values only */
 import {useMemo} from "react";
 import {useLocation, useParams} from "react-router";
 import {t} from "@lingui/macro";
 import {Loader} from "@mantine/core";
 import {useGetOrganizerPublic} from "../../../queries/useGetOrganizerPublic.ts";
 import {useGetOrganizerPublicEvents} from "../../../queries/useGetOrganizerEventsPublic.ts";
-import {EmbedFrame, openEmbedCheckout} from "../../common/EmbedFrame";
+import {EmbedFrame} from "../../common/EmbedFrame";
+import {openEmbedCheckout} from "../../../utilites/embedCheckout.ts";
 import {roomDateParts, roomPriceLabel, toRoomEvents, type RoomEvent} from "../../../utilites/roomData.ts";
 import {monnoEventUrl, monnoOrganizerUrl} from "../../../utilites/monnoSite.ts";
 
@@ -42,6 +44,7 @@ const OrganizerCalendarEmbed = () => {
     }, [page, limit]);
 
     const roomUrl = monnoOrganizerUrl(organizerId);
+    const organizerName = organizer?.name;
 
     if (!isFetched) {
         return <EmbedFrame><div style={{display: 'grid', placeItems: 'center', minHeight: 160}}><Loader size="sm" type="dots"/></div></EmbedFrame>;
@@ -52,7 +55,7 @@ const OrganizerCalendarEmbed = () => {
     return (
         <EmbedFrame>
             <div className="e-cal-head">
-                <h1 className="e-title">{organizer?.name ? t`Upcoming from ${organizer.name}` : t`Upcoming events`}</h1>
+                <h1 className="e-title">{organizerName ? t`Upcoming from ${organizerName}` : t`Upcoming events`}</h1>
             </div>
 
             {isError || rows.length === 0 ? (
