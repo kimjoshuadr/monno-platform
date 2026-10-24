@@ -5,6 +5,8 @@ import SelectProducts from "../../routes/product-widget/SelectProducts";
 import {useMemo} from "react";
 import {Loader} from "@mantine/core";
 import {t} from "@lingui/macro";
+import {embedPalette, resolveEmbedTheme} from "../../../utilites/colour.ts";
+import {getEmbedMode} from "../../../utilites/iframeResize.ts";
 
 const ProductWidget = () => {
     const {eventId} = useParams();
@@ -17,6 +19,15 @@ const ProductWidget = () => {
         return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     }, [location.search]);
 
+    // Opened in the on-page modal (button, card, calendar): checkout continues in
+    // the same sheet instead of asking the page for another modal. Reading the
+    // mode here also remembers it for the checkout pages that follow.
+    const inModal = useMemo(() => {
+        const fromUrl = new URLSearchParams(location.search).get('embed') === 'modal';
+        if (fromUrl) getEmbedMode();
+        return fromUrl;
+    }, [location.search]);
+
     const checkoutMode = useMemo(() => {
         return new URLSearchParams(location.search).get('Checkout') === 'new-tab' ? 'new-tab' : 'modal';
     }, [location.search]);
@@ -25,15 +36,21 @@ const ProductWidget = () => {
 
     const settings = useMemo(() => {
         const searchParams = new URLSearchParams(location.search);
+        // monno's ground tinted with the organizer's accent. Colours passed by an
+        // older snippet (`data-hievents-primary-color` …) still win, one by one.
+        const theme = resolveEmbedTheme(searchParams.get("Theme"));
+        const palette = embedPalette(theme, searchParams.get("Accent"));
 
         return {
+            theme,
+            radius: searchParams.get("Radius") === 'soft' ? 'soft' : 'round',
             colors: {
-                background: searchParams.get("BackgroundColor") || '#ffffff',
-                primary: searchParams.get("PrimaryColor") || '#7b5db8',
-                primaryText: searchParams.get("PrimaryTextColor") || '#000000',
-                secondary: searchParams.get("SecondaryColor") || '#7b5eb9',
-                secondaryText: searchParams.get("SecondaryTextColor") || '#ffffff',
-                bodyBackground: searchParams.get("BackgroundColor") || '#ffffff',
+                background: searchParams.get("BackgroundColor") || palette.background,
+                primary: searchParams.get("PrimaryColor") || palette.text,
+                primaryText: searchParams.get("PrimaryTextColor") || palette.text,
+                secondary: searchParams.get("SecondaryColor") || palette.accent,
+                secondaryText: searchParams.get("SecondaryTextColor") || palette.accentText,
+                bodyBackground: searchParams.get("BackgroundColor") || palette.background,
             },
             continueButtonText: searchParams.get("ContinueButtonText") || 'Continue',
             padding: searchParams.get("Padding") || '10px',
@@ -75,9 +92,14 @@ const ProductWidget = () => {
     }
 
     return (
-        <div className={'full-height'} style={{backgroundColor: settings.colors.bodyBackground}}>
+        <div
+            className={'full-height monno-embed-root'}
+            data-theme={settings.theme}
+            data-radius={settings.radius}
+            style={{backgroundColor: settings.colors.bodyBackground}}
+        >
             <SelectProducts
-                widgetMode={'embedded'}
+                widgetMode={inModal ? 'normal' : 'embedded'}
                 checkoutMode={checkoutMode}
                 event={eventQuery.data}
                 colors={settings.colors}

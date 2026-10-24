@@ -776,3 +776,84 @@
     }
   }
 }
+
+/* ---------------------------------------------------------------- monno look
+   Every embed surface (the ticket widget, the card, the calendar, and the
+   editor's preview) sits in `.monno-embed-root`. It keeps the widget's
+   variable contract — an older snippet's explicit colours still flow in through
+   `--widget-*` — and changes only the language: monno type, 1px hairlines,
+   pill actions, the organizer's accent where something acts. */
+.monno-embed-root {
+  --monno-display: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --monno-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --monno-card-radius: 16px;
+  --monno-control-radius: 999px;
+  font-family: var(--monno-body);
+  letter-spacing: 0;
+
+  &[data-radius='soft'] {
+    --monno-card-radius: 12px;
+    --monno-control-radius: 12px;
+  }
+
+  .hi-product-widget-container {
+    font-family: var(--monno-body);
+    --hi-border: var(--widget-border-color, color-mix(in srgb, var(--hi-text) 12%, transparent));
+    --hi-border-strong: color-mix(in srgb, var(--hi-text) 28%, transparent);
+    --hi-card-bg: var(--widget-card-bg-color, var(--hi-bg));
+  }
+
+  .hi-product-category-title,
+  .hi-product-title,
+  .hi-price-tier-price-amount,
+  .hi-product-header-pricing {
+    font-family: var(--monno-display);
+    letter-spacing: -0.01em;
+  }
+
+  .hi-product-row {
+    border-width: 1px;
+    border-radius: var(--monno-card-radius);
+    transition: border-color 150ms var(--hi-ease), box-shadow 150ms var(--hi-ease);
+
+    &:hover {
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--hi-text) 7%, transparent);
+    }
+
+    &.hi-product-highlighted {
+      box-shadow: inset 0 0 0 1px var(--hi-accent);
+    }
+  }
+
+  .hi-promo-code-input,
+  .hi-apply-promo-code-button,
+  .select-input input {
+    border-width: 1px;
+    border-radius: var(--monno-control-radius);
+  }
+
+  .hi-footer-row .hi-continue-button {
+    min-height: 52px;
+    border-radius: var(--monno-control-radius);
+    font-family: var(--monno-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+
+    &:focus-visible {
+      outline: 3px solid #1478c9;
+      outline-offset: 3px;
+    }
+  }
+
+  .hi-footer-row .hi-product-page-message,
+  .hi-fee-breakdown,
+  .hi-product-quantity-error,
+  .hi-promo-code-applied {
+    border-radius: calc(var(--monno-card-radius) - 4px);
+  }
+
+  :focus-visible {
+    outline-color: #1478c9;
+  }
+}
