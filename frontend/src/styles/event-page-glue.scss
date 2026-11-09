@@ -11,6 +11,20 @@
   /* Own stacking context: PageBackground sits at z-index -1, which would otherwise
      fall behind this element's opaque --bg and never show. */
   isolation: isolate;
+  position: relative; /* anchors the Hero band layer */
+}
+
+/* Hero band: the band sits behind the header and title block, so those read light on it
+   while the rest of the page keeps the configured palette. */
+.event-room[data-hero='true'] :is(.event-crumbs, .event-kicker, .event-title, .event-tagline, .site-header .nav-link) {
+  --fg: #f4f5f7;
+  --fg-soft: #e7e8ec;
+  --muted: #d3d5dc;
+  --muted-strong: #e2e4e9;
+  color: #f4f5f7;
+}
+.event-room[data-hero='true'] .event-crumbs .link {
+  color: var(--fg);
 }
 
 /* Ticket card and Who's coming share the rail body; space them like the website's rail. */
@@ -219,7 +233,8 @@
   backdrop-filter: saturate(150%) blur(14px);
   border-bottom: 1px solid var(--border);
 }
-.event-room[data-mode='dark'] .site-header {
+.event-room[data-mode='dark'] .site-header,
+.event-room[data-hero='true'] .site-header {
   background: rgba(11, 11, 12, 0.72);
 }
 
@@ -238,9 +253,11 @@
 }
 
 .event-room .brand .brand-for-dark,
-.event-room[data-mode='dark'] .brand .brand-for-light {
+.event-room[data-mode='dark'] .brand .brand-for-light,
+.event-room[data-hero='true'] .brand .brand-for-light {
   display: none;
 }
+.event-room[data-hero='true'] .brand .brand-for-dark,
 .event-room[data-mode='dark'] .brand .brand-for-dark {
   display: block;
 }
