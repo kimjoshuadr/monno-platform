@@ -60,7 +60,8 @@ export const EventRoomHeader = () => {
         <header className="site-header" data-od-id="site-header">
             <div className="page header-inner">
                 <a className="brand" href={`${SITE}/`} aria-label="monno home">
-                    <img src="/logos/monno-horizontal-light.svg" alt="monno" width={760} height={256}/>
+                    <img className="brand-for-light" src="/logos/monno-horizontal-light.svg" alt="monno" width={760} height={256}/>
+                    <img className="brand-for-dark" src="/logos/monno-horizontal-dark.svg" alt="" aria-hidden="true" width={760} height={256}/>
                 </a>
 
                 <nav className="main-nav" aria-label={t`Primary`}>

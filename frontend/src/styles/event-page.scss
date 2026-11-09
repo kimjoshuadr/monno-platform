@@ -274,7 +274,7 @@
 }
 }
 .event-room .prose p {
-  color: #3f4247;
+  color: var(--fg-soft);
   font-size: 16px;
   line-height: 1.68;
 }
@@ -1004,6 +1004,9 @@
   /* Measured 20px tall in the event breadcrumbs — under the 24px WCAG 2.5.8
      floor. The 2px each side makes the whole label a valid target. */
   padding: 2px 0;
+}
+.event-room[data-mode='dark'] .event-crumbs .link {
+  color: var(--fg);
 }
 .event-room .link:hover {
   transform: translateY(-2px);

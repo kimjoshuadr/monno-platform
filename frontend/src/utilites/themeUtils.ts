@@ -275,3 +275,8 @@ export function hasContrastIssues(settings: HomepageThemeSettings): boolean {
 
     return false;
 }
+
+/** True when an image/video background is painted behind the page; text must then read on it. */
+export const hasMediaBackground = (theme?: Partial<HomepageThemeSettings> | null): boolean =>
+    (theme?.background_type === 'IMAGE' && Boolean(theme.background_image_url)) ||
+    (theme?.background_type === 'VIDEO' && Boolean(theme.background_video_url));
