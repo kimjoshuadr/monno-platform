@@ -3,7 +3,10 @@
 .monno-embed-frame {
   --e-card-radius: 16px;
   --e-control-radius: 999px;
-  background: transparent;
+  /* Its own ground: Theme sets the text colour, so the ground must follow it,
+     or a light embed on a dark site (or "Match visitor") goes unreadable. */
+  background: var(--e-bg);
+  border-radius: var(--e-card-radius);
   color: var(--e-text);
   font-family: var(--monno-body, "Plus Jakarta Sans", system-ui, sans-serif);
   /* Room for focus rings and the card's hairline on every side. */

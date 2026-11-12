@@ -144,8 +144,15 @@ export const organizerClient = {
 }
 
 export const organizerPublicClient = {
+    // A hung request must never leave an embed spinning: these GETs back the
+    // public calendar and room, whose loading state only clears once the query
+    // settles, so they abort (and render their error/empty state) after 15s.
+    PUBLIC_REQUEST_TIMEOUT_MS: 15000,
+
     findByID: async (organizerId: IdParam) => {
-        const response = await publicApi.get<GenericDataResponse<Organizer>>('organizers/' + organizerId);
+        const response = await publicApi.get<GenericDataResponse<Organizer>>('organizers/' + organizerId, {
+            timeout: organizerPublicClient.PUBLIC_REQUEST_TIMEOUT_MS,
+        });
         return response.data;
     },
 
@@ -158,7 +165,8 @@ export const organizerPublicClient = {
 
     getEvents: async (organizerId: IdParam, pagination: QueryFilters) => {
         const response = await publicApi.get<GenericPaginatedResponse<Event>>(
-            'organizers/' + organizerId + '/events' + queryParamsHelper.buildQueryString(pagination)
+            'organizers/' + organizerId + '/events' + queryParamsHelper.buildQueryString(pagination),
+            {timeout: organizerPublicClient.PUBLIC_REQUEST_TIMEOUT_MS},
         );
         return response.data;
     },

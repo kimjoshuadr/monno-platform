@@ -428,7 +428,7 @@ export const WidgetEditor = ({organizerId: organizerScopeId}: { organizerId?: st
 
 /** The button as the snippet draws it (the real one lives in a shadow root). */
 const ButtonPreview = ({options}: { options: EmbedOptions }) => {
-    const palette = embedPalette('light', options.accent);
+    const palette = embedPalette(resolveEmbedTheme(options.theme), options.accent);
     const solid = options.variant === 'solid';
     return (
         <button

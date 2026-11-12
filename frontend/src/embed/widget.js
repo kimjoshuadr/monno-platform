@@ -37,19 +37,27 @@
         const ALLOW = `payment ${scriptOrigin}; publickey-credentials-get ${scriptOrigin}`;
         const MOBILE_BREAKPOINT = 640;
 
-        /** Ink or white, whichever reads better on a hex colour (WCAG luminance). */
-        const textOn = (hex) => {
+        /** WCAG relative luminance of a hex colour (null when not a hex). */
+        const lum = (hex) => {
             const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex || '').trim());
-            if (!m) return '#ffffff';
+            if (!m) return null;
             const h = m[1].length === 3 ? m[1].split('').map((c) => c + c).join('') : m[1];
             const lin = (i) => {
                 const c = parseInt(h.slice(i, i + 2), 16) / 255;
                 return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
             };
-            const L = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
-            const onWhite = 1.05 / (L + 0.05);
-            const onInk = (L + 0.05) / 0.0545;
-            return onInk >= onWhite ? '#0b0b0c' : '#ffffff';
+            return 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+        };
+        const contrast = (a, b) => {
+            const [x, y] = [lum(a) ?? 1, lum(b) ?? 1].sort((p, q) => q - p);
+            return (x + 0.05) / (y + 0.05);
+        };
+
+        /** Ink or white, whichever reads better on a hex colour (WCAG luminance). */
+        const textOn = (hex) => {
+            const L = lum(hex);
+            if (L === null) return '#ffffff';
+            return (L + 0.05) / 0.0545 >= 1.05 / (L + 0.05) ? '#0b0b0c' : '#ffffff';
         };
 
         /** The monno mark, small, for the button. */
@@ -240,7 +248,15 @@
                     return;
                 }
                 if (modal.ackTimer) clearTimeout(modal.ackTimer);
-                modal.ackTimer = setTimeout(safe(closeCheckoutModal), 4000);
+                // The iframe acks with `hievents:close-pending` within a few ms
+                // when it handles the request (and then either closes itself or
+                // shows the abandon dialog, which owns the flow from there).
+                // Pages without a close listener — the ticket picker, the Stripe
+                // step, a document still loading — never ack, so this short
+                // timeout is what actually closes the popup. It must stay fast:
+                // a long fallback made the × button feel dead (and every extra
+                // click reset the wait).
+                modal.ackTimer = setTimeout(safe(closeCheckoutModal), 200);
             };
 
             backdrop.addEventListener('click', safe((e) => {
@@ -425,7 +441,12 @@
             const host = document.createElement('span');
             host.style.display = 'inline-block';
             const root = host.attachShadow({ mode: 'closed' });
-            const accent = attr(el, 'accent') || '#0b0b0c';
+            const dark = attr(el, 'theme') === 'dark'
+                || (attr(el, 'theme') === 'auto' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+            const chosen = attr(el, 'accent') || '#0b0b0c';
+            // Same rule as embedPalette: an accent that vanishes on the theme's
+            // ground (ink on dark, white on light) falls back to that ground's ink.
+            const accent = contrast(chosen, dark ? '#18181b' : '#ffffff') < 1.6 ? (dark ? '#f5f6f8' : '#0b0b0c') : chosen;
             const variant = attr(el, 'variant') === 'outline' ? 'outline' : 'solid';
             const label = attr(el, 'label') || 'Get tickets';
             const radius = attr(el, 'radius') === 'soft' ? '12px' : '999px';

@@ -27,10 +27,9 @@ export const EmbedFrame = ({children}: { children: React.ReactNode }) => {
         };
     }, [location.search]);
 
-    // Transparent all the way down — the app's global body colour (the
-    // dashboard grey, `!important`) would otherwise frame the embed in a box.
-    // The card and the calendar sit straight on the host page; Theme picks the
-    // text colour that suits it.
+    // Transparent page — the app's global body colour (the dashboard grey,
+    // `!important`) would otherwise frame the embed in a box. The frame root
+    // paints the Theme's own ground, so its text always reads.
     useEffect(() => {
         const targets = [document.documentElement, document.body];
         targets.forEach((node) => {
