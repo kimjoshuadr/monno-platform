@@ -54,7 +54,7 @@ class SeedMonnoCommand extends Command
         {--force : Skip the confirmation prompt}
         {--keep : Do not wipe existing events, organizers and images first}';
 
-    protected $description = 'Seed realistic monno organizer accounts and LIVE events (one per category) into the database, via the real handlers.';
+    protected $description = 'Seed realistic monno organizer accounts and LIVE events (two or more per category) into the database, via the real handlers.';
 
     private const PASSWORD = 'MonnoPass123!';
 
