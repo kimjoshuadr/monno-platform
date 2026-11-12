@@ -255,8 +255,10 @@
                 // step, a document still loading — never ack, so this short
                 // timeout is what actually closes the popup. It must stay fast:
                 // a long fallback made the × button feel dead (and every extra
-                // click reset the wait).
-                modal.ackTimer = setTimeout(safe(closeCheckoutModal), 200);
+                // click reset the wait). If the iframe already acked once and is
+                // still open (its abandon dialog is up), a repeated × means
+                // "yes, really close" — close locally instead of waiting again.
+                modal.ackTimer = setTimeout(safe(closeCheckoutModal), modal.ackReceived ? 400 : 200);
             };
 
             backdrop.addEventListener('click', safe((e) => {
@@ -314,7 +316,7 @@
                 /* noop */
             }
 
-            modal = { host, abort, prevFocus, scrollY, originalBody, inerted, ackTimer: null, requestClose };
+            modal = { host, abort, prevFocus, scrollY, originalBody, inerted, ackTimer: null, ackReceived: false, requestClose };
         };
 
         const closeCheckoutModal = () => {
@@ -369,9 +371,12 @@
                     closeCheckoutModal();
                     break;
                 case 'hievents:close-pending':
-                    if (modal && modal.ackTimer) {
-                        clearTimeout(modal.ackTimer);
-                        modal.ackTimer = null;
+                    if (modal) {
+                        modal.ackReceived = true;
+                        if (modal.ackTimer) {
+                            clearTimeout(modal.ackTimer);
+                            modal.ackTimer = null;
+                        }
                     }
                     break;
                 case 'hievents:checkout-progress':
