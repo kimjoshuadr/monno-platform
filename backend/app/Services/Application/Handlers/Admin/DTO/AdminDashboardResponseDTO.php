@@ -12,8 +12,12 @@ class AdminDashboardResponseDTO extends BaseDataObject
         public readonly array $top_organizers,
         public readonly array $recent_accounts,
         public readonly float $recent_revenue,
+        /** @var array{currency: string, total: float}[] */
+        public readonly array $recent_revenue_by_currency,
         public readonly int $recent_orders_count,
         public readonly float $recent_orders_total,
+        /** @var array{currency: string, total: float}[] */
+        public readonly array $recent_orders_total_by_currency,
         public readonly int $recent_signups_count,
     ) {}
 }

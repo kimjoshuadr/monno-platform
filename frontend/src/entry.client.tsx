@@ -4,9 +4,15 @@ import {createBrowserRouter, matchRoutes, RouterProvider} from "react-router-dom
 import {router} from "./router";
 import {App} from "./App";
 import {queryClient} from "./utilites/queryClient";
+import {installChunkReloadRecovery} from "./utilites/chunkReload";
 import {dynamicActivateLocale, getClientLocale, getSupportedLocale,} from "./locales.ts";
 import type {ThemeColors} from "./utilites/themeColors.ts";
 import type {DehydratedState} from "@tanstack/react-query";
+
+// Installed before anything is imported dynamically: a deploy replaces the
+// hashed chunks an open tab is still pointing at, and the first stale route it
+// reaches must recover by reloading rather than rendering the error page.
+installChunkReloadRecovery();
 
 declare global {
     interface Window {

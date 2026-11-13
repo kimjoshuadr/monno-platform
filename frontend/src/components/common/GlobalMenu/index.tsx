@@ -1,7 +1,10 @@
 import {Avatar, Menu, UnstyledButton} from "@mantine/core";
 import {getInitials} from "../../../utilites/helpers.ts";
 import {
+    IconCompass,
     IconLifebuoy,
+    IconTicket,
+    IconWorld,
     IconLogout,
     IconPlus,
     IconSettingsCog,
@@ -17,6 +20,7 @@ import {useDisclosure} from "@mantine/hooks";
 import {AboutModal} from "../../modals/AboutModal";
 import {getConfig} from "../../../utilites/config.ts";
 import {CreateOrganizerModal} from "../../modals/CreateOrganizerModal";
+import {monnoSiteUrl} from "../../../utilites/monnoSite.ts";
 
 interface Link {
     label: string;
@@ -24,6 +28,9 @@ interface Link {
     link?: string;
     target?: string;
     onClick?: (event: any) => void;
+    /** A link off the dashboard (the website), rendered as a plain anchor. */
+    href?: string;
+    divider?: boolean;
 }
 
 export const GlobalMenu = () => {
@@ -81,7 +88,15 @@ export const GlobalMenu = () => {
         }
     });
 
+    // The way back out to the website: home, your tickets, and what's on.
+    links.push(
+        {label: t`monno website`, icon: IconWorld, href: monnoSiteUrl('/'), divider: true},
+        {label: t`My tickets`, icon: IconTicket, href: monnoSiteUrl('/profile/')},
+        {label: t`Discover events`, icon: IconCompass, href: monnoSiteUrl('/discover/')},
+    );
+
     links.push({
+        divider: true,
         label: t`Logout`,
         icon: IconLogout,
         onClick: async (event: any) => {
@@ -104,18 +119,30 @@ export const GlobalMenu = () => {
                 </Menu.Target>
 
                 <Menu.Dropdown>
-                    {links.map((link) => (
-                        <NavLink
-                            onClick={link.onClick}
-                            to={link.link ?? "#"}
-                            key={link.label}
-                            target={link.target ?? ""}
-                        >
-                            <Menu.Item component={"div"} leftSection={<link.icon/>}>
+                    {links.map((link) => [
+                        link.divider ? <Menu.Divider key={`${link.label}-divider`}/> : null,
+                        link.href ? (
+                            <Menu.Item
+                                key={link.label}
+                                component="a"
+                                href={link.href}
+                                leftSection={<link.icon/>}
+                            >
                                 {link.label}
                             </Menu.Item>
-                        </NavLink>
-                    ))}
+                        ) : (
+                            <NavLink
+                                onClick={link.onClick}
+                                to={link.link ?? "#"}
+                                key={link.label}
+                                target={link.target ?? ""}
+                            >
+                                <Menu.Item component={"div"} leftSection={<link.icon/>}>
+                                    {link.label}
+                                </Menu.Item>
+                            </NavLink>
+                        ),
+                    ])}
                 </Menu.Dropdown>
             </Menu>
             {aboutModalOpen && <AboutModal onClose={closeAboutModal}/>}

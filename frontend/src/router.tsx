@@ -1,9 +1,14 @@
-import { Navigate, RouteObject } from "react-router";
+import { Navigate, redirect, RouteObject } from "react-router";
 import ErrorPage from "./error-page.tsx";
 import { PostAuthRedirect } from "./components/common/PostAuthRedirect";
 import { publicEventRouteLoader } from "./routeLoaders/publicEventRouteLoader.ts";
 import { publicOrganizerRouteLoader } from "./routeLoaders/publicOrganizerRouteLoader.ts";
 import { organizerPreviewRouteLoader } from "./routeLoaders/organizerPreviewRouteLoader.ts";
+import { getConfig } from "./utilites/config.ts";
+
+/** The main website's origin, where the legal pages live. */
+const monnoSiteOrigin = (): string =>
+    (getConfig("VITE_MONNO_SITE_URL", "http://localhost:3000") ?? "http://localhost:3000").replace(/\/+$/, "");
 
 const Root = () => {
     // One decision, one redirect: sends buyers and first-time organizers to
@@ -122,6 +127,23 @@ export const router: RouteObject[] = [
                     const Welcome = await import("./components/routes/welcome");
                     return { Component: Welcome.default };
                 }
+            },
+        ]
+    },
+    {
+        path: "verify-email",
+        async lazy() {
+            const WelcomeLayout = await import("./components/layouts/WelcomeLayout");
+            return { Component: WelcomeLayout.default };
+        },
+        errorElement: <ErrorPage />,
+        children: [
+            {
+                path: "",
+                async lazy() {
+                    const VerifyEmail = await import("./components/routes/verify-email");
+                    return { Component: VerifyEmail.default };
+                },
             },
         ]
     },
@@ -314,6 +336,13 @@ export const router: RouteObject[] = [
                 async lazy() {
                     const OrganizerHomepageDesigner = await import("./components/routes/organizer/OrganizerHomepageDesigner");
                     return { Component: OrganizerHomepageDesigner.default };
+                }
+            },
+            {
+                path: "embeds",
+                async lazy() {
+                    const OrganizerEmbeds = await import("./components/routes/organizer/Embeds");
+                    return { Component: OrganizerEmbeds.default };
                 }
             },
             {
@@ -521,6 +550,15 @@ export const router: RouteObject[] = [
             }
         ]
     },
+    // The policies live on the main website; any app-domain URL for them redirects there.
+    {
+        path: "/privacy",
+        loader: () => redirect(`${monnoSiteOrigin()}/privacy/`),
+    },
+    {
+        path: "/terms",
+        loader: () => redirect(`${monnoSiteOrigin()}/terms/`),
+    },
     {
         path: "/events/:organizerId/:organizerSlug",
         loader: publicOrganizerRouteLoader,
@@ -529,8 +567,7 @@ export const router: RouteObject[] = [
             return { Component: PublicOrganizer.default };
         },
         errorElement: <ErrorPage />,
-    },
-    {
+    },    {
         path: "/events/:organizerId/:organizerSlug/past-events",
         loader: publicOrganizerRouteLoader,
         async lazy() {
@@ -570,6 +607,20 @@ export const router: RouteObject[] = [
             return { Component: PublicEvent.default };
         },
         errorElement: <ErrorPage />,
+    },
+    {
+        path: "/embed/event/:eventId/card",
+        async lazy() {
+            const EventCardEmbed = await import("./components/routes/embed/EventCard");
+            return {Component: EventCardEmbed.default};
+        },
+    },
+    {
+        path: "/embed/organizer/:organizerId/calendar",
+        async lazy() {
+            const OrganizerCalendarEmbed = await import("./components/routes/embed/OrganizerCalendar");
+            return {Component: OrganizerCalendarEmbed.default};
+        },
     },
     {
         path: "/widget/:eventId",

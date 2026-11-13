@@ -114,6 +114,8 @@ export interface User {
     is_impersonating?: boolean;
     impersonator_id?: IdParam;
     enforce_email_confirmation_during_registration?: boolean;
+    /** Real TTL of the emailed code, in minutes — the UI quotes this instead of guessing. */
+    email_verification_ttl_minutes?: number;
     pending_email?: string;
     last_login_at?: string;
     status?: 'ACTIVE' | 'INACTIVE' | 'INVITED';
@@ -213,6 +215,105 @@ export interface OrganizerStripeConnectAccountsResponse {
     has_completed_setup: boolean;
 }
 
+export type OrganizerPayRamAccountStatus =
+    'NOT_CONNECTED'
+    | 'PROVISIONING'
+    | 'READY'
+    | 'FAILED';
+
+export interface PayRamSweepError {
+    statusCode?: string;
+    category?: string;
+    reason?: string;
+    actionHint?: string;
+}
+
+export interface PayRamGatewayStatus {
+    /** False when the gateway could not be reached — never guess from this. */
+    available: boolean;
+    /**
+     * True when at least ONE network can take money. Each deposit wallet is a
+     * separate contract with its own sweep destination, and the organizer
+     * chooses which networks to accept — so one configured network is live.
+     */
+    cold_wallet_configured: boolean;
+    default_cold_wallet_set: boolean;
+    /** Every deposit wallet the project has, configured or not. */
+    networks?: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        cold_wallet_configured: boolean;
+        default_cold_wallet_set: boolean;
+    }>;
+    /** The subset that can accept payments today. */
+    configured_networks?: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        cold_wallet_configured: boolean;
+        default_cold_wallet_set: boolean;
+    }>;
+    eligible_for_sweep: Array<{
+        wallet_name?: string | null;
+        blockchain_code?: string | null;
+        currency_code?: string | null;
+        amount: string;
+        amount_usd?: string | null;
+    }>;
+    /**
+     * Recent sweeps that reached the organizer's cold wallet, newest first.
+     * Each entry is one sweep transaction, broken into the legs PayRam recorded
+     * on-chain: what was collected, what each fee took, and what arrived.
+     */
+    recent_settlements?: Array<{
+        gross?: string | null;
+        payram_fee?: string | null;
+        operator_fee?: string | null;
+        net: string;
+        /** The rate PayRam actually charged on this sweep. */
+        realised_rate_bps?: number | null;
+        currency_code?: string | null;
+        blockchain_code?: string | null;
+        destination?: string | null;
+        transaction_hash?: string | null;
+        at?: string | null;
+    }>;
+    last_sweep_error: PayRamSweepError | null;
+    /**
+     * Whether the organizer has provided the hot wallet that pays the gas to
+     * sweep their funds. Without it payments are accepted but never reach the
+     * cold wallet.
+     */
+    hot_wallet_configured?: boolean;
+    /**
+     * Whether that hot wallet is actually active for every chain that can take
+     * payments. An attached-but-inactive hot wallet looks configured in the
+     * console while sweeping nothing.
+     */
+    hot_wallet_active?: boolean;
+    /**
+     * The operator fee actually in force per chain, read from PayRam. The
+     * operator sets it there, per merchant; Monno does not configure it.
+     */
+    fees?: Record<string, {bps: number; source: 'project' | 'default'}>;
+}
+
+export interface OrganizerPayRamAccountResponse {
+    status: OrganizerPayRamAccountStatus;
+    project_name?: string | null;
+    member_email?: string | null;
+    external_platform_id?: number | null;
+    wallet_status?: string | null;
+    dashboard_url?: string;
+    last_error?: string | null;
+    /** The gateway's own view of the project — absent for unprovisioned accounts. */
+    gateway?: PayRamGatewayStatus | null;
+    /** Present only in the response that created the account. */
+    credentials?: {
+        email: string;
+        password: string;
+    };
+}
+
 export interface LoginData {
     email: string;
     password: string;
@@ -250,7 +351,7 @@ export type ImageType =
 
 export type BackgroundMediaImageType = 'EVENT_BACKGROUND' | 'ORGANIZER_BACKGROUND';
 
-export type PaymentProvider = 'STRIPE' | 'OFFLINE';
+export type PaymentProvider = 'STRIPE' | 'OFFLINE' | 'PAYRAM';
 
 export type AttendeeDetailsCollectionMethod = 'PER_TICKET' | 'PER_ORDER';
 
@@ -273,6 +374,8 @@ export interface EventSettings {
     homepage_blocks?: HomepageBlock[];
     continue_button_text: string;
     get_tickets_button_text?: string;
+    ticketing_mode?: 'PLATFORM' | 'EXTERNAL';
+    external_ticket_url?: string;
     email_footer_message: string;
     pre_checkout_message: string;
     product_page_message: string;
@@ -980,6 +1083,20 @@ interface TaxesAndFeesRollup {
     taxes: TaxOrFee[];
 }
 
+export interface CryptoPaymentState {
+    provider: 'PAYRAM';
+    /** PayRam's own payment state. */
+    state: 'OPEN' | 'PARTIALLY_FILLED' | 'FILLED' | 'OVER_FILLED' | 'CANCELLED';
+    expected_usd: number | string;
+    expected_amount: number | string;
+    received_amount: number | string | null;
+    received_usd: number | string | null;
+    currency?: string | null;
+    reference_id: string;
+    underpaid: boolean;
+    overpaid: boolean;
+}
+
 export interface Order {
     id: IdParam;
     short_id: string;
@@ -1006,6 +1123,8 @@ export interface Order {
     status: 'RESERVED' | 'CANCELLED' | 'COMPLETED' | 'AWAITING_OFFLINE_PAYMENT' | 'ABANDONED';
     refund_status?: 'REFUND_PENDING' | 'REFUND_FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
     payment_status?: 'NO_PAYMENT_REQUIRED' | 'AWAITING_PAYMENT' | 'PAYMENT_FAILED' | 'PAYMENT_RECEIVED' | 'AWAITING_OFFLINE_PAYMENT';
+    /** Crypto payment state, present only for a PayRam order. */
+    payment?: CryptoPaymentState;
     public_id: string;
     is_payment_required: boolean;
     is_manually_created: boolean;

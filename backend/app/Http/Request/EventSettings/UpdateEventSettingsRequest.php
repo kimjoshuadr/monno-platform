@@ -8,6 +8,7 @@ use HiEvents\DomainObjects\Enums\HomepageFontFamily;
 use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\DomainObjects\Enums\PriceDisplayMode;
 use HiEvents\DomainObjects\Enums\TicketDateDisplayMode;
+use HiEvents\DomainObjects\Enums\TicketingMode;
 use HiEvents\Http\Request\BaseRequest;
 use HiEvents\Validators\Rules\RulesHelper;
 use HiEvents\Validators\Rules\ValidHomepageBlocks;
@@ -43,6 +44,11 @@ class UpdateEventSettingsRequest extends BaseRequest
 
             'website_url' => ['url', 'nullable'],
             'maps_url' => ['url', 'nullable'],
+
+            // External registration: the organizer sells tickets elsewhere and we
+            // redirect buyers there. http(s) only — never javascript:/data: etc.
+            'ticketing_mode' => ['nullable', Rule::in(TicketingMode::valuesArray())],
+            'external_ticket_url' => ['nullable', 'string', 'max:2048', 'url:http,https', 'required_if:ticketing_mode,EXTERNAL'],
 
             'seo_title' => ['string', 'max:255', 'nullable'],
             'seo_description' => ['string', 'max:255', 'nullable'],
@@ -136,6 +142,11 @@ class UpdateEventSettingsRequest extends BaseRequest
             // Payment messages
             'payment_providers.*.in' => __('Invalid payment provider selected.'),
             'offline_payment_instructions.required' => __('Payment instructions are required when offline payments are enabled.'),
+
+            // External registration messages
+            'ticketing_mode.in' => __('The ticketing mode must be either PLATFORM or EXTERNAL.'),
+            'external_ticket_url.required_if' => __('An external ticket URL is required when tickets are sold externally.'),
+            'external_ticket_url.url' => __('The external ticket URL must be a valid http(s) URL.'),
 
             // Invoice messages
             'invoice_prefix.regex' => __('The invoice prefix may only contain letters, numbers, and hyphens.'),

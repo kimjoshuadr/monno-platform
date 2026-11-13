@@ -12,6 +12,7 @@ class RefundOrderRequest extends FormRequest
             'amount' => 'required|numeric|gt:0',
             'notify_buyer' => 'required|boolean',
             'cancel_order' => 'required|boolean',
+            'refund_transaction_hash' => 'nullable|string|max:255',
         ];
     }
 }

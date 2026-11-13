@@ -21,6 +21,7 @@ const ALLOWED_UNAUTHENTICATED_PATHS = [
     'print',
     '/order/',
     'widget',
+    '/embed/',
     '/product/',
     'check-in',
     '/events/',
@@ -85,6 +86,17 @@ api.interceptors.response.use(
         if (status === 403 && error.response.data?.error_code === 'ACCOUNT_PENDING_DELETION') {
             if (!currentPath.startsWith('/account')) {
                 window?.location?.replace('/account/danger-zone');
+            }
+            return Promise.reject(error);
+        }
+
+        // An unverified organizer is authenticated, just parked. They must not
+        // fall through to the generic auth handling below, which clears the
+        // token — otherwise the lock looks like a session that keeps expiring.
+        if (status === 403 && error.response.data?.code === 'email_not_verified') {
+            if (typeof window !== 'undefined' && !currentPath.startsWith('/verify-email')) {
+                const verifySearch = window?.location?.search || '';
+                window?.location?.replace('/verify-email' + verifySearch);
             }
             return Promise.reject(error);
         }

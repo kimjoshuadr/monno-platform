@@ -1,6 +1,7 @@
 import {MantineProvider, MantineThemeOverride, CSSVariablesResolver, MantineColorsTuple, ButtonProps, CheckboxProps, MantineTheme, v8CssVariablesResolver} from "@mantine/core";
 import {PropsWithChildren, useMemo} from "react";
 import {getContrastColor, hexToRgb} from "../../../utilites/themeUtils";
+import {readableLinkColor} from "../../../utilites/colour";
 
 interface CheckoutThemeProviderProps {
     accentColor: string;
@@ -153,6 +154,9 @@ function createCSSVariablesResolver(accentColor: string, mode: 'light' | 'dark')
                 '--checkout-accent-contrast': accentContrast,
                 '--checkout-accent-soft': accentSoft,
                 '--checkout-accent-muted': accentMuted,
+                /* Text links (T&Cs, attribution) in a colour that clears WCAG AA
+                   on this mode's ground even when the organizer's accent can't. */
+                '--checkout-link': readableLinkColor(accentColor, palette.background, palette.textPrimary),
                 '--checkout-background': palette.background,
                 '--checkout-surface': palette.surface,
                 '--checkout-text-primary': palette.textPrimary,

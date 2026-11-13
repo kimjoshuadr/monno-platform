@@ -223,6 +223,8 @@ export const ManageOccurrenceModal = ({onClose, occurrenceId}: GenericModalProps
                     onClose={() => setShowShareOccurrence(undefined)}
                     url={monnoEventUrl(event.id)!}
                     title={event.title}
+                    modalTitle={t`Share this date`}
+                    subtitle={t`Send it to someone who'd come.`}
                     shareText={`${event.title} — ${formatDateWithLocale(showShareOccurrence.start_date, 'shortDateTime', event.timezone)}`}
                 />
             )}

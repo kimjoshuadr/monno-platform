@@ -23,8 +23,10 @@ class GetAdminDashboardDataHandler
             top_organizers: $this->getTopOrganizers($since, $limit),
             recent_accounts: $this->getRecentAccounts($limit),
             recent_revenue: $this->getRecentRevenue($since),
+            recent_revenue_by_currency: $this->getRecentRevenueByCurrency($since),
             recent_orders_count: $this->getRecentOrdersCount($since),
             recent_orders_total: $this->getRecentOrdersTotal($since),
+            recent_orders_total_by_currency: $this->getRecentOrdersTotalByCurrency($since),
             recent_signups_count: $this->getRecentSignupsCount($since),
         );
     }
@@ -169,6 +171,49 @@ class GetAdminDashboardDataHandler
         $result = DB::selectOne($query, ['since' => $since]);
 
         return (float) ($result->total_revenue ?? 0);
+    }
+
+    /**
+     * The same window as getRecentRevenue(), split by the currency each event
+     * sells in. event_statistics carries no currency of its own, so the join
+     * back to events is what makes the total quotable at all — a single sum
+     * across PHP and USD events adds pesos to dollars and labels the result
+     * with whichever currency was hardcoded.
+     */
+    private function getRecentRevenueByCurrency(Carbon $since): array
+    {
+        $query = <<<'SQL'
+            SELECT e.currency, COALESCE(SUM(es.sales_total_gross), 0) as total
+            FROM event_statistics es
+            INNER JOIN events e ON e.id = es.event_id
+            WHERE es.updated_at >= :since
+              AND es.deleted_at IS NULL
+              AND e.deleted_at IS NULL
+            GROUP BY e.currency
+            ORDER BY SUM(es.sales_total_gross) DESC
+        SQL;
+
+        return DB::select($query, ['since' => $since]);
+    }
+
+    private function getRecentOrdersTotalByCurrency(Carbon $since): array
+    {
+        $query = <<<'SQL'
+            SELECT o.currency, COALESCE(SUM(o.total_gross), 0) as total
+            FROM orders o
+            WHERE o.created_at >= :since
+              AND o.deleted_at IS NULL
+              AND o.status = :statusCompleted
+              AND o.payment_status = :paymentStatusPaid
+            GROUP BY o.currency
+            ORDER BY SUM(o.total_gross) DESC
+        SQL;
+
+        return DB::select($query, [
+            'since' => $since,
+            'statusCompleted' => OrderStatus::COMPLETED->name,
+            'paymentStatusPaid' => OrderPaymentStatus::PAYMENT_RECEIVED->name,
+        ]);
     }
 
     private function getRecentOrdersCount(Carbon $since): int

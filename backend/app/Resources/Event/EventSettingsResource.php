@@ -35,6 +35,10 @@ class EventSettingsResource extends JsonResource
             'website_url' => $this->getWebsiteUrl(),
             'maps_url' => $this->getMapsUrl(),
 
+            // External registration
+            'ticketing_mode' => $this->getTicketingMode(),
+            'external_ticket_url' => $this->getExternalTicketUrl(),
+
             'seo_title' => $this->getSeoTitle(),
             'seo_description' => $this->getSeoDescription(),
             'seo_keywords' => $this->getSeoKeywords(),

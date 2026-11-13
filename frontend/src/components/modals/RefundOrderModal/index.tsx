@@ -1,4 +1,4 @@
-import {Button, Checkbox, Group, LoadingOverlay, NumberInput, Paper, Stack, Text, Title} from "@mantine/core";
+import {Button, Checkbox, Group, LoadingOverlay, NumberInput, Paper, Stack, Text, TextInput, Title} from "@mantine/core";
 import {GenericModalProps, IdParam, Order} from "../../../types.ts";
 import {useForm, UseFormReturnType} from "@mantine/form";
 import {useParams} from "react-router";
@@ -8,13 +8,13 @@ import {Currency} from "../../common/Currency";
 import {useRefundOrder} from "../../../mutations/useRefundOrder.ts";
 import {RefundOrderPayload} from "../../../api/order.client.ts";
 import {useFormErrorResponseHandler} from "../../../hooks/useFormErrorResponseHandler.tsx";
-import {IconCash, IconCreditCard} from "@tabler/icons-react";
+import {IconCash, IconCreditCard, IconWallet} from "@tabler/icons-react";
 import {Callout} from "../../common/Callout";
 import {showSuccess} from "../../../utilites/notifications.tsx";
 import {Modal} from "../../common/Modal";
 import classes from './RefundOrderModal.module.scss';
 import {t} from "@lingui/macro";
-import {isOfflineOrder} from "../../../utilites/orderHelper.ts";
+import {isOfflineOrder, isPayRamOrder} from "../../../utilites/orderHelper.ts";
 
 interface RefundOrderModalProps extends GenericModalProps {
     orderId: IdParam;
@@ -25,11 +25,12 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
     const {data: order} = useGetOrder(eventId, orderId);
     const mutation = useRefundOrder();
     const formErrorResponseHandler = useFormErrorResponseHandler();
-    const form = useForm({
+    const form = useForm<RefundOrderPayload>({
         initialValues: {
             amount: 0,
             notify_buyer: false,
             cancel_order: false,
+            refund_transaction_hash: '',
         },
     });
     const isRefundPending = order?.refund_status === 'REFUND_PENDING';
@@ -53,11 +54,17 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
                 amount: values.amount,
                 notify_buyer: values.notify_buyer,
                 cancel_order: values.cancel_order,
+                refund_transaction_hash: values.refund_transaction_hash ? values.refund_transaction_hash.trim() : undefined,
             },
         },
         {
             onSuccess: () => {
-                showSuccess(isOfflineOrder(order) ? t`Refund recorded successfully.` : t`Your refund is processing.`)
+                const successMessage = isOfflineOrder(order)
+                    ? t`Refund recorded successfully.`
+                    : isPayRamOrder(order)
+                    ? t`Crypto refund recorded successfully.`
+                    : t`Your refund is processing.`;
+                showSuccess(successMessage);
                 form.reset();
                 onClose();
             },
@@ -71,6 +78,7 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
         const remainingAmount = order.total_gross - order.total_refunded;
         const isPartialRefund = form.values.amount < remainingAmount;
         const isOffline = isOfflineOrder(order);
+        const isCrypto = isPayRamOrder(order);
 
         return (
             <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -78,6 +86,11 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
                     {isOffline && (
                         <Callout variant="warning">
                             {t`This order was paid offline. Refunding it will only update your reporting — you will need to return the payment to the customer yourself.`}
+                        </Callout>
+                    )}
+                    {isCrypto && (
+                        <Callout variant="warning">
+                            {t`This order was paid with cryptocurrency via PayRam. Funds settled directly to your wallet. Please return the funds to the customer's wallet directly, then record the refund here. Note: If the customer paid from an exchange, confirm their personal receiving wallet address first.`}
                         </Callout>
                     )}
                     <Paper radius="md" p="md" withBorder>
@@ -126,6 +139,18 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
                             }
                         }}
                     />
+
+                    {isCrypto && (
+                        <TextInput
+                            size="md"
+                            {...form.getInputProps('refund_transaction_hash')}
+                            label={t`Refund transaction hash (optional)`}
+                            placeholder="0x..."
+                            description={t`The on-chain transaction hash for the refund transfer`}
+                            leftSection={<IconWallet size={18}/>}
+                        />
+                    )}
+
                     <Stack gap="xs">
                         <Checkbox
                             {...form.getInputProps('notify_buyer', {type: 'checkbox'})}
@@ -144,7 +169,11 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
 
                     {(isPartialRefund && Number(form.values.amount) > 0) && (
                         <Callout variant="info">
-                            {t`You are issuing a partial refund. The customer will be refunded ${Number(form.values.amount).toFixed(2)} ${order.currency}.`}
+                            {(() => {
+                                const partialRefundAmount = Number(form.values.amount).toFixed(2);
+                                const orderCurrency = order.currency;
+                                return t`You are issuing a partial refund. The customer will be refunded ${partialRefundAmount} ${orderCurrency}.`;
+                            })()}
                         </Callout>
                     )}
 
@@ -153,9 +182,9 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
                         fullWidth
                         size="md"
                         type={'submit'}
-                        leftSection={isOffline ? <IconCash size={20}/> : <IconCreditCard size={20}/>}
+                        leftSection={isOffline ? <IconCash size={20}/> : isCrypto ? <IconWallet size={20}/> : <IconCreditCard size={20}/>}
                     >
-                        {isOffline ? t`Record Refund` : t`Process Refund`}
+                        {isOffline ? t`Record Refund` : isCrypto ? t`Record Crypto Refund` : t`Process Refund`}
                     </Button>
                 </Stack>
             </form>);
@@ -189,14 +218,16 @@ export const RefundOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
         return modalForm({order, form});
     }
 
+    const orderPublicId = order.public_id;
+
     return (
         <Modal
             opened
             onClose={onClose}
             heading={
                 <Group gap="xs">
-                    <IconCreditCard size={24}/>
-                    <Title order={4}>{t`Refund Order ${order?.public_id || ''}`}</Title>
+                    {isPayRamOrder(order) ? <IconWallet size={24}/> : isOfflineOrder(order) ? <IconCash size={24}/> : <IconCreditCard size={24}/>}
+                    <Title order={4}>{t`Refund Order ${orderPublicId}`}</Title>
                 </Group>
             }
             size="md"

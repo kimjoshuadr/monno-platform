@@ -115,7 +115,7 @@ if [ "$SKIP_DEPS" != "1" ]; then
   echo "==> Installing suite dependencies"
   ( cd "$SCRIPT_DIR" && npm ci )
   echo "==> Installing Playwright browsers"
-  ( cd "$SCRIPT_DIR" && npx playwright install --with-deps chromium )
+  ( cd "$SCRIPT_DIR" && npx playwright install --with-deps chromium firefox webkit )
 fi
 
 echo "==> Running Playwright"

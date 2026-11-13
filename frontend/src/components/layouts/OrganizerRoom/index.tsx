@@ -1,3 +1,4 @@
+import {hasMediaBackground} from "../../../utilites/themeUtils.ts";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {t} from "@lingui/macro";
 import {IconCheck, IconMail, IconMapPin, IconPlus, IconSearch} from "@tabler/icons-react";
@@ -219,7 +220,7 @@ export const OrganizerRoom = ({
         <div
             className="organizer-room"
             style={roomThemeStyle(theme) as React.CSSProperties}
-            data-mode={mode}
+            data-mode={hasMediaBackground(theme as never) ? "dark" : mode}
             data-od-id="organizer-calendar"
         >
             {banner}

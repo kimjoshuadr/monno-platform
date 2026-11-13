@@ -1,12 +1,15 @@
 import classes from './Header.module.scss'
 import { FC } from 'react';
 import { Event } from '../../../../types.ts';
+import { getEventCoverImage, makeEventPosterSvg } from '../../../../utilites/imageFallbacks.ts';
 
 export const Header: FC<{
     event: Event
 }> = ({ event }) => {
 
-    const coverImage = event?.images?.find((image) => image.type === 'EVENT_COVER');
+    // Uploaded cover → curated category photo → typographic poster.
+    const coverImage = getEventCoverImage(event)
+        ?? makeEventPosterSvg(event.title ?? "", event.category);
 
     if (!coverImage) {
         return <></>;
@@ -18,7 +21,7 @@ export const Header: FC<{
                 <img
                     style={{maxWidth: '1000px'}}
                     alt={event?.title}
-                    src={coverImage.url}
+                    src={coverImage}
                 />
             </header>
         </>

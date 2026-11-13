@@ -25,6 +25,7 @@ use HiEvents\Http\Actions\Admin\DeletionRequests\AdminRequestAccountDeletionActi
 use HiEvents\Http\Actions\Admin\DeletionRequests\GetAllAccountDeletionRequestsAction;
 use HiEvents\Http\Actions\Admin\Events\GetAllEventsAction as GetAllAdminEventsAction;
 use HiEvents\Http\Actions\Admin\Events\GetUpcomingEventsAction;
+use HiEvents\Http\Actions\Admin\Events\SetEventFeaturedAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\DeleteAllFailedJobsAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\DeleteFailedJobAction;
 use HiEvents\Http\Actions\Admin\FailedJobs\GetAllFailedJobsAction;
@@ -91,6 +92,7 @@ use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListStatsPublicAction;
 use HiEvents\Http\Actions\CheckInLists\UpdateCheckInListAction;
 use HiEvents\Http\Actions\Common\GetColorThemesAction;
 use HiEvents\Http\Actions\Common\GetEventCategoriesPublicAction;
+use HiEvents\Http\Actions\Common\Webhooks\PayRamIncomingWebhookAction;
 use HiEvents\Http\Actions\Common\Webhooks\StripeIncomingWebhookAction;
 use HiEvents\Http\Actions\EmailTemplates\CreateEventEmailTemplateAction;
 use HiEvents\Http\Actions\EmailTemplates\CreateOrganizerEmailTemplateAction;
@@ -126,6 +128,7 @@ use HiEvents\Http\Actions\Events\DeleteEventAction;
 use HiEvents\Http\Actions\Events\DuplicateEventAction;
 use HiEvents\Http\Actions\Events\GetEventAction;
 use HiEvents\Http\Actions\Events\GetEventDeletionStatusAction;
+use HiEvents\Http\Actions\Events\GetEventOgImagePublicAction;
 use HiEvents\Http\Actions\Events\GetEventPublicAction;
 use HiEvents\Http\Actions\Events\GetEventsAction;
 use HiEvents\Http\Actions\Events\GetEventsListPublicAction;
@@ -156,6 +159,9 @@ use HiEvents\Http\Actions\Messages\CancelMessageAction;
 use HiEvents\Http\Actions\Messages\GetMessageRecipientsAction;
 use HiEvents\Http\Actions\Messages\GetMessagesAction;
 use HiEvents\Http\Actions\Messages\SendMessageAction;
+use HiEvents\Http\Actions\Og\GetCategoryOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetCityOgImagePublicAction;
+use HiEvents\Http\Actions\Og\GetSiteOgImagePublicAction;
 use HiEvents\Http\Actions\Orders\CancelOrderAction;
 use HiEvents\Http\Actions\Orders\DownloadOrderInvoiceAction;
 use HiEvents\Http\Actions\Orders\EditOrderAction;
@@ -164,6 +170,9 @@ use HiEvents\Http\Actions\Orders\GetOrderAction;
 use HiEvents\Http\Actions\Orders\GetOrdersAction;
 use HiEvents\Http\Actions\Orders\MarkOrderAsPaidAction;
 use HiEvents\Http\Actions\Orders\MessageOrderAction;
+use HiEvents\Http\Actions\Orders\Payment\PayRam\CreatePayRamPaymentActionPublic;
+use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamCancelAction;
+use HiEvents\Http\Actions\Orders\Payment\PayRam\PayRamReturnAction;
 use HiEvents\Http\Actions\Orders\Payment\RefundOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\CreatePaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\GetPaymentIntentActionPublic;
@@ -180,9 +189,14 @@ use HiEvents\Http\Actions\Organizers\EditOrganizerAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerDeletionStatusAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizerEventsAction;
+use HiEvents\Http\Actions\Organizers\GetOrganizerOgImagePublicAction;
 use HiEvents\Http\Actions\Organizers\GetOrganizersAction;
 use HiEvents\Http\Actions\Organizers\GetPublicOrganizerAction;
 use HiEvents\Http\Actions\Organizers\Orders\GetOrganizerOrdersAction;
+use HiEvents\Http\Actions\Organizers\PayRam\CreatePayRamSsoTokenAction;
+use HiEvents\Http\Actions\Organizers\PayRam\ExchangePayRamSsoCodeAction;
+use HiEvents\Http\Actions\Organizers\PayRam\GetOrProvisionPayRamAccountAction;
+use HiEvents\Http\Actions\Organizers\PayRam\GetPayRamAccountAction;
 use HiEvents\Http\Actions\Organizers\Public\SendOrganizerContactMessagePublicAction;
 use HiEvents\Http\Actions\Organizers\Settings\GetOrganizerSettingsAction;
 use HiEvents\Http\Actions\Organizers\Settings\PartialUpdateOrganizerSettingsAction;
@@ -214,12 +228,15 @@ use HiEvents\Http\Actions\Products\GetProductsAction;
 use HiEvents\Http\Actions\Products\SortProductsAction;
 use HiEvents\Http\Actions\Profile\CreateMyFollowAction;
 use HiEvents\Http\Actions\Profile\CreateMyReviewAction;
+use HiEvents\Http\Actions\Profile\CreateMySavedEventAction;
 use HiEvents\Http\Actions\Profile\DeleteMyFollowAction;
 use HiEvents\Http\Actions\Profile\DeleteMyReviewAction;
+use HiEvents\Http\Actions\Profile\DeleteMySavedEventAction;
 use HiEvents\Http\Actions\Profile\EditMyReviewAction;
 use HiEvents\Http\Actions\Profile\GetMyFollowsAction;
 use HiEvents\Http\Actions\Profile\GetMyInterestsAction;
 use HiEvents\Http\Actions\Profile\GetMyReviewsAction;
+use HiEvents\Http\Actions\Profile\GetMySavedEventsAction;
 use HiEvents\Http\Actions\Profile\GetMyTicketsAction;
 use HiEvents\Http\Actions\Profile\GetProfileAction;
 use HiEvents\Http\Actions\Profile\UpdateMyInterestsAction;
@@ -308,7 +325,7 @@ $router->prefix('/auth')->group(
 /**
  * Logged In Routes
  */
-$router->middleware(['auth:api'])->group(
+$router->middleware(['auth:api', 'email.verified'])->group(
     function (Router $router): void {
         // Auth
         $router->get('/auth/logout', LogoutAction::class);
@@ -343,6 +360,10 @@ $router->middleware(['auth:api'])->group(
         $router->get('/me/follows', GetMyFollowsAction::class);
         $router->post('/me/follows', CreateMyFollowAction::class);
         $router->delete('/me/follows/{organizer_id}', DeleteMyFollowAction::class);
+
+        $router->get('/me/saved-events', GetMySavedEventsAction::class);
+        $router->post('/me/saved-events', CreateMySavedEventAction::class);
+        $router->delete('/me/saved-events/{event_id}', DeleteMySavedEventAction::class);
 
         $router->get('/me/interests', GetMyInterestsAction::class);
         $router->put('/me/interests', UpdateMyInterestsAction::class);
@@ -396,6 +417,11 @@ $router->middleware(['auth:api'])->group(
 
         // Stripe Connect - Organizer level
         $router->get('/organizers/{organizerId}/stripe/connect_accounts', GetStripeConnectAccountsAction::class);
+        // PayRam merchant account - organizer level
+        $router->get('/organizers/{organizerId}/payram/account', GetPayRamAccountAction::class);
+        $router->post('/organizers/{organizerId}/payram/account', GetOrProvisionPayRamAccountAction::class);
+        $router->post('/organizers/{organizerId}/payram/sso-token', CreatePayRamSsoTokenAction::class);
+
         $router->post('/organizers/{organizerId}/stripe/connect', CreateStripeConnectAccountAction::class);
         $router->post('/organizers/{organizerId}/stripe/copy_from/{sourceOrganizerId}', CopyStripeConnectAccountAction::class);
         $router->delete('/organizers/{organizerId}/stripe/connect_accounts/{stripeAccountId}', DisconnectStripeConnectAccountAction::class)
@@ -594,6 +620,7 @@ $router->prefix('/admin')->middleware(['auth:api'])->group(
         $router->get('/users', GetAllUsersAction::class);
         $router->get('/events', GetAllAdminEventsAction::class);
         $router->get('/events/upcoming', GetUpcomingEventsAction::class);
+        $router->post('/events/{event_id}/featured', SetEventFeaturedAction::class);
         $router->get('/orders', GetAllOrdersAction::class);
         $router->post('/impersonate/{user_id}', StartImpersonationAction::class);
         $router->post('/stop-impersonation', StopImpersonationAction::class);
@@ -649,6 +676,17 @@ $router->prefix('/public')->group(
         $router->get('/events/{event_id}/occurrences', GetEventOccurrencesPublicAction::class)
             ->middleware('throttle:60,1');
 
+        // Open Graph images — monno-branded, used by both the website and the app.
+        $router->get('/og/site', GetSiteOgImagePublicAction::class);
+        $router->get('/og/city/{city}', GetCityOgImagePublicAction::class)
+            ->where('city', '[A-Za-z0-9-]+');
+        $router->get('/og/category/{category}', GetCategoryOgImagePublicAction::class)
+            ->where('category', '[A-Za-z_-]+');
+        $router->get('/og/event/{event_id}', GetEventOgImagePublicAction::class)
+            ->where('event_id', '[0-9]+');
+        $router->get('/og/organizer/{organizer_id}', GetOrganizerOgImagePublicAction::class)
+            ->where('organizer_id', '[0-9]+');
+
         // Organizers
         $router->get('/organizers/{organizer_id}', GetPublicOrganizerAction::class);
         $router->get('/organizers/{organizer_id}/events', GetOrganizerEventsPublicAction::class);
@@ -683,11 +721,19 @@ $router->prefix('/public')->group(
         $router->post('/events/{event_id}/order/{order_short_id}/stripe/payment_intent', CreatePaymentIntentActionPublic::class);
         $router->get('/events/{event_id}/order/{order_short_id}/stripe/payment_intent', GetPaymentIntentActionPublic::class);
 
+        // PayRam payment gateway (crypto)
+        $router->post('/events/{event_id}/order/{order_short_id}/payram/payment', CreatePayRamPaymentActionPublic::class);
+        $router->get('/payram/return', PayRamReturnAction::class);
+        $router->get('/payram/cancel', PayRamCancelAction::class);
+        $router->post('/payram/sso-exchange', ExchangePayRamSsoCodeAction::class)
+            ->middleware('throttle:60,1');
+
         // Questions
         $router->get('/events/{event_id}/questions', GetQuestionsPublicAction::class);
 
         // Webhooks
         $router->post('/webhooks/stripe', StripeIncomingWebhookAction::class);
+        $router->post('/webhooks/payram', PayRamIncomingWebhookAction::class);
 
         // Check-In
         $router->get('/check-in-lists/{check_in_list_short_id}', GetCheckInListPublicAction::class);

@@ -175,14 +175,22 @@ export interface RecentAccount {
     users_count: number;
 }
 
+export interface CurrencyTotal {
+    currency: string;
+    /** Postgres returns SUM(numeric) as a string — consumers cast. */
+    total: number | string;
+}
+
 export interface AdminDashboardData {
     popular_events: PopularEvent[];
     most_viewed_events: MostViewedEvent[];
     top_organizers: TopOrganizer[];
     recent_accounts: RecentAccount[];
     recent_revenue: number;
+    recent_revenue_by_currency: CurrencyTotal[];
     recent_orders_count: number;
     recent_orders_total: number;
+    recent_orders_total_by_currency: CurrencyTotal[];
     recent_signups_count: number;
 }
 
@@ -281,6 +289,8 @@ export interface AdminEvent {
     user_id: IdParam;
     attendees_count: number;
     slug: string;
+    featured: boolean;
+    currency: string;
     statistics: AdminEventStatistics | null;
 }
 
@@ -481,6 +491,14 @@ export const adminClient = {
                 sort_direction: params.sort_direction || 'desc',
             }
         });
+        return response.data;
+    },
+
+    setEventFeatured: async (eventId: IdParam, featured: boolean) => {
+        const response = await api.post<{ data: { id: IdParam; featured: boolean } }>(
+            `admin/events/${eventId}/featured`,
+            { featured }
+        );
         return response.data;
     },
 

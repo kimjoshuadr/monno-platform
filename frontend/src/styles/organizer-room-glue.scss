@@ -9,6 +9,7 @@
 
 .organizer-room {
   min-height: 100vh;
+  isolation: isolate; /* lets PageBackground (z-index -1) show above the room's own background */
 }
 
 /* The owner-only publish affordance, in the room's own language. */
