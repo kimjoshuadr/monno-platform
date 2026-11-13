@@ -22,7 +22,18 @@
   }
 
   a {
-    color: inherit;
+    color: var(--e-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The attribution link sits in its own component whose stylesheet gives every
+     powered-by link the checkout accent — that loses to nothing here, so restate
+     the frame's link colour at a specificity that always wins. */
+  .monno-embed-footer a {
+    color: var(--e-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .e-title {
