@@ -141,6 +141,14 @@ class PartialUpdateEventSettingsHandler
                 // Waitlist settings
                 'waitlist_auto_process' => $eventSettingsDTO->settings['waitlist_auto_process'] ?? $existingSettings->getWaitlistAutoProcess(),
                 'waitlist_offer_timeout_minutes' => $eventSettingsDTO->settings['waitlist_offer_timeout_minutes'] ?? $existingSettings->getWaitlistOfferTimeoutMinutes(),
+
+                // External registration
+                'ticketing_mode' => array_key_exists('ticketing_mode', $eventSettingsDTO->settings)
+                    ? $eventSettingsDTO->settings['ticketing_mode']
+                    : $existingSettings->getTicketingMode(),
+                'external_ticket_url' => array_key_exists('external_ticket_url', $eventSettingsDTO->settings)
+                    ? $eventSettingsDTO->settings['external_ticket_url']
+                    : $existingSettings->getExternalTicketUrl(),
             ]),
         );
     }

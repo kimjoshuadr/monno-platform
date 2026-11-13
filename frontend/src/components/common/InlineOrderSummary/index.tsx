@@ -7,6 +7,7 @@ import {Event, LocationType, Order} from "../../../types.ts";
 import {formatCurrency} from "../../../utilites/currency.ts";
 import {prettyDate} from "../../../utilites/dates.ts";
 import {resolveEventLocation} from "../../../utilites/effectiveLocation.ts";
+import {getEventCoverImage, makeEventPosterSvg} from "../../../utilites/imageFallbacks.ts";
 import classes from './InlineOrderSummary.module.scss';
 
 interface InlineOrderSummaryProps {
@@ -28,7 +29,9 @@ export const InlineOrderSummary = ({
         ? order.total_gross - order.total_refunded
         : order.total_gross;
 
-    const coverImage = event?.images?.find((image) => image.type === 'EVENT_COVER');
+    // Uploaded cover → curated category photo → typographic poster.
+    const coverImage = getEventCoverImage(event)
+        ?? makeEventPosterSvg(event.title ?? "", event.category);
     const orderOccurrence = order.order_items?.[0]?.event_occurrence;
     const effective = resolveEventLocation(event, orderOccurrence);
     const venueName = effective?.type === LocationType.InPerson
@@ -77,7 +80,7 @@ export const InlineOrderSummary = ({
                     <div className={classes.eventInfo}>
                         <div className={classes.eventImage}>
                             {coverImage ? (
-                                <img src={coverImage.url} alt={event.title}/>
+                                <img src={coverImage} alt={event.title}/>
                             ) : (
                                 <div className={classes.eventImagePlaceholder}>
                                     <IconCalendarEvent size={24}/>

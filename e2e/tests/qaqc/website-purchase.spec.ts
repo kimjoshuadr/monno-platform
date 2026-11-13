@@ -37,7 +37,7 @@ test.describe('website ticketing', () => {
     await expect(page).toHaveURL(/localhost:5678/);
   });
 
-  test('saving and sharing work on the event page', async ({ page, publicApi }) => {
+  test('sharing works on the event page', async ({ page, publicApi }) => {
     const event = await findSeededEvent(publicApi);
     const websiteUrl = `${monnoSiteUrl()}/event/${event.id}/`;
 
@@ -46,22 +46,63 @@ test.describe('website ticketing', () => {
     await page.goto(`${MONNO_URL}/event/${event.id}/`);
     await expect(page.locator('[data-testid="event-ticket-row"]').first()).toBeVisible({ timeout: 20_000 });
 
-    const save = page.locator('[data-od-id="event-save"]');
-    await expect(save).toHaveText(/Save for later/);
-    await save.click();
-    await expect(save).toHaveText(/Saved/);
-
-    await page.reload();
-    await expect(page.locator('[data-od-id="event-save"]')).toHaveText(/Saved/);
-
     await page.locator('[data-od-id="event-share"]').click();
-    // The link is the site's own page, not the address bar.
+    // The link is the site's own page, not the address bar. It lives in the
+    // modal's Copy link tab.
+    await page.getByRole('tab', { name: 'Copy link' }).click();
     await expect(page.locator('.share-url')).toHaveValue(websiteUrl);
     await page.screenshot({ path: path.join(OUT, 'share-dialog-website.png'), animations: 'disabled' });
     await page.locator('[data-od-id="share-copy"]').click();
     await expect(page.locator('[data-od-id="share-copy"]')).toHaveText(/Link copied/);
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboard).toBe(websiteUrl);
+  });
+
+  test('saving an event requires sign-in, then saves the account', async ({
+    page,
+    freshAccount,
+    publicApi,
+  }) => {
+    test.setTimeout(120_000);
+    const event = await findSeededEvent(publicApi);
+
+    await page.goto(`${MONNO_URL}/event/${event.id}/`);
+    await expect(page.locator('[data-testid="event-ticket-row"]').first()).toBeVisible({ timeout: 20_000 });
+
+    // Signed out, saving is a hand-off — the same shape as following a room.
+    const save = page.locator('[data-od-id="event-save"]');
+    await expect(save).toHaveText(/Save for later/);
+    await save.click();
+    await page.waitForURL(/\/login\/\?next=.*reason=save/, { timeout: 20_000 });
+    await expect(page.locator('.auth-reason')).toContainText(/save events/i);
+
+    const saved = page.waitForResponse(
+      (response) => response.url().includes('/me/saved-events') && response.request().method() === 'POST',
+      { timeout: 20_000 },
+    );
+
+    await page.locator('#login-email').fill(freshAccount.email);
+    await page.locator('#login-password').fill(freshAccount.password);
+    await page.locator('[data-od-id="login-submit"]').click();
+    await page.waitForURL(new RegExp(`/event/${event.id}/`), { timeout: 20_000 });
+
+    // The event they asked to save is saved — on the account: a reload keeps
+    // it, and the profile lists it.
+    await expect(page.locator('[data-od-id="event-save"]')).toHaveText(/Saved/, { timeout: 20_000 });
+    await saved;
+    await page.reload();
+    await expect(page.locator('[data-od-id="event-save"]')).toHaveText(/Saved/);
+
+    await page.goto(`${MONNO_URL}/profile/`);
+    const card = page.locator('[data-od-id="profile-saved"]');
+    await expect(card).toContainText(event.title);
+
+    // Removing it there is the API's call, and the event page agrees.
+    await card.getByRole('button', { name: 'Remove' }).click();
+    await expect(card).not.toContainText(event.title);
+
+    await page.goto(`${MONNO_URL}/event/${event.id}/`);
+    await expect(page.locator('[data-od-id="event-save"]')).toHaveText(/Save for later/, { timeout: 20_000 });
   });
 
   test('the calendar button downloads the event as .ics', async ({ page, publicApi }) => {
@@ -92,27 +133,66 @@ test.describe('website ticketing', () => {
     await expect(share).toBeVisible({ timeout: 20_000 });
 
     await share.click();
+    await page.getByRole('tab', { name: 'Copy link' }).click();
     await expect(page.locator('.share-url')).toHaveValue(websiteUrl);
   });
 
-  test('following the host works from the event page', async ({ page, publicApi }) => {
+  test('following the host requires sign-in, then follows the account', async ({
+    page,
+    freshAccount,
+    publicApi,
+  }) => {
+    test.setTimeout(120_000);
     const event = await findSeededEvent(publicApi);
 
     await page.goto(`${MONNO_URL}/event/${event.id}/`);
     await expect(page.locator('[data-testid="event-ticket-row"]').first()).toBeVisible({ timeout: 20_000 });
 
+    // Signed out, the click is a hand-off: the room is remembered, the visitor
+    // is sent to sign in, and the page they came from comes back with them.
     const follow = page.locator('[data-od-id="event-follow"]');
     await expect(follow).toHaveText(/Follow/);
-
     await follow.click();
-    await expect(follow).toHaveText(/Following/);
-    await expect(follow).toHaveAttribute('aria-pressed', 'true');
+    await page.waitForURL(/\/login\/\?next=/, { timeout: 20_000 });
+    await expect(page.locator('.auth-reason')).toContainText(/follow/i);
 
-    // The follow lives in the same store the calendar pages read, so it survives a reload.
+    // The account write lands while the page settles — watch for it before the reload.
+    const followed = page.waitForResponse(
+      (response) => response.url().includes('/me/follows') && response.request().method() === 'POST',
+      { timeout: 20_000 },
+    );
+
+    await page.locator('#login-email').fill(freshAccount.email);
+    await page.locator('#login-password').fill(freshAccount.password);
+    await page.locator('[data-od-id="login-submit"]').click();
+    await page.waitForURL(new RegExp(`/event/${event.id}/`), { timeout: 20_000 });
+
+    // The room they asked for is followed — and it is the account's, not the
+    // browser's: a reload keeps it, and so does a different browser context
+    // signed in as the same person.
+    await expect(page.locator('[data-od-id="event-follow"]')).toHaveText(/Following/, { timeout: 20_000 });
+    await followed;
     await page.reload();
     await expect(page.locator('[data-od-id="event-follow"]')).toHaveText(/Following/);
 
-    await page.locator('[data-od-id="event-follow"]').click();
-    await expect(page.locator('[data-od-id="event-follow"]')).toHaveText(/Follow/);
+    const other = await freshAccount.newAuthedPage();
+    await other.goto(`${MONNO_URL}/event/${event.id}/`);
+    await expect(other.locator('[data-od-id="event-follow"]')).toHaveText(/Following/, { timeout: 20_000 });
+    await other.close();
+
+    // And the profile reads the same list; unfollowing there is the API's call.
+    await page.goto(`${MONNO_URL}/profile/`);
+    await expect(page.locator('[data-od-id="profile-rooms"]')).toContainText(event.organizerName);
+
+    await page.goto(`${MONNO_URL}/event/${event.id}/`);
+    const unfollow = page.locator('[data-od-id="event-follow"]');
+    await expect(unfollow).toHaveText(/Following/, { timeout: 20_000 });
+    const removed = page.waitForResponse(
+      (response) => response.url().includes('/me/follows/') && response.request().method() === 'DELETE',
+      { timeout: 20_000 },
+    );
+    await unfollow.click();
+    await expect(unfollow).toHaveText(/Follow/);
+    await removed;
   });
 });

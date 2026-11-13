@@ -18,6 +18,30 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ProcessExpiredWaitlistOffersJob)->everyMinute()->withoutOverlapping();
         $schedule->job(new ProcessScheduledAccountDeletionsJob)->hourly()->withoutOverlapping();
 
+        // PayRam settlement is poll-based until webhook endpoint registration
+        // ships on our gateway build — this is what actually marks orders paid.
+        $schedule->command('monno:payram-reconcile')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // Watches for money that cannot move: a project on the wrong hot wallet,
+        // or a failed sweep (PayRam reports low gas / missing hot wallet this
+        // way). Exits non-zero, so the scheduler run is the alarm.
+        $schedule->command('monno:payram-health')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // Backfill the organizer profile (name, website, support address, logo)
+        // onto their PayRam project. Settings saves and logo uploads push it
+        // immediately; this catches anything that slipped through, e.g. a change
+        // made before the project was linked.
+        $schedule->command('monno:payram-sync-project-profile')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         $schedule->call(function (): void {
             $count = DB::table('failed_jobs')->count();
             if ($count > 0) {

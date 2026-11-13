@@ -154,7 +154,7 @@ $header-row-padding-inline: 24px;
   }
 
   a:not([class]) {
-    color: var(--checkout-accent);
+    color: var(--checkout-link, var(--checkout-accent));
 
     &:hover {
       text-decoration: underline;

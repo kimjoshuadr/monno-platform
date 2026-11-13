@@ -13,6 +13,7 @@ use HiEvents\Repository\Interfaces\AccountRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Event\DTO\UpdateEventStatusDTO;
 use HiEvents\Services\Application\Handlers\Event\UpdateEventStatusHandler;
+use HiEvents\Services\Domain\Event\EventPublishingValidationService;
 use HiEvents\Services\Domain\Event\EventSpamCheckDispatchService;
 use HiEvents\Services\Domain\Event\EventSpamCheckService;
 use Illuminate\Database\DatabaseManager;
@@ -30,6 +31,8 @@ class UpdateEventStatusHandlerTest extends TestCase
 
     private EventSpamCheckService|MockInterface $eventSpamCheckService;
 
+    private EventPublishingValidationService|MockInterface $publishingValidationService;
+
     private UpdateEventStatusHandler $handler;
 
     protected function setUp(): void
@@ -42,6 +45,8 @@ class UpdateEventStatusHandlerTest extends TestCase
         $this->eventRepository->shouldReceive('loadRelation')->andReturnSelf();
         $this->accountRepository = Mockery::mock(AccountRepositoryInterface::class);
         $this->eventSpamCheckService = Mockery::mock(EventSpamCheckService::class);
+        $this->publishingValidationService = Mockery::mock(EventPublishingValidationService::class);
+        $this->publishingValidationService->shouldReceive('validateCanPublish')->byDefault();
 
         $databaseManager = Mockery::mock(DatabaseManager::class);
         $databaseManager->shouldReceive('transaction')->andReturnUsing(fn ($cb) => $cb());
@@ -52,6 +57,7 @@ class UpdateEventStatusHandlerTest extends TestCase
             new NullLogger,
             $databaseManager,
             new EventSpamCheckDispatchService($this->eventSpamCheckService),
+            $this->publishingValidationService,
         );
 
         $this->accountRepository
@@ -76,6 +82,22 @@ class UpdateEventStatusHandlerTest extends TestCase
         $this->expectException(EventPendingReviewException::class);
 
         $this->handler->handle($this->makeDTO(EventStatus::DRAFT->name));
+    }
+
+    public function test_throws_when_event_publishing_validation_fails(): void
+    {
+        $this->eventRepository
+            ->shouldReceive('findFirstWhere')
+            ->andReturn($this->makeEvent(EventStatus::DRAFT->name));
+
+        $this->publishingValidationService
+            ->shouldReceive('validateCanPublish')
+            ->once()
+            ->andThrow(new \HiEvents\Exceptions\CannotPublishEventWithoutPaymentMethodException());
+
+        $this->expectException(\HiEvents\Exceptions\CannotPublishEventWithoutPaymentMethodException::class);
+
+        $this->handler->handle($this->makeDTO(EventStatus::LIVE->name));
     }
 
     public function test_dispatches_spam_check_when_event_becomes_live(): void
@@ -131,6 +153,7 @@ class UpdateEventStatusHandlerTest extends TestCase
     {
         return (new EventDomainObject)
             ->setId(1)
+            ->setOrganizerId(1)
             ->setStatus($status)
             ->setTitle('Event Title')
             ->setDescription('Event description');

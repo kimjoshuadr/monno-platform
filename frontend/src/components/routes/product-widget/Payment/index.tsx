@@ -5,9 +5,10 @@ import {CheckoutContent} from "../../../layouts/Checkout/CheckoutContent";
 import {CheckoutStepTitle} from "../../../layouts/Checkout/CheckoutStepTitle";
 import {StripePaymentMethod} from "./PaymentMethods/Stripe";
 import {OfflinePaymentMethod} from "./PaymentMethods/Offline";
+import {PayRamPaymentMethod} from "./PaymentMethods/PayRam";
 import {Event} from "../../../../types.ts";
 import {Button, Group, Text} from "@mantine/core";
-import {IconBuildingBank, IconLock, IconWallet} from "@tabler/icons-react";
+import {IconBuildingBank, IconCurrencyBitcoin, IconLock, IconWallet} from "@tabler/icons-react";
 import {formatCurrency} from "../../../../utilites/currency.ts";
 import {t, Trans} from "@lingui/macro";
 import {useGetOrderPublic} from "../../../../queries/useGetOrderPublic.ts";
@@ -30,24 +31,33 @@ const Payment = () => {
     const isLoading = !isOrderFetched;
     const checkoutEvent = order?.event || event;
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
-    const [activePaymentMethod, setActivePaymentMethod] = useState<'STRIPE' | 'OFFLINE' | null>(null);
+    const [activePaymentMethod, setActivePaymentMethod] = useState<'STRIPE' | 'PAYRAM' | 'OFFLINE' | null>(null);
     const [submitHandler, setSubmitHandler] = useState<(() => Promise<void>) | null>(null);
     const transitionOrderToOfflinePaymentMutation = useTransitionOrderToOfflinePaymentPublic();
 
     const paymentProviders = resolvePaymentProviders(event?.settings?.payment_providers);
     const isStripeEnabled = STRIPE_ENABLED && paymentProviders.includes('STRIPE');
+    const isPayRamEnabled = paymentProviders.includes('PAYRAM');
     const isOfflineEnabled = paymentProviders.includes('OFFLINE');
+
+    const availablePaymentMethods = [
+        isStripeEnabled && 'STRIPE',
+        isPayRamEnabled && 'PAYRAM',
+        isOfflineEnabled && 'OFFLINE',
+    ].filter(Boolean) as Array<'STRIPE' | 'PAYRAM' | 'OFFLINE'>;
 
     React.useEffect(() => {
         // Automatically set the first available payment method
         if (isStripeEnabled) {
             setActivePaymentMethod('STRIPE');
+        } else if (isPayRamEnabled) {
+            setActivePaymentMethod('PAYRAM');
         } else if (isOfflineEnabled) {
             setActivePaymentMethod('OFFLINE');
         } else {
             setActivePaymentMethod(null); // No methods available
         }
-    }, [isStripeEnabled, isOfflineEnabled]);
+    }, [isStripeEnabled, isPayRamEnabled, isOfflineEnabled]);
 
     React.useEffect(() => {
         // Scroll to top when payment page loads
@@ -62,7 +72,7 @@ const Payment = () => {
     };
 
     const handleSubmit = async () => {
-        if (activePaymentMethod === 'STRIPE') {
+        if (activePaymentMethod === 'STRIPE' || activePaymentMethod === 'PAYRAM') {
             handleParentSubmit();
         } else if (activePaymentMethod === 'OFFLINE') {
             setIsPaymentLoading(true);
@@ -84,7 +94,7 @@ const Payment = () => {
         }
     };
 
-    if (!isStripeEnabled && !isOfflineEnabled && isOrderFetched && isEventFetched) {
+    if (!isStripeEnabled && !isPayRamEnabled && !isOfflineEnabled && isOrderFetched && isEventFetched) {
         return (
             <CheckoutContent>
                 <Card>
@@ -108,34 +118,56 @@ const Payment = () => {
                     </div>
                 )}
 
+                {isPayRamEnabled && (
+                    <div style={{display: activePaymentMethod === 'PAYRAM' ? 'block' : 'none'}}>
+                        <PayRamPaymentMethod enabled={true} setSubmitHandler={setSubmitHandler}/>
+                    </div>
+                )}
+
                 {isOfflineEnabled && (
                     <div style={{display: activePaymentMethod === 'OFFLINE' ? 'block' : 'none'}}>
                         <OfflinePaymentMethod event={checkoutEvent as Event}/>
                     </div>
                 )}
 
-                {(isStripeEnabled && isOfflineEnabled) && (
+                {availablePaymentMethods.length > 1 && (
                     <div className={classes.paymentMethodSelector}>
                         <Text size="sm" c="dimmed" className={classes.paymentMethodLabel}>
                             {t`Payment method`}
                         </Text>
                         <div className={classes.paymentMethodTabs}>
-                            <button
-                                type="button"
-                                className={`${classes.paymentMethodTab} ${activePaymentMethod === 'STRIPE' ? classes.active : ''}`}
-                                onClick={() => setActivePaymentMethod('STRIPE')}
-                            >
-                                <IconWallet size={18}/>
-                                <span>{t`Online`}</span>
-                            </button>
-                            <button
-                                type="button"
-                                className={`${classes.paymentMethodTab} ${activePaymentMethod === 'OFFLINE' ? classes.active : ''}`}
-                                onClick={() => setActivePaymentMethod('OFFLINE')}
-                            >
-                                <IconBuildingBank size={18}/>
-                                <span>{t`Offline`}</span>
-                            </button>
+                            {isStripeEnabled && (
+                                <button
+                                    type="button"
+                                    className={`${classes.paymentMethodTab} ${activePaymentMethod === 'STRIPE' ? classes.active : ''}`}
+                                    onClick={() => setActivePaymentMethod('STRIPE')}
+                                >
+                                    <IconWallet size={18}/>
+                                    <span>{t`Online`}</span>
+                                </button>
+                            )}
+                            {isPayRamEnabled && (
+                                <button
+                                    type="button"
+                                    className={`${classes.paymentMethodTab} ${activePaymentMethod === 'PAYRAM' ? classes.active : ''}`}
+                                    onClick={() => setActivePaymentMethod('PAYRAM')}
+                                    data-testid="payram-payment-tab"
+                                >
+                                    <IconCurrencyBitcoin size={18}/>
+                                    <span>{t`Crypto`}</span>
+                                </button>
+                            )}
+                            {isOfflineEnabled && (
+                                <button
+                                    type="button"
+                                    className={`${classes.paymentMethodTab} ${activePaymentMethod === 'OFFLINE' ? classes.active : ''}`}
+                                    onClick={() => setActivePaymentMethod('OFFLINE')}
+                                    data-testid="offline-payment-tab"
+                                >
+                                    <IconBuildingBank size={18}/>
+                                    <span>{t`Offline`}</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -145,7 +177,8 @@ const Payment = () => {
                         className={classes.continueButton}
                         loading={isLoading || isPaymentLoading}
                         onClick={handleSubmit}
-                        data-testid={activePaymentMethod === 'OFFLINE' ? 'offline-payment-button' : undefined}
+                        data-testid={activePaymentMethod === 'OFFLINE' ? 'offline-payment-button'
+                            : activePaymentMethod === 'PAYRAM' ? 'payram-payment-button' : undefined}
                     >
                         {order?.is_payment_required ? (
                             <Group gap={8} wrap="nowrap">

@@ -25,17 +25,7 @@ import {formatDateWithLocale, isValidDate, relativeDate} from "../../../utilites
 import {Card} from "../Card";
 import {summariseEventLocations} from "../../../utilites/effectiveLocation.ts";
 import {formatAddress} from "../../../utilites/addressUtilities.ts";
-
-const placeholderGradients = [
-    'linear-gradient(135deg, var(--mantine-color-violet-5) 0%, var(--mantine-color-indigo-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-pink-5) 0%, var(--mantine-color-grape-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-blue-5) 0%, var(--mantine-color-cyan-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-teal-5) 0%, var(--mantine-color-green-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-orange-5) 0%, var(--mantine-color-yellow-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-indigo-5) 0%, var(--mantine-color-blue-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-grape-5) 0%, var(--mantine-color-violet-5) 100%)',
-    'linear-gradient(135deg, var(--mantine-color-cyan-5) 0%, var(--mantine-color-teal-5) 100%)',
-];
+import {getEventCoverImage, makeEventPosterSvg} from "../../../utilites/imageFallbacks.ts";
 
 interface EventCardProps {
     event: Event;
@@ -48,9 +38,9 @@ export function EventCard({event, compact = false}: EventCardProps) {
     const [eventId, setEventId] = useState<IdParam>();
     const statusToggleMutation = useUpdateEventStatus();
 
-    const coverImage = event.images?.find(img => img.type === 'EVENT_COVER');
-    const gradientIndex = event.id ? Number(event.id) % placeholderGradients.length : 0;
-    const placeholderGradient = placeholderGradients[gradientIndex];
+    // Uploaded cover → curated category photo → typographic poster (never empty).
+    const resolvedCover = getEventCoverImage(event)
+        ?? makeEventPosterSvg(event.title || "Event", event.category);
 
     const handleDuplicate = () => {
         setEventId(event.id);
@@ -196,11 +186,8 @@ export function EventCard({event, compact = false}: EventCardProps) {
                     <NavLink to={`/manage/event/${event.id}/dashboard`} className={classes.cardLinkCompact}>
                         <div className={classes.compactThumb}>
                             <div
-                                className={`${classes.compactImage} ${!coverImage ? classes.placeholderImage : ''}`}
-                                style={coverImage
-                                    ? {backgroundImage: `url(${coverImage.url})`}
-                                    : {background: placeholderGradient}
-                                }
+                                className={classes.compactImage}
+                                style={{backgroundImage: `url("${resolvedCover}")`}}
                             />
                             {hasDate && (
                                 <div className={`${classes.compactDateBadge}`}>
@@ -291,13 +278,10 @@ export function EventCard({event, compact = false}: EventCardProps) {
                 <NavLink to={`/manage/event/${event.id}/dashboard`} className={classes.cardLink}>
                     <div className={classes.imageContainer}>
                         <div
-                            className={`${classes.image} ${!coverImage ? classes.placeholderImage : ''}`}
-                            style={coverImage
-                                ? {backgroundImage: `url(${coverImage.url})`}
-                                : {background: placeholderGradient}
-                            }
+                            className={classes.image}
+                            style={{backgroundImage: `url("${resolvedCover}")`}}
                         />
-                        <div className={`${classes.imageOverlay} ${!coverImage ? classes.placeholderOverlay : ''}`}/>
+                        <div className={classes.imageOverlay}/>
 
                         <div className={`${classes.statusBadge} ${classes[`status-${statusConfig.status}`]}`}>
                             {statusConfig.pulse && <span className={classes.pulseDot}/>}

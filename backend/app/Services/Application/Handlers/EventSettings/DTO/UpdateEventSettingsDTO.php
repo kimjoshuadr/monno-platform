@@ -8,6 +8,7 @@ use HiEvents\DomainObjects\Enums\HomepageBackgroundType;
 use HiEvents\DomainObjects\Enums\PaymentProviders;
 use HiEvents\DomainObjects\Enums\PriceDisplayMode;
 use HiEvents\DomainObjects\Enums\TicketDateDisplayMode;
+use HiEvents\DomainObjects\Enums\TicketingMode;
 use HiEvents\DomainObjects\OrganizerDomainObject;
 
 class UpdateEventSettingsDTO extends BaseDTO
@@ -95,6 +96,10 @@ class UpdateEventSettingsDTO extends BaseDTO
         public readonly ?string $get_tickets_button_text = null,
 
         public readonly ?string $product_page_message = null,
+
+        // External registration
+        public readonly ?TicketingMode $ticketing_mode = null,
+        public readonly ?string $external_ticket_url = null,
     ) {}
 
     public static function createWithDefaults(

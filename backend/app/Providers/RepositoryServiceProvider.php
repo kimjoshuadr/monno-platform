@@ -38,6 +38,7 @@ use HiEvents\Repository\Eloquent\OrderPaymentPlatformFeeRepository;
 use HiEvents\Repository\Eloquent\OrderRefundRepository;
 use HiEvents\Repository\Eloquent\OrderRepository;
 use HiEvents\Repository\Eloquent\OrganizerConfigurationRepository;
+use HiEvents\Repository\Eloquent\OrganizerPayRamAccountsRepository;
 use HiEvents\Repository\Eloquent\OrganizerRepository;
 use HiEvents\Repository\Eloquent\OrganizerSettingsRepository;
 use HiEvents\Repository\Eloquent\OrganizerStripePlatformRepository;
@@ -45,6 +46,7 @@ use HiEvents\Repository\Eloquent\OrganizerVatSettingRepository;
 use HiEvents\Repository\Eloquent\OutgoingMessageRepository;
 use HiEvents\Repository\Eloquent\PasswordResetRepository;
 use HiEvents\Repository\Eloquent\PasswordResetTokenRepository;
+use HiEvents\Repository\Eloquent\PayRamPaymentsRepository;
 use HiEvents\Repository\Eloquent\ProductCategoryRepository;
 use HiEvents\Repository\Eloquent\ProductOccurrenceVisibilityRepository;
 use HiEvents\Repository\Eloquent\ProductPriceOccurrenceOverrideRepository;
@@ -97,6 +99,7 @@ use HiEvents\Repository\Interfaces\OrderPaymentPlatformFeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRefundRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerConfigurationRepositoryInterface;
+use HiEvents\Repository\Interfaces\OrganizerPayRamAccountsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerSettingsRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerStripePlatformRepositoryInterface;
@@ -104,6 +107,7 @@ use HiEvents\Repository\Interfaces\OrganizerVatSettingRepositoryInterface;
 use HiEvents\Repository\Interfaces\OutgoingMessageRepositoryInterface;
 use HiEvents\Repository\Interfaces\PasswordResetRepositoryInterface;
 use HiEvents\Repository\Interfaces\PasswordResetTokenRepositoryInterface;
+use HiEvents\Repository\Interfaces\PayRamPaymentsRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductCategoryRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductOccurrenceVisibilityRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductPriceOccurrenceOverrideRepositoryInterface;
@@ -143,6 +147,8 @@ class RepositoryServiceProvider extends ServiceProvider
         QuestionRepositoryInterface::class => QuestionRepository::class,
         QuestionAnswerRepositoryInterface::class => QuestionAnswerRepository::class,
         StripePaymentsRepositoryInterface::class => StripePaymentsRepository::class,
+        PayRamPaymentsRepositoryInterface::class => PayRamPaymentsRepository::class,
+        OrganizerPayRamAccountsRepositoryInterface::class => OrganizerPayRamAccountsRepository::class,
         PromoCodeRepositoryInterface::class => PromoCodeRepository::class,
         MessageRepositoryInterface::class => MessageRepository::class,
         PasswordResetTokenRepositoryInterface::class => PasswordResetTokenRepository::class,

@@ -38,7 +38,9 @@ async function main() {
 
     app.use('/.well-known', express.static(path.join(__dirname, 'public/.well-known')));
 
-    app.get('/widget.js', async (req, res) => {
+    // `/embed.js` is the monno name new snippets use; `/widget.js` stays for
+    // every snippet already on an organizer's site. Same file.
+    app.get(['/widget.js', '/embed.js'], async (req, res) => {
         try {
             const widgetPath = isProduction
                 ? path.join(__dirname, './dist/client/widget.js')

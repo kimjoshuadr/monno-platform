@@ -16,6 +16,22 @@ return [
     'reset_password_token_expiry_in_min' => 15,
     'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost'),
     'api_url' => env('APP_URL', 'https://localhost:8443'),
+
+    /*
+     * Mirrors STRIPE_ENABLED in the frontend
+     * (frontend/src/utilites/paymentProviders.ts). When card payments are off
+     * deployment-wide the client force-enables OFFLINE, so every paid event is
+     * payable and the publish gate must not block it. Flip both together.
+     */
+    'stripe_enabled' => env('STRIPE_ENABLED', false),
+
+    /*
+     * The publicly reachable base of this API. In production the app is proxied
+     * under a path prefix (nginx only forwards /api/* to PHP), so a URL built
+     * from APP_URL alone would 404. Anything that hands a URL to a third party
+     * (PayRam return/cancel endpoints) must be built from this.
+     */
+    'api_public_url' => env('APP_API_PUBLIC_URL', env('APP_URL', 'http://localhost:5173')),
     'cnd_url' => env('APP_CDN_URL', '/storage'),
     'default_timezone' => 'America/Vancouver',
     'default_currency_code' => env('APP_DEFAULT_CURRENCY_CODE', 'PHP'),
@@ -30,6 +46,26 @@ return [
     'event_spam_check_enabled' => env('APP_EVENT_SPAM_CHECK_ENABLED', false),
     'event_spam_check_confidence_threshold' => env('APP_EVENT_SPAM_CHECK_CONFIDENCE_THRESHOLD', 0.7),
     'enforce_email_confirmation_during_registration' => env('APP_ENFORCE_EMAIL_CONFIRMATION_DURING_REGISTRATION', false),
+
+    /**
+     * Organizer signups start unverified, the dashboard stays locked until the
+     * emailed 5-digit code is entered, and every other authed route rejects the
+     * session with `email_not_verified` until then.
+     *
+     * Deliberately NOT tied to saas_mode: that flag also switches on platform
+     * fees, manual account approval, Stripe Connect paths and spam checking,
+     * none of which email verification should drag in with it.
+     */
+    'require_email_verification' => env('APP_REQUIRE_EMAIL_VERIFICATION', false),
+
+    /** Wrong guesses allowed before a code is burned and a resend is required. */
+    'email_verification_max_attempts' => env('APP_EMAIL_VERIFICATION_MAX_ATTEMPTS', 5),
+
+    /** Codes a single user may ask for inside 24h — caps mail volume per account. */
+    'email_verification_resend_daily_limit' => env('APP_EMAIL_VERIFICATION_RESEND_DAILY_LIMIT', 10),
+
+    /** How long a code stays valid. The UI copy quotes this number. */
+    'email_verification_code_ttl_minutes' => env('APP_EMAIL_VERIFICATION_CODE_TTL_MINUTES', 30),
     'allowed_internal_webhook_hosts' => env('APP_ALLOWED_INTERNAL_WEBHOOK_HOSTS', ''),
 
     /**

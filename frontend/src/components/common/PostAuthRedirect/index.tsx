@@ -42,6 +42,12 @@ export const PostAuthRedirect = ({
         return <Navigate to={'/auth/login' + search} replace={true}/>;
     }
 
+    // Unverified organizer: the dashboard is locked server-side, so park here
+    // rather than let them bounce off a 403 on every query in the layout.
+    if (me.data.enforce_email_confirmation_during_registration && !me.data.is_email_verified) {
+        return <Navigate to={'/verify-email' + search} replace={true}/>;
+    }
+
     if (!accountIdOf(me.data)) {
         return <Navigate to={accountlessPath + search} replace={true}/>;
     }

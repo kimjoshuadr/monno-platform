@@ -5,6 +5,7 @@ import {
     IconCalendarPlus,
     IconChartPie,
     IconChevronRight,
+    IconCode,
     IconDashboard,
     IconExternalLink,
     IconEye,
@@ -20,8 +21,10 @@ import { t } from "@lingui/macro";
 import { BreadcrumbItem, NavItem } from "../AppLayout/types.ts";
 import AppLayout from "../AppLayout";
 import { NavLink, useLocation, useParams } from "react-router";
-import { Button, Modal, Stack, Text } from "@mantine/core";
+import { Button, Modal, Stack, Text, Tooltip } from "@mantine/core";
 import { useGetOrganizer } from "../../../queries/useGetOrganizer.ts";
+import { useGetOrganizerEvents } from "../../../queries/useGetOrganizerEvents.ts";
+import { monnoOrganizerUrl } from "../../../utilites/monnoSite.ts";
 import { useGeoStatus } from "../../../queries/useGeoStatus.ts";
 import { useState } from "react";
 import { CreateEventModal } from "../../modals/CreateEventModal";
@@ -36,7 +39,8 @@ import { CreateOrganizerModal } from "../../modals/CreateOrganizerModal";
 import { useGetOrganizers } from "../../../queries/useGetOrganizers.ts";
 import { useGetAccount } from "../../../queries/useGetAccount.ts";
 import { ShareModal } from "../../modals/ShareModal";
-import { organizerHomepageUrl } from "../../../utilites/urlHelper";
+import { organizerHomepageUrl, websiteOrganizerUrl } from "../../../utilites/urlHelper";
+import { EventStatus, QueryFilterOperator } from "../../../types.ts";
 import { useUpdateOrganizerStatus } from "../../../mutations/useUpdateOrganizerStatus.ts";
 import { confirmationDialog } from "../../../utilites/confirmationDialog.tsx";
 import { showError, showSuccess } from "../../../utilites/notifications.tsx";
@@ -65,6 +69,19 @@ const OrganizerLayout = () => {
     const { data: me } = useGetMe();
     const isUserEmailVerfied = me?.is_email_verified;
     const isMobile = useMediaQuery('(max-width: 768px)');
+
+    // The website lists an organizer as soon as one of its events is LIVE (the
+    // organizer's own status does not gate the website's room), so that is when
+    // the share link can point at the canonical website page.
+    const { data: liveEvents } = useGetOrganizerEvents(organizerId, {
+        pageNumber: 1,
+        perPage: 1,
+        filterFields: { status: { operator: QueryFilterOperator.Equals, value: EventStatus.LIVE } },
+    });
+    const hasPublicPage = (liveEvents?.meta?.total ?? 0) > 0;
+    const organizerShareUrl = organizer
+        ? (hasPublicPage ? websiteOrganizerUrl(organizer) : organizerHomepageUrl(organizer))
+        : '';
 
     const statusToggleMutation = useUpdateOrganizerStatus();
 
@@ -114,6 +131,7 @@ const OrganizerLayout = () => {
         { link: 'locations', label: t`Locations`, icon: IconMapPin },
 
         { label: t`Integrations` },
+        { link: 'embeds', label: t`Embeds`, icon: IconCode },
         { link: 'webhooks', label: t`Webhooks`, icon: IconWebhook },
     ];
 
@@ -229,23 +247,46 @@ const OrganizerLayout = () => {
                     <>
                         {organizer && !isMobile && (
                             <>
-                                <Button
-                                    onClick={openShareModal}
-                                    variant="transparent"
-                                    leftSection={<IconShare size={16} />}
+                                <Tooltip
+                                    label={t`Publish an event to get a public link`}
+                                    disabled={hasPublicPage}
+                                    withArrow
                                 >
-                                    <span className={classes.shareButtonTextDesktop}>
-                                        {t`Share Organizer Page`}
-                                    </span>
-                                    <span className={classes.shareButtonTextMobile}>
-                                        {t`Share`}
-                                    </span>
-                                </Button>
+                                    <Button
+                                        onClick={openShareModal}
+                                        variant="transparent"
+                                        leftSection={<IconShare size={16} />}
+                                    >
+                                        <span className={classes.shareButtonTextDesktop}>
+                                            {t`Share Organizer Page`}
+                                        </span>
+                                        <span className={classes.shareButtonTextMobile}>
+                                            {t`Share`}
+                                        </span>
+                                    </Button>
+                                </Tooltip>
                             </>
                         )}
                     </>
                 )}
-                actionGroupContent={(
+                actionGroupContent={hasPublicPage ? (
+                    // A room exists on the website from the first LIVE event —
+                    // that is the page people actually see, so open it.
+                    <Button
+                        component="a"
+                        href={monnoOrganizerUrl(organizerId)}
+                        target={'_blank'}
+                        rel="noreferrer"
+                        variant={'transparent'}
+                        className={classes.viewHomepageButton}
+                        leftSection={<IconExternalLink size={17} />}
+                        title={t`View room on website`}
+                    >
+                        <span className={classes.viewHomepageButtonTextDesktop}>
+                            {t`View room on website`}
+                        </span>
+                    </Button>
+                ) : (
                     <Button
                         component={NavLink}
                         to={`/events/${organizerId}/${organizer?.slug || ''}`}
@@ -253,10 +294,10 @@ const OrganizerLayout = () => {
                         variant={'transparent'}
                         className={classes.viewHomepageButton}
                         leftSection={<IconExternalLink size={17} />}
-                        title={t`View Organizer Homepage`}
+                        title={t`Preview organizer page`}
                     >
                         <span className={classes.viewHomepageButtonTextDesktop}>
-                            {t`View Organizer Homepage`}
+                            {t`Preview organizer page`}
                         </span>
                     </Button>
                 )}
@@ -275,9 +316,10 @@ const OrganizerLayout = () => {
             )}
             {organizer && shareModalOpen && (
                 <ShareModal
-                    url={organizerHomepageUrl(organizer)}
+                    url={organizerShareUrl}
                     title={organizer.name}
                     modalTitle={t`Share Organizer Page`}
+                    subtitle={t`Send it to someone who'd follow along.`}
                     opened={shareModalOpen}
                     onClose={closeShareModal}
                 />

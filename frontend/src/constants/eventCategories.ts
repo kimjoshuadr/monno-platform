@@ -6,7 +6,7 @@ export const getEventCategories = () => [
     {id: 'SEASONAL', name: t`Seasonal`, emoji: '🎊'},
 
     {id: 'MUSIC', name: t`Music`, emoji: '🎵'},
-    {id: 'SPORTS', name: t`Sports`, emoji: '⚽'},
+    {id: 'FITNESS', name: t`Fitness`, emoji: '💪'},
     {id: 'COMEDY', name: t`Comedy`, emoji: '😂'},
     {id: 'THEATER', name: t`Theater`, emoji: '🎭'},
     {id: 'FILM', name: t`Film`, emoji: '🎬'},

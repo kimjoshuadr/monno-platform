@@ -12,7 +12,7 @@ import {t} from "@lingui/macro";
 import {useCancelOrder} from "../../../mutations/useCancelOrder.ts";
 import {showError, showSuccess} from "../../../utilites/notifications.tsx";
 import {useState} from "react";
-import {isOfflineOrder, isOrderRefundable} from "../../../utilites/orderHelper.ts";
+import {isOfflineOrder, isOrderRefundable, isPayRamOrder} from "../../../utilites/orderHelper.ts";
 
 interface RefundOrderModalProps extends GenericModalProps {
     orderId: IdParam,
@@ -50,9 +50,11 @@ export const CancelOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
         return <LoadingOverlay visible/>;
     }
 
+    const orderPublicId = order.public_id;
+
     return (
         <Modal
-            heading={t`Cancel Order ${order.public_id}`}
+            heading={t`Cancel Order ${orderPublicId}`}
             opened
             onClose={onClose}
         >
@@ -73,6 +75,8 @@ export const CancelOrderModal = ({onClose, orderId}: RefundOrderModalProps) => {
                     label={t`Also refund this order`}
                     description={isOfflineOrder(order)
                         ? t`The order will be marked as refunded. You will need to return the payment to the customer yourself.`
+                        : isPayRamOrder(order)
+                        ? t`The order will be marked as refunded. You will need to return the crypto payment to the customer directly.`
                         : t`The full order amount will be refunded to the customer's original payment method.`}
                 />
             )}

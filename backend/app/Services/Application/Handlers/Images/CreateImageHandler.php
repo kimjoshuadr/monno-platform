@@ -12,7 +12,9 @@ use HiEvents\Repository\Interfaces\ImageRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Images\DTO\CreateImageDTO;
 use HiEvents\Services\Domain\Image\ImageUploadService;
+use HiEvents\Services\Domain\Payment\PayRam\PayRamProjectProfileSyncService;
 use HiEvents\Services\Infrastructure\Image\Exception\CouldNotUploadImageException;
+use Throwable;
 
 class CreateImageHandler
 {
@@ -29,6 +31,7 @@ class CreateImageHandler
         private readonly OrganizerRepositoryInterface $organizerRepository,
         private readonly EventRepositoryInterface $eventRepository,
         private readonly ImageRepositoryInterface $imageRepository,
+        private readonly PayRamProjectProfileSyncService $payRamProfileSync,
     ) {}
 
     /**
@@ -57,13 +60,30 @@ class CreateImageHandler
 
         $this->deleteExistingImages($imageData, $entityType);
 
-        return $this->imageUploadService->upload(
+        $image = $this->imageUploadService->upload(
             image: $imageData->image,
             entityId: $imageData->entityId,
             entityType: $entityType,
             imageType: $imageData->imageType->name,
             accountId: $imageData->accountId,
         );
+
+        // The organizer's brand image is part of their PayRam project profile,
+        // and uploading it is a separate action from saving settings. Without
+        // this the new logo sits in Monno and never reaches the gateway.
+        // Best-effort: a gateway problem must never fail the upload.
+        if ($imageData->imageType === ImageType::ORGANIZER_LOGO && $entityType === OrganizerDomainObject::class) {
+            try {
+                $this->payRamProfileSync->syncForOrganizer($imageData->entityId);
+            } catch (Throwable $exception) {
+                logger()->warning('Could not sync the organizer logo to PayRam', [
+                    'organizer_id' => $imageData->entityId,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        return $image;
     }
 
     /**

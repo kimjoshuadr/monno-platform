@@ -337,9 +337,12 @@
       outline: none;
     }
 
-    // Force smaller size on mobile
+    // Force a comfortable size on mobile. This is the primary input of the
+    // whole verification flow, so it keeps Apple's 44pt / Android's 48dp
+    // touch minimum instead of the 36px the sm size would give.
     @media (max-width: 768px) {
-      width: 36px !important;
+      width: 44px !important;
+      height: 44px !important;
       font-size: 1rem !important;
     }
   }
@@ -353,6 +356,15 @@
     max-width: 100%;
     font-size: 0.75rem;
   }
+}
+
+// The server's reason for rejecting a code — expired, wrong, or spent. Mantine's
+// `error` prop only recolours the inputs, so this is what actually tells the
+// organizer what to do next.
+.pinError {
+  max-width: 320px;
+  margin: 0.5rem auto 0;
+  text-align: center;
 }
 
 // Form Elements

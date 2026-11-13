@@ -3,12 +3,14 @@
 namespace HiEvents\Services\Application\Handlers\EventSettings;
 
 use HiEvents\DomainObjects\Enums\CapacityChangeDirection;
+use HiEvents\DomainObjects\Enums\TicketingMode;
 use HiEvents\DomainObjects\EventSettingDomainObject;
 use HiEvents\Events\CapacityChangedEvent;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
 use HiEvents\Services\Application\Handlers\EventSettings\DTO\UpdateEventSettingsDTO;
 use HiEvents\Services\Infrastructure\HtmlPurifier\HtmlPurifierService;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class UpdateEventSettingsHandler
@@ -30,7 +32,9 @@ class UpdateEventSettingsHandler
 
         $wasAutoProcessEnabled = $existingSettings?->getWaitlistAutoProcess();
 
-        $result = $this->databaseManager->transaction(function () use ($settings) {
+        [$ticketingMode, $externalTicketUrl] = $this->resolveTicketingMode($settings, $existingSettings);
+
+        $result = $this->databaseManager->transaction(function () use ($settings, $ticketingMode, $externalTicketUrl) {
             $this->eventSettingsRepository->updateWhere(
                 attributes: [
                     'post_checkout_message' => $this->purifier->purify($settings->post_checkout_message),
@@ -107,6 +111,10 @@ class UpdateEventSettingsHandler
                     // Waitlist settings
                     'waitlist_auto_process' => $settings->waitlist_auto_process,
                     'waitlist_offer_timeout_minutes' => $settings->waitlist_offer_timeout_minutes,
+
+                    // External registration
+                    'ticketing_mode' => $ticketingMode,
+                    'external_ticket_url' => $externalTicketUrl,
                 ],
                 where: [
                     'event_id' => $settings->event_id,
@@ -127,5 +135,44 @@ class UpdateEventSettingsHandler
         }
 
         return $result;
+    }
+
+    /**
+     * Resolve the event's ticketing mode, keeping the stored URL when the request
+     * doesn't carry one (older clients PUT the full settings form without these
+     * fields, and the partial-update flow relies on the same fallback).
+     *
+     * @return array{0: string, 1: ?string}
+     *
+     * @throws ValidationException
+     */
+    private function resolveTicketingMode(
+        UpdateEventSettingsDTO $settings,
+        ?EventSettingDomainObject $existingSettings,
+    ): array {
+        $ticketingMode = $settings->ticketing_mode?->name
+            ?? $existingSettings?->getTicketingMode()
+            ?? TicketingMode::PLATFORM->name;
+
+        $externalTicketUrl = $settings->external_ticket_url !== null
+            ? trim($settings->external_ticket_url)
+            : $existingSettings?->getExternalTicketUrl();
+
+        if ($externalTicketUrl === '') {
+            $externalTicketUrl = null;
+        }
+
+        // Back on platform ticketing: don't keep a stale outbound link around.
+        if ($ticketingMode === TicketingMode::PLATFORM->name) {
+            $externalTicketUrl = null;
+        }
+
+        if ($ticketingMode === TicketingMode::EXTERNAL->name && $externalTicketUrl === null) {
+            throw ValidationException::withMessages([
+                'external_ticket_url' => __('An external ticket URL is required when tickets are sold externally.'),
+            ]);
+        }
+
+        return [$ticketingMode, $externalTicketUrl];
     }
 }

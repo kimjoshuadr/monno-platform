@@ -6,6 +6,7 @@ use HiEvents\DomainObjects\Generated\PromoCodeDomainObjectAbstract;
 use HiEvents\Http\Actions\Events\BasePublicEventAction;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\PromoCodeRepositoryInterface;
+use HiEvents\Services\Domain\Event\ExternalRegistrationService;
 use HiEvents\Services\Domain\PromoCode\PromoCodeUsageValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class GetPromoCodePublic extends BasePublicEventAction
         private readonly PromoCodeRepositoryInterface $promoCodeRepository,
         private readonly PromoCodeUsageValidationService $promoCodeUsageValidationService,
         private readonly EventRepositoryInterface $eventRepository,
+        private readonly ExternalRegistrationService $externalRegistrationService,
     ) {}
 
     public function __invoke(int $eventId, string $promoCode, Request $request): Response|JsonResponse
@@ -25,6 +27,12 @@ class GetPromoCodePublic extends BasePublicEventAction
 
         if (! $this->canUserViewEvent($event)) {
             return $this->notFoundResponse();
+        }
+
+        $externalSettings = $this->externalRegistrationService->getEventSettings($eventId);
+
+        if ($externalSettings?->isTicketingExternal()) {
+            return $this->externalTicketingResponse($externalSettings);
         }
 
         $promoCode = $this->promoCodeRepository->findFirstWhere([

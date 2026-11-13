@@ -16,6 +16,7 @@ use HiEvents\DomainObjects\LocationDomainObject;
 use HiEvents\DomainObjects\OrderDomainObject;
 use HiEvents\DomainObjects\OrderItemDomainObject;
 use HiEvents\DomainObjects\OrganizerDomainObject;
+use HiEvents\DomainObjects\PayramPaymentDomainObject;
 use HiEvents\DomainObjects\ProductDomainObject;
 use HiEvents\DomainObjects\ProductPriceDomainObject;
 use HiEvents\DomainObjects\Status\OrderStatus;
@@ -114,7 +115,8 @@ class GetOrderPublicHandler
                         name: 'event_occurrence',
                     ),
                 ],
-            ));
+            ))
+            ->loadRelation(new Relationship(domainObject: PayramPaymentDomainObject::class, name: 'payram_payment'));
 
         if ($getOrderData->includeEventInResponse) {
             $orderQuery->loadRelation(new Relationship(

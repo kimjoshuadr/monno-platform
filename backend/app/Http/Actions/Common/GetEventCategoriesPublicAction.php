@@ -18,7 +18,7 @@ class GetEventCategoriesPublicAction extends BaseAction
         EventCategory::FESTIVAL,
         EventCategory::SEASONAL,
         EventCategory::MUSIC,
-        EventCategory::SPORTS,
+        EventCategory::FITNESS,
         EventCategory::COMEDY,
         EventCategory::THEATER,
         EventCategory::FILM,

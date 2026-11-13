@@ -44,9 +44,11 @@ test.describe('event square image', () => {
         await expect(tile).toHaveAttribute('src', /\/event_cover\//);
         await expect(tile).toHaveAttribute('src', cover.url);
 
-        // The cover keeps its own jobs: social previews and the management/card payload.
-        await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', cover.url);
-        await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', cover.url);
+        // Social previews are now the branded OG card, which composes the cover;
+        // the cover itself still reaches the management payload below.
+        const ogCard = new RegExp(`/public/og/event/${event.eventId}$`);
+        await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', ogCard);
+        await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', ogCard);
 
         const response = await authedPage.request.get(`/api/events/${event.eventId}`, {
             headers: { Authorization: `Bearer ${account.token}`, Accept: 'application/json' },
@@ -121,6 +123,10 @@ test.describe('event square image', () => {
 
         await page.goto(`${BASE_URL}/event/${event.eventId}/${event.slug}`);
         await page.waitForLoadState('networkidle');
-        await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', coverUrl);
+        // The cover feeds the branded OG card rather than being og:image itself.
+        await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+            'content',
+            new RegExp(`/public/og/event/${event.eventId}$`),
+        );
     });
 });
