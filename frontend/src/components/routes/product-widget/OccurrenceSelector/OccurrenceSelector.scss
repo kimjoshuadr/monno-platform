@@ -164,7 +164,9 @@
 }
 
 .hi-slot-header-location-link {
-  color: inherit;
+  /* The muted 78% header colour this used to inherit fails WCAG on both
+     grounds; read the palette's link token instead (contrast-corrected). */
+  color: var(--hi-link-color, inherit);
   text-decoration: underline;
   text-underline-offset: 2px;
 

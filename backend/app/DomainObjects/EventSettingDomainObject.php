@@ -2,8 +2,16 @@
 
 namespace HiEvents\DomainObjects;
 
+use HiEvents\DomainObjects\Enums\TicketingMode;
+
 class EventSettingDomainObject extends Generated\EventSettingDomainObjectAbstract
 {
+    public function isTicketingExternal(): bool
+    {
+        return $this->getTicketingMode() === TicketingMode::EXTERNAL->name
+            && ! empty($this->getExternalTicketUrl());
+    }
+
     /**
      * @todo This should not be here.
      */

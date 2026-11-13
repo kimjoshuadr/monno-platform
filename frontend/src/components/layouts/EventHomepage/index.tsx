@@ -39,6 +39,7 @@ import {ensureHomepageFontLoaded} from "../../../utilites/fontLoader.ts";
 import {ShareComponent} from "../../common/ShareIcon";
 import {EventDateRange} from "../../common/EventDateRange";
 import {CalendarOptionsPopover} from "../../common/CalendarOptionsPopover";
+import {getOrganizerPalette, getInitials} from "../../../utilites/imageFallbacks.ts";
 import {isDateInPast} from "../../../utilites/dates.ts";
 import {formatCurrency} from "../../../utilites/currency.ts";
 import {UserGeneratedContent} from "../../common/UserGeneratedContent";
@@ -191,10 +192,18 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
         })) : [];
 
     const eventHasEnded = event.lifecycle_status === EventLifecycleStatus.ENDED;
+    const isExternalTicketing = event.settings?.ticketing_mode === 'EXTERNAL'
+        && !!event.settings?.external_ticket_url;
 
     const getStatusBadge = () => {
         if (eventHasEnded) {
             return {text: t`Sales ended`};
+        }
+
+        // Products are kept for when the organizer switches back, but they are
+        // not on sale here — never guess sold-out from them in external mode.
+        if (isExternalTicketing) {
+            return null;
         }
 
         const products = event.products || event.product_categories?.flatMap(c => c.products || []) || [];
@@ -313,8 +322,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                         className={classes.organizerPillAvatar}
                                                     />
                                                 ) : (
-                                                    <span className={classes.organizerPillAvatarPlaceholder}>
-                                                        {organizer.name.charAt(0).toUpperCase()}
+                                                    <span
+                                                        className={classes.organizerPillAvatarPlaceholder}
+                                                        style={{background: getOrganizerPalette(organizer.name).gradient}}
+                                                    >
+                                                        {getInitials(organizer.name)}
                                                     </span>
                                                 )}
                                                 <span className={classes.organizerPillName}>
@@ -330,8 +342,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                         className={classes.organizerPillAvatar}
                                                     />
                                                 ) : (
-                                                    <span className={classes.organizerPillAvatarPlaceholder}>
-                                                        {organizer?.name?.charAt(0).toUpperCase() || '?'}
+                                                    <span
+                                                        className={classes.organizerPillAvatarPlaceholder}
+                                                        style={{background: getOrganizerPalette(organizer?.name || '').gradient}}
+                                                    >
+                                                        {getInitials(organizer?.name)}
                                                     </span>
                                                 )}
                                                 <span className={classes.organizerPillName}>
@@ -604,8 +619,11 @@ const EventHomepage = ({...loaderData}: EventHomepageProps) => {
                                                 className={classes.organizerAvatar}
                                             />
                                         ) : (
-                                            <div className={classes.organizerAvatarPlaceholder}>
-                                                {organizer.name.charAt(0).toUpperCase()}
+                                            <div
+                                                className={classes.organizerAvatarPlaceholder}
+                                                style={{background: getOrganizerPalette(organizer.name).gradient}}
+                                            >
+                                                {getInitials(organizer.name)}
                                             </div>
                                         )}
                                         <div className={classes.organizerContent}>

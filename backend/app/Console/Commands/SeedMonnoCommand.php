@@ -54,7 +54,7 @@ class SeedMonnoCommand extends Command
         {--force : Skip the confirmation prompt}
         {--keep : Do not wipe existing events, organizers and images first}';
 
-    protected $description = 'Seed realistic monno organizer accounts and LIVE events (one per category) into the database, via the real handlers.';
+    protected $description = 'Seed realistic monno organizer accounts and LIVE events (two or more per category) into the database, via the real handlers.';
 
     private const PASSWORD = 'MonnoPass123!';
 
@@ -69,8 +69,8 @@ class SeedMonnoCommand extends Command
         CreateEventImageHandler $createEventImage,
         DatabaseManager $db,
     ): int {
-        if (app()->environment('production')) {
-            $this->error('Refusing to seed in production.');
+        if (app()->environment('production') && ! $this->option('force')) {
+            $this->error('Refusing to seed in production without --force.');
 
             return self::FAILURE;
         }
@@ -88,6 +88,7 @@ class SeedMonnoCommand extends Command
         try {
             $owners = $this->seedOrganizers($createAccount, $createOrganizer, $createImage, $db);
             $seeded = $this->seedEvents($ctx, $createEventImage, $owners);
+            $this->call('tv8:seed', ['--force' => true]);
         } catch (Throwable $e) {
             $this->error('Seeding failed: '.$e->getMessage());
             $this->line($e->getFile().':'.$e->getLine());
@@ -308,13 +309,21 @@ class SeedMonnoCommand extends Command
         }
     }
 
-    /** Where the site's event photography lives (the seed reuses it). */
+    /** Where the curated cover photography lives. */
     private function imagesPath(): string
     {
         $configured = env('MONNO_IMAGES_PATH');
 
         if (is_string($configured) && $configured !== '') {
             return rtrim($configured, '/');
+        }
+
+        // The cover set ships with the app, so the seed works anywhere — including
+        // a container that has no checkout of the website repo next to it.
+        $bundled = resource_path('demo/monno');
+
+        if (is_dir($bundled)) {
+            return $bundled;
         }
 
         return dirname(base_path(), 2).'/monno/public/images';

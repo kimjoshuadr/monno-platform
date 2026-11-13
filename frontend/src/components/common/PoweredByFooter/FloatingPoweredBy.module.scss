@@ -34,6 +34,8 @@
     a {
         text-decoration: none;
         font-weight: 600;
-        color: var(--checkout-accent, var(--mantine-primary-color-filled));
+        /* The checkout's own link token first (it is contrast-corrected for the
+           checkout ground), then the embed palette's, then the app accent. */
+        color: var(--checkout-link, var(--checkout-accent, var(--e-link, var(--mantine-primary-color-filled))));
     }
 }

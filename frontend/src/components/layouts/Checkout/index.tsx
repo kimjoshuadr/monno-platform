@@ -113,15 +113,58 @@ const Checkout = () => {
         navigate(`/event/${event?.id}/${event?.slug}`);
     };
 
+    const handleAbandonConfirm = async () => {
+        setIsAbandoning(true);
+        try {
+            await abandonOrderMutation.mutateAsync({
+                eventId: Number(eventId),
+                orderShortId: String(orderShortId),
+            });
+        } catch (error) {
+            showError(t`Failed to abandon order. Please try again.`);
+        } finally {
+            setShowAbandonDialog(false);
+            showInfo(t`Your order has been cancelled.`);
+
+            if (pendingClose) {
+                setPendingClose(false);
+                closeModal();
+            } else if (blocker.state === 'blocked') {
+                blocker.proceed();
+            } else if (pendingNavigation) {
+                navigate(pendingNavigation);
+            }
+
+            setPendingNavigation(null);
+            setIsAbandoning(false);
+        }
+    };
+
+    const handleAbandonCancel = () => {
+        if (blocker.state === 'blocked') {
+            blocker.reset();
+        }
+        setShowAbandonDialog(false);
+        setPendingNavigation(null);
+        setPendingClose(false);
+    };
+
     const handleRequestClose = useCallback(() => {
         postToParent('hievents:close-pending');
+        if (showAbandonDialog) {
+            // A second close request while the abandon dialog is open means
+            // "yes, really close" — confirm the abandon, which then closes.
+            setPendingClose(true);
+            handleAbandonConfirm();
+            return;
+        }
         if (isOrderReservedAndNotExpired) {
             setPendingClose(true);
             setShowAbandonDialog(true);
         } else {
             closeModal();
         }
-    }, [postToParent, closeModal, isOrderReservedAndNotExpired]);
+    }, [postToParent, closeModal, isOrderReservedAndNotExpired, showAbandonDialog, handleAbandonConfirm]);
 
     useEffect(() => {
         if (!isModal) return;
@@ -198,42 +241,6 @@ const Checkout = () => {
             }
         );
     }
-
-    const handleAbandonConfirm = async () => {
-        setIsAbandoning(true);
-        try {
-            await abandonOrderMutation.mutateAsync({
-                eventId: Number(eventId),
-                orderShortId: String(orderShortId),
-            });
-        } catch (error) {
-            showError(t`Failed to abandon order. Please try again.`);
-        } finally {
-            setShowAbandonDialog(false);
-            showInfo(t`Your order has been cancelled.`);
-
-            if (pendingClose) {
-                setPendingClose(false);
-                closeModal();
-            } else if (blocker.state === 'blocked') {
-                blocker.proceed();
-            } else if (pendingNavigation) {
-                navigate(pendingNavigation);
-            }
-
-            setPendingNavigation(null);
-            setIsAbandoning(false);
-        }
-    };
-
-    const handleAbandonCancel = () => {
-        if (blocker.state === 'blocked') {
-            blocker.reset();
-        }
-        setShowAbandonDialog(false);
-        setPendingNavigation(null);
-        setPendingClose(false);
-    };
 
     const handleEventHomepageClick = (e: React.MouseEvent) => {
         if (isOrderReservedAndNotExpired && event) {

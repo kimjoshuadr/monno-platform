@@ -5,6 +5,7 @@ namespace HiEvents\Http;
 use HiEvents\Http\Middleware\Authenticate;
 use HiEvents\Http\Middleware\EncryptCookies;
 use HiEvents\Http\Middleware\EnsureAccountIsNotPendingDeletion;
+use HiEvents\Http\Middleware\EnsureOrganizerEmailIsVerified;
 use HiEvents\Http\Middleware\HandleDeprecatedTimezones;
 use HiEvents\Http\Middleware\LogImpersonationMiddleware;
 use HiEvents\Http\Middleware\PreventRequestForgery;
@@ -94,5 +95,6 @@ class Kernel extends HttpKernel
         'password.confirm' => RequirePassword::class,
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
+        'email.verified' => EnsureOrganizerEmailIsVerified::class,
     ];
 }

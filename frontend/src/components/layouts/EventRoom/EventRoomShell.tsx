@@ -4,7 +4,7 @@ import {useEffect, ReactNode} from "react";
 import {Event} from "../../../types.ts";
 import {EventDocumentHead} from "../../common/EventDocumentHead";
 import {StatusToggle} from "../../common/StatusToggle";
-import {computeThemeVariables, validateThemeSettings} from "../../../utilites/themeUtils.ts";
+import {computeThemeVariables, hasMediaBackground, validateThemeSettings} from "../../../utilites/themeUtils.ts";
 import {ensureHomepageFontLoaded} from "../../../utilites/fontLoader.ts";
 import {useOrganizerTrackingPixels} from "../../../hooks/useOrganizerTrackingPixels";
 import {hasActivePixels, trackPixelEvent} from "../../../utilites/trackingPixels";
@@ -28,7 +28,9 @@ export const EventRoomShell = ({
     promoCodeValid?: boolean;
     initialOccurrenceId?: number | null;
 }) => {
-    const themeSettings = validateThemeSettings(event.settings?.homepage_theme_settings);
+    const configured = validateThemeSettings(event.settings?.homepage_theme_settings);
+    // Text sits on the image, so a media background always takes the dark palette.
+    const themeSettings = hasMediaBackground(configured) ? {...configured, mode: 'dark' as const} : configured;
     const cssVars = computeThemeVariables(themeSettings);
     const organizer = event.organizer;
 

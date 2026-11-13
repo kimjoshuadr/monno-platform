@@ -1,21 +1,28 @@
 /* eslint-disable lingui/no-unlocalized-strings */
 import {Helmet} from "react-helmet-async";
 import {Organizer} from "../../../types";
-import {organizerHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {ogImageUrl, organizerHomepageUrl, websiteOrganizerUrl} from "../../../utilites/urlHelper.ts";
 
 interface OrganizerDocumentHeadProps {
     organizer: Organizer;
+    /**
+     * Whether the website carries a room for this organizer yet. The website
+     * only lists organizers with a LIVE event, so before then there is nothing
+     * to point a canonical at and this app's own page is the only copy.
+     */
+    hasPublicPage?: boolean;
 }
 
-export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) => {
+export const OrganizerDocumentHead = ({organizer, hasPublicPage = true}: OrganizerDocumentHeadProps) => {
     const organizerSettings = organizer.settings;
     const title = organizerSettings?.seo_title || `${organizer.name} - Events`;
     const description = organizerSettings?.seo_description || `Discover upcoming events by ${organizer.name}.`;
     const keywords = organizerSettings?.seo_keywords || `${organizer.name}, events, tickets, concerts, sell tickets online`;
     const logoImage = organizer.images?.find(img => img.type === 'ORGANIZER_LOGO')?.url;
-    const coverImage = organizer.images?.find(img => img.type === 'ORGANIZER_COVER')?.url;
-    const image = coverImage || logoImage;
-    const url = organizerHomepageUrl(organizer);
+    const image = ogImageUrl('organizer', organizer.id);
+    // The website is the canonical home once it has a room for this organizer;
+    // until it does, this page is the only copy and points at itself.
+    const url = hasPublicPage ? websiteOrganizerUrl(organizer) : organizerHomepageUrl(organizer);
 
     const structuredAddress = organizer.location?.structured_address;
     const address = structuredAddress ? {
@@ -80,8 +87,8 @@ export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) =
         }
     });
 
-    const allowIndexing = organizerSettings?.allow_search_engine_indexing !== false;
-
+    // This app is the ticket surface; the website is the canonical, indexable
+    // copy, so nothing here is indexed even when the organizer allows indexing.
     return (
         <Helmet>
             <title>{title}</title>
@@ -99,7 +106,7 @@ export const OrganizerDocumentHead = ({organizer}: OrganizerDocumentHeadProps) =
             {image && <meta name="twitter:image" content={image}/>}
             <meta name="twitter:card" content="summary_large_image"/>
 
-            <meta name="robots" content={allowIndexing ? "index, follow" : "noindex, nofollow"}/>
+            <meta name="robots" content="noindex, follow"/>
 
             <link rel="canonical" href={url}/>
 

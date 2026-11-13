@@ -3,254 +3,171 @@
 namespace Tests\Unit\Services\Infrastructure\User;
 
 use HiEvents\Services\Infrastructure\User\EmailVerificationCodeService;
-use Illuminate\Cache\Repository;
-use Mockery;
-use Mockery\MockInterface;
 use Tests\TestCase;
 
+/**
+ * Driven against the real array cache store rather than a mocked Repository:
+ * the failure this suite exists to catch was a type mismatch between the stored
+ * value and the submitted value, which a hand-written mock happily hides by
+ * returning strings from both sides.
+ */
 class EmailVerificationCodeServiceTest extends TestCase
 {
     private EmailVerificationCodeService $service;
-
-    private MockInterface|Repository $cacheRepository;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->cacheRepository = Mockery::mock(Repository::class);
-        $this->service = new EmailVerificationCodeService($this->cacheRepository);
+        $this->service = new EmailVerificationCodeService(app('cache')->store('array'));
     }
 
-    protected function tearDown(): void
+    public function test_store_and_return_code_returns_a_five_digit_string(): void
     {
-        Mockery::close();
-        parent::tearDown();
+        $code = $this->service->storeAndReturnCode('test@example.com');
+
+        $this->assertIsString($code);
+        $this->assertMatchesRegularExpression('/^\d{5}$/', $code);
+        $this->assertGreaterThanOrEqual(10000, (int) $code);
+        $this->assertLessThanOrEqual(99999, (int) $code);
     }
 
-    public function test_store_and_return_code(): void
+    public function test_a_generated_code_is_accepted_verbatim(): void
     {
-        // Given
         $email = 'test@example.com';
-        $expectedCacheKey = 'email_verification_code:'.$email;
-
-        // Expect
-        $this->cacheRepository
-            ->shouldReceive('put')
-            ->once()
-            ->withArgs(function ($key, $code, $expiry) use ($expectedCacheKey) {
-                return $key === $expectedCacheKey
-                    && $code >= 10000
-                    && $code <= 99999
-                    && $expiry->greaterThan(now()->addMinutes(29))
-                    && $expiry->lessThanOrEqualTo(now()->addMinutes(30)->addSecond());
-            });
-
-        // When
         $code = $this->service->storeAndReturnCode($email);
 
-        // Then
-        $this->assertIsInt($code);
-        $this->assertGreaterThanOrEqual(10000, $code);
-        $this->assertLessThanOrEqual(99999, $code);
+        // The regression: the code was cached as an int while the request
+        // carries a string, and `!==` rejected every valid submission.
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_OK,
+            $this->service->attempt($email, $code),
+        );
+
+        // Consuming it must not leave it reusable.
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_EXPIRED,
+            $this->service->attempt($email, $code),
+        );
     }
 
-    public function test_verify_code_with_valid_code(): void
+    public function test_an_integer_valued_cached_code_is_accepted(): void
     {
-        // Given
+        // A cache backend that round-trips the value back as an int must not
+        // re-introduce the mismatch, either.
+        app('cache')->store('array')->put('email_verification_code:test@example.com', 12345, now()->addMinutes(30));
+
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_OK,
+            $this->service->attempt('test@example.com', '12345'),
+        );
+    }
+
+    public function test_a_wrong_code_is_rejected_and_counts_an_attempt(): void
+    {
         $email = 'test@example.com';
-        $validCode = '12345';
-        $expectedCacheKey = 'email_verification_code:'.$email;
+        $code = $this->service->storeAndReturnCode($email);
 
-        // Expect
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with($expectedCacheKey)
-            ->andReturn($validCode);
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_MISMATCH,
+            $this->service->attempt($email, '00000'),
+        );
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_MISMATCH,
+            $this->service->attempt($email, '00000'),
+        );
 
-        $this->cacheRepository
-            ->shouldReceive('forget')
-            ->once()
-            ->with($expectedCacheKey);
-
-        // When
-        $result = $this->service->verifyCode($email, $validCode);
-
-        // Then
-        $this->assertTrue($result);
+        // Two misses must not lock out the real code early.
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_OK,
+            $this->service->attempt($email, $code),
+        );
     }
 
-    public function test_verify_code_with_invalid_code(): void
+    public function test_the_code_is_burned_once_the_guess_budget_is_spent(): void
     {
-        // Given
         $email = 'test@example.com';
-        $storedCode = '12345';
-        $providedCode = '54321';
-        $expectedCacheKey = 'email_verification_code:'.$email;
+        $code = $this->service->storeAndReturnCode($email);
+        $maxAttempts = (int) config('app.email_verification_max_attempts');
 
-        // Expect
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with($expectedCacheKey)
-            ->andReturn($storedCode);
-
-        $this->cacheRepository
-            ->shouldNotReceive('forget');
-
-        // When
-        $result = $this->service->verifyCode($email, $providedCode);
-
-        // Then
-        $this->assertFalse($result);
-    }
-
-    public function test_verify_code_with_no_stored_code(): void
-    {
-        // Given
-        $email = 'test@example.com';
-        $providedCode = '12345';
-        $expectedCacheKey = 'email_verification_code:'.$email;
-
-        // Expect
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with($expectedCacheKey)
-            ->andReturn(null);
-
-        $this->cacheRepository
-            ->shouldNotReceive('forget');
-
-        // When
-        $result = $this->service->verifyCode($email, $providedCode);
-
-        // Then
-        $this->assertFalse($result);
-    }
-
-    public function test_multiple_verification_codes_for_different_emails(): void
-    {
-        // Given
-        $email1 = 'user1@example.com';
-        $email2 = 'user2@example.com';
-
-        // Expect - Store codes for two different emails
-        $this->cacheRepository
-            ->shouldReceive('put')
-            ->once()
-            ->withArgs(function ($key, $code, $expiry) use ($email1) {
-                return $key === 'email_verification_code:'.$email1;
-            });
-
-        $this->cacheRepository
-            ->shouldReceive('put')
-            ->once()
-            ->withArgs(function ($key, $code, $expiry) use ($email2) {
-                return $key === 'email_verification_code:'.$email2;
-            });
-
-        // When
-        $code1 = $this->service->storeAndReturnCode($email1);
-        $code2 = $this->service->storeAndReturnCode($email2);
-
-        // Then
-        $this->assertIsInt($code1);
-        $this->assertIsInt($code2);
-        // Codes might be the same by chance, but they're generated independently
-    }
-
-    public function test_verify_code_is_case_insensitive_for_email(): void
-    {
-        // Given
-        $emailLower = 'test@example.com';
-        $emailUpper = 'TEST@EXAMPLE.COM';
-        $code = '12345';
-
-        // Note: The service uses emails as-is, so case sensitivity depends on implementation
-        // This test documents the current behavior
-
-        // Expect - Different cache keys for different cases
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with('email_verification_code:'.$emailUpper)
-            ->andReturn(null);
-
-        // When
-        $result = $this->service->verifyCode($emailUpper, $code);
-
-        // Then
-        $this->assertFalse($result);
-    }
-
-    public function test_store_and_return_code_generates_unique_codes_on_multiple_calls(): void
-    {
-        // Given
-        $email = 'test@example.com';
-        $generatedCodes = [];
-
-        // Expect
-        $this->cacheRepository
-            ->shouldReceive('put')
-            ->times(10)
-            ->withArgs(function ($key, $code) use (&$generatedCodes) {
-                $generatedCodes[] = $code;
-
-                return true;
-            });
-
-        // When
-        for ($i = 0; $i < 10; $i++) {
-            $this->service->storeAndReturnCode($email);
+        for ($i = 1; $i <= $maxAttempts; $i++) {
+            $this->assertSame(EmailVerificationCodeService::OUTCOME_MISMATCH, $this->service->attempt($email, '00000'));
         }
 
-        // Then
-        // While codes could theoretically be the same, it's very unlikely
-        // At minimum, all codes should be in the valid range
-        foreach ($generatedCodes as $code) {
-            $this->assertGreaterThanOrEqual(10000, $code);
-            $this->assertLessThanOrEqual(99999, $code);
-        }
+        // Out of budget: even the genuine code is refused now...
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_EXHAUSTED,
+            $this->service->attempt($email, $code),
+        );
+
+        // ...and the code is deleted rather than left in cache for a patient
+        // brute force, so what follows reads as expired, not as a live target.
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_EXPIRED,
+            $this->service->attempt($email, $code),
+        );
     }
 
-    public function test_verify_code_only_works_once(): void
+    public function test_an_expired_code_reads_as_expired(): void
     {
-        // Given
         $email = 'test@example.com';
-        $code = '12345';
-        $cacheKey = 'email_verification_code:'.$email;
+        $code = $this->service->storeAndReturnCode($email);
 
-        // First verification attempt
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with($cacheKey)
-            ->andReturn($code);
+        $this->travel(((int) config('app.email_verification_code_ttl_minutes')) + 1)->minutes();
 
-        $this->cacheRepository
-            ->shouldReceive('forget')
-            ->once()
-            ->with($cacheKey);
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_EXPIRED,
+            $this->service->attempt($email, $code),
+        );
+    }
 
-        // When
-        $firstAttempt = $this->service->verifyCode($email, $code);
+    public function test_a_code_that_was_never_issued_reads_as_expired(): void
+    {
+        $this->assertSame(
+            EmailVerificationCodeService::OUTCOME_EXPIRED,
+            $this->service->attempt('nobody@example.com', '12345'),
+        );
+    }
 
-        // Then
-        $this->assertTrue($firstAttempt);
+    public function test_a_consumed_code_cannot_be_replayed(): void
+    {
+        $email = 'test@example.com';
+        $code = $this->service->storeAndReturnCode($email);
 
-        // Second verification attempt
-        $this->cacheRepository
-            ->shouldReceive('get')
-            ->once()
-            ->with($cacheKey)
-            ->andReturn(null);
+        $this->assertSame(EmailVerificationCodeService::OUTCOME_OK, $this->service->attempt($email, $code));
+        $this->assertSame(EmailVerificationCodeService::OUTCOME_EXPIRED, $this->service->attempt($email, $code));
+    }
 
-        // When
-        $secondAttempt = $this->service->verifyCode($email, $code);
+    public function test_storing_a_new_code_resets_the_guess_budget(): void
+    {
+        $email = 'test@example.com';
+        $this->service->storeAndReturnCode($email);
 
-        // Then
-        $this->assertFalse($secondAttempt);
+        for ($i = 1; $i <= (int) config('app.email_verification_max_attempts'); $i++) {
+            $this->service->attempt($email, '00000');
+        }
+
+        $newCode = $this->service->storeAndReturnCode($email);
+
+        $this->assertSame(EmailVerificationCodeService::OUTCOME_OK, $this->service->attempt($email, $newCode));
+    }
+
+    public function test_codes_for_different_addresses_are_independent(): void
+    {
+        $codeOne = $this->service->storeAndReturnCode('one@example.com');
+        $codeTwo = $this->service->storeAndReturnCode('two@example.com');
+
+        $this->assertSame(EmailVerificationCodeService::OUTCOME_OK, $this->service->attempt('one@example.com', $codeOne));
+        // Consuming one address's code must not touch the other's.
+        $this->assertSame(EmailVerificationCodeService::OUTCOME_OK, $this->service->attempt('two@example.com', $codeTwo));
+    }
+
+    public function test_verify_code_is_a_pass_fail_view_of_attempt(): void
+    {
+        $email = 'test@example.com';
+        $code = $this->service->storeAndReturnCode($email);
+
+        $this->assertFalse($this->service->verifyCode($email, '99999'));
+        $this->assertTrue($this->service->verifyCode($email, $code));
     }
 }

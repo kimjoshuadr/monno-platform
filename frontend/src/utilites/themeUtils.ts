@@ -275,3 +275,8 @@ export function hasContrastIssues(settings: HomepageThemeSettings): boolean {
 
     return false;
 }
+
+/** True when a whole-page image/video background is painted behind the content (Hero band excluded). */
+export const hasMediaBackground = (theme?: Partial<HomepageThemeSettings> | null): boolean =>
+    theme?.background_placement !== 'HERO' && ((theme?.background_type === 'IMAGE' && Boolean(theme.background_image_url)) ||
+    (theme?.background_type === 'VIDEO' && Boolean(theme.background_video_url)));

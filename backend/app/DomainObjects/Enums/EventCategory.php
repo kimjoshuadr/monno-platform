@@ -32,7 +32,7 @@ enum EventCategory: string
     case WORKSHOP = 'WORKSHOP';
 
     // Leisure & Nightlife
-    case SPORTS = 'SPORTS';
+    case FITNESS = 'FITNESS';
     case FESTIVAL = 'FESTIVAL';
     case SEASONAL = 'SEASONAL';
     case NIGHTLIFE = 'NIGHTLIFE';
@@ -47,7 +47,7 @@ enum EventCategory: string
             self::SPIRITUALITY, self::OUTDOORS, self::TOURS, self::CHARITY => 'Community',
             self::MUSIC, self::ART, self::COMEDY, self::THEATER, self::FILM, self::DANCE => 'Creative & Culture',
             self::BUSINESS, self::TECH, self::EDUCATION, self::WORKSHOP => 'Professional & Learning',
-            self::SPORTS, self::FESTIVAL, self::SEASONAL, self::NIGHTLIFE => 'Leisure & Nightlife',
+            self::FITNESS, self::FESTIVAL, self::SEASONAL, self::NIGHTLIFE => 'Leisure & Nightlife',
             self::OTHER => 'Other',
         };
     }
@@ -74,7 +74,7 @@ enum EventCategory: string
             self::TECH => __('Tech'),
             self::EDUCATION => __('Education'),
             self::WORKSHOP => __('Workshop'),
-            self::SPORTS => __('Sports'),
+            self::FITNESS => __('Fitness'),
             self::FESTIVAL => __('Festival'),
             self::SEASONAL => __('Seasonal'),
             self::NIGHTLIFE => __('Nightlife'),
@@ -115,7 +115,7 @@ enum EventCategory: string
             self::TECH => '💻',
             self::EDUCATION => '📚',
             self::WORKSHOP => '🛠️',
-            self::SPORTS => '⚽',
+            self::FITNESS => '💪',
             self::FESTIVAL => '🎪',
             self::SEASONAL => '🎊',
             self::NIGHTLIFE => '🪩',

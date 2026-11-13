@@ -71,6 +71,8 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     final public const SHOW_AVAILABLE_OCCURRENCE_CAPACITY = 'show_available_occurrence_capacity';
     final public const HIDE_SOLD_OUT_OCCURRENCES = 'hide_sold_out_occurrences';
     final public const GET_TICKETS_BUTTON_TEXT = 'get_tickets_button_text';
+    final public const TICKETING_MODE = 'ticketing_mode';
+    final public const EXTERNAL_TICKET_URL = 'external_ticket_url';
 
     protected int $id;
     protected int $event_id;
@@ -133,6 +135,8 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     protected bool $show_available_occurrence_capacity = false;
     protected bool $hide_sold_out_occurrences = false;
     protected ?string $get_tickets_button_text = null;
+    protected string $ticketing_mode = 'PLATFORM';
+    protected ?string $external_ticket_url = null;
 
     public function toArray(): array
     {
@@ -198,6 +202,8 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
                     'show_available_occurrence_capacity' => $this->show_available_occurrence_capacity ?? null,
                     'hide_sold_out_occurrences' => $this->hide_sold_out_occurrences ?? null,
                     'get_tickets_button_text' => $this->get_tickets_button_text ?? null,
+                    'ticketing_mode' => $this->ticketing_mode ?? null,
+                    'external_ticket_url' => $this->external_ticket_url ?? null,
                 ];
     }
 
@@ -871,5 +877,27 @@ abstract class EventSettingDomainObjectAbstract extends \HiEvents\DomainObjects\
     public function getGetTicketsButtonText(): ?string
     {
         return $this->get_tickets_button_text;
+    }
+
+    public function setTicketingMode(string $ticketing_mode): self
+    {
+        $this->ticketing_mode = $ticketing_mode;
+        return $this;
+    }
+
+    public function getTicketingMode(): string
+    {
+        return $this->ticketing_mode;
+    }
+
+    public function setExternalTicketUrl(?string $external_ticket_url): self
+    {
+        $this->external_ticket_url = $external_ticket_url;
+        return $this;
+    }
+
+    public function getExternalTicketUrl(): ?string
+    {
+        return $this->external_ticket_url;
     }
 }

@@ -55,6 +55,7 @@ export interface RefundOrderPayload {
     amount: number;
     notify_buyer: boolean;
     cancel_order: boolean;
+    refund_transaction_hash?: string;
 }
 
 export const orderClient = {
@@ -149,6 +150,29 @@ export const orderClientPublic = {
             public_key: string,
             stripe_platform?: string,
         }>(`events/${eventId}/order/${orderShortId}/stripe/payment_intent`);
+        return response.data;
+    },
+
+    createPayRamPayment: async (eventId: number, orderShortId: string) => {
+        const response = await publicApi.post<{
+            reference_id: string,
+            url: string,
+            amount_in_usd: number,
+            amount_in_usd_formatted: string,
+            ticket_amount_in_usd: number,
+            ticket_amount_in_usd_formatted: string,
+            payram_fee_usd: number,
+            payram_fee_usd_formatted: string,
+            fee_rate_bps: number,
+            fee_rate_percent: string,
+            /** @deprecated alias of payram_fee_usd, kept for older clients. */
+            platform_fee_usd: number,
+            platform_fee_usd_formatted: string,
+            order_amount: number,
+            order_currency: string,
+            fx_rate: number,
+            expires_at: string,
+        }>(`events/${eventId}/order/${orderShortId}/payram/payment`);
         return response.data;
     },
 

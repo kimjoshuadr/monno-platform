@@ -10,6 +10,7 @@ use HiEvents\DomainObjects\OrganizerDomainObject;
 use HiEvents\Models\Event;
 use HiEvents\Models\Organizer;
 use HiEvents\Services\Infrastructure\CurrencyConversion\CurrencyConversionClientInterface;
+use HiEvents\Services\Infrastructure\CurrencyConversion\KeylessCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\CurrencyConversion\NoOpCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\CurrencyConversion\OpenExchangeRatesCurrencyConversionClient;
 use HiEvents\Services\Infrastructure\Geo\GeoProviderInterface;
@@ -137,6 +138,16 @@ class AppServiceProvider extends ServiceProvider
                         apiKey: config('services.open_exchange_rates.app_id'),
                         cache: $this->app->make('cache.store'),
                         logger: $this->app->make('log')
+                    );
+                }
+
+                // Without a paid key, fall back to a keyless USD-based source so
+                // local amounts are never passed off as dollars.
+                if (config('services.currency.keyless_enabled', true)) {
+                    return new KeylessCurrencyConversionClient(
+                        baseUrl: config('services.currency.keyless_api_url'),
+                        cache: $this->app->make('cache.store'),
+                        logger: $this->app->make('log'),
                     );
                 }
 

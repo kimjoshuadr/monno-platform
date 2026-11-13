@@ -9,6 +9,7 @@ use HiEvents\Exceptions\RefundNotPossibleException;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\DTO\RefundOrderDTO;
 use HiEvents\Services\Application\Handlers\Order\Payment\Offline\RefundOfflineOrderHandler;
+use HiEvents\Services\Application\Handlers\Order\Payment\PayRam\RefundPayRamOrderHandler;
 use HiEvents\Services\Application\Handlers\Order\Payment\Stripe\RefundOrderHandler as RefundStripeOrderHandler;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Throwable;
@@ -19,6 +20,7 @@ class RefundOrderHandler
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly RefundStripeOrderHandler $refundStripeOrderHandler,
         private readonly RefundOfflineOrderHandler $refundOfflineOrderHandler,
+        private readonly RefundPayRamOrderHandler $refundPayRamOrderHandler,
     ) {}
 
     /**
@@ -39,8 +41,12 @@ class RefundOrderHandler
             ]));
         }
 
-        if ($order->getPaymentProvider() === PaymentProviders::OFFLINE->name) {
+        if ($order->getPaymentProvider() === PaymentProviders::OFFLINE->name || $order->getPaymentProvider() === PaymentProviders::OFFLINE->value) {
             return $this->refundOfflineOrderHandler->handle($refundOrderDTO);
+        }
+
+        if ($order->getPaymentProvider() === PaymentProviders::PAYRAM->name || $order->getPaymentProvider() === PaymentProviders::PAYRAM->value) {
+            return $this->refundPayRamOrderHandler->handle($refundOrderDTO);
         }
 
         return $this->refundStripeOrderHandler->handle($refundOrderDTO);
