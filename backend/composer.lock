@@ -3547,20 +3547,20 @@
         },
         {
             "name": "liquid/liquid",
-            "version": "1.4.44",
+            "version": "1.4.48",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kalimatas/php-liquid.git",
-                "reference": "1b74ad64001d21f27223849624f7aab0c379815a"
+                "reference": "fa83ee48fe4fa6346713c548adb161ed34b4fce5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kalimatas/php-liquid/zipball/1b74ad64001d21f27223849624f7aab0c379815a",
-                "reference": "1b74ad64001d21f27223849624f7aab0c379815a",
+                "url": "https://api.github.com/repos/kalimatas/php-liquid/zipball/fa83ee48fe4fa6346713c548adb161ed34b4fce5",
+                "reference": "fa83ee48fe4fa6346713c548adb161ed34b4fce5",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.4 || ^8.0"
+                "php": "^8.2"
             },
             "require-dev": {
                 "ergebnis/composer-normalize": ">=2.47",
@@ -3610,9 +3610,9 @@
             ],
             "support": {
                 "issues": "https://github.com/kalimatas/php-liquid/issues",
-                "source": "https://github.com/kalimatas/php-liquid/tree/1.4.44"
+                "source": "https://github.com/kalimatas/php-liquid/tree/1.4.48"
             },
-            "time": "2025-05-31T10:45:02+00:00"
+            "time": "2026-11-05T14:07:18+00:00"
         },
         {
             "name": "maatwebsite/excel",
