@@ -53,6 +53,9 @@ const ProductWidget = () => {
                 secondaryText: searchParams.get("SecondaryTextColor") || palette.accentText,
                 bodyBackground: searchParams.get("BackgroundColor") || palette.background,
             },
+            // Links in the event details (descriptions, maps, attribution) read
+            // this instead of the app ink, which vanishes on the dark ground.
+            link: palette.link,
             continueButtonText: searchParams.get("ContinueButtonText") || 'Continue',
             padding: searchParams.get("Padding") || '16px',
         };
@@ -104,7 +107,7 @@ const ProductWidget = () => {
             className={'full-height monno-embed-root'}
             data-theme={settings.theme}
             data-radius={settings.radius}
-            style={{backgroundColor: settings.colors.bodyBackground}}
+            style={{backgroundColor: settings.colors.bodyBackground, '--e-link': settings.link} as React.CSSProperties}
         >
             <SelectProducts
                 widgetMode={inModal ? 'normal' : 'embedded'}

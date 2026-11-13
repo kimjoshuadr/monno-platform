@@ -27,6 +27,30 @@ export const contrastRatio = (a: string, b: string): number => {
 export const textOn = (hex: string): string =>
     contrastRatio(hex, '#0b0b0c') >= contrastRatio(hex, '#ffffff') ? '#0b0b0c' : '#ffffff';
 
+const CHANNEL = /^#?([0-9a-f]{6})$/i;
+
+const mixHex = (a: string, b: string, t: number): string => {
+    const ma = CHANNEL.exec(a.trim());
+    const mb = CHANNEL.exec(b.trim());
+    if (!ma || !mb) return b;
+    const ch = (i: number) => Math.round(parseInt(ma[1].slice(i, i + 2), 16) * (1 - t) + parseInt(mb[1].slice(i, i + 2), 16) * t);
+    return `#${[0, 2, 4].map(ch).map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+};
+
+/**
+ * A link colour that reads as a link: the accent itself when it already clears
+ * WCAG AA for body text on the ground, else the accent mixed toward the
+ * theme's ink until it does (the ink alone as the last resort).
+ */
+export const readableLinkColor = (accent: string, ground: string, ink: string): string => {
+    if (contrastRatio(accent, ground) >= 4.5) return accent;
+    for (let step = 1; step <= 10; step++) {
+        const candidate = mixHex(accent, ink, step / 10);
+        if (contrastRatio(candidate, ground) >= 4.5) return candidate;
+    }
+    return ink;
+};
+
 export type EmbedTheme = 'light' | 'dark';
 
 export interface EmbedPalette {
@@ -37,6 +61,7 @@ export interface EmbedPalette {
     border: string;
     accent: string;
     accentText: string;
+    link: string;
 }
 
 /**
@@ -60,6 +85,7 @@ export const embedPalette = (theme: EmbedTheme, accent?: string | null): EmbedPa
         border: dark ? '#2e2e33' : '#e4e6ea',
         accent: usable,
         accentText: textOn(usable),
+        link: readableLinkColor(usable, ground, ink),
     };
 };
 

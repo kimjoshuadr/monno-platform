@@ -60,6 +60,7 @@ export const EmbedFrame = ({children}: { children: React.ReactNode }) => {
         '--e-border': palette.border,
         '--e-accent': palette.accent,
         '--e-accent-text': palette.accentText,
+        '--e-link': palette.link,
     } as React.CSSProperties;
 
     return (

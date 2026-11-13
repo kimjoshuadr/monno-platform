@@ -8,6 +8,10 @@
   --hi-accent: var(--widget-secondary-color, var(--hi-primary, #7b5db8));
   --hi-accent-contrast: var(--widget-secondary-text-color, #ffffff);
   --hi-outline-source: var(--widget-primary-color, var(--hi-text));
+  /* Detail links (descriptions, maps, attribution) follow the embed palette's
+     link colour — the app ink the global default resolves to is invisible on
+     the dark ground. */
+  --hi-link-color: var(--e-link, var(--hi-primary));
 
   --hi-card-bg: var(--widget-card-bg-color, color-mix(in srgb, var(--hi-text) 2%, var(--hi-bg)));
   --hi-border: var(--widget-border-color, color-mix(in srgb, var(--hi-outline-source) 30%, transparent));
