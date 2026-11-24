@@ -342,7 +342,7 @@ class GetPublicEventHandlerTest extends TestCase
                 m::on(static fn (array $where): bool => collect($where)->filter(
                     static fn ($condition): bool => $condition instanceof Closure
                 )->count() === 1
-                    && collect($where)->contains(
+                    && collect($where)->doesntContain(
                         static fn ($condition): bool => is_array($condition)
                             && ($condition[0] ?? null) === EventOccurrenceDomainObjectAbstract::START_DATE
                     )),
@@ -451,7 +451,7 @@ class GetPublicEventHandlerTest extends TestCase
         $this->assertTrue($result->getUpcomingOccurrencesSoldOut());
     }
 
-    public function test_handle_windows_recurring_occurrences_to_anchor_month_in_event_timezone(): void
+    public function test_handle_embeds_recurring_occurrences_across_months_without_month_bounds(): void
     {
         $data = new GetPublicEventDTO(eventId: 1, isAuthenticated: true, ipAddress: '127.0.0.1', promoCode: null);
         $event = (new EventDomainObject)
@@ -486,21 +486,18 @@ class GetPublicEventHandlerTest extends TestCase
 
         $result = $this->handler->handle($data);
 
-        $bounds = collect($capturedWindowWhere)
-            ->filter(static fn ($condition): bool => is_array($condition)
-                && ($condition[0] ?? null) === EventOccurrenceDomainObjectAbstract::START_DATE)
-            ->values();
-
-        $this->assertSame('>=', $bounds[0][1]);
-        $this->assertSame('2026-07-01 04:00:00', $bounds[0][2]);
-        $this->assertSame('<=', $bounds[1][1]);
-        $this->assertSame('2026-08-01 03:59:59', $bounds[1][2]);
+        // No month-window restriction: occurrences from every month are fetched.
+        $monthBounds = collect($capturedWindowWhere)->filter(
+            static fn ($condition): bool => is_array($condition)
+                && ($condition[0] ?? null) === EventOccurrenceDomainObjectAbstract::START_DATE
+        );
+        $this->assertSame(0, $monthBounds->count());
         $this->assertSame('2026-07', $result->getOccurrencesMonth());
         $this->assertSame('2026-08-01 02:00:00', $result->getNextOccurrenceStartDate());
         $this->assertSame('2027-06-30 22:00:00', $result->getLastOccurrenceStartDate());
     }
 
-    public function test_handle_anchors_window_on_deep_linked_occurrence_month(): void
+    public function test_handle_deep_links_occurrence_and_sets_its_month_without_window(): void
     {
         $linkedOccurrenceId = 42;
         $data = new GetPublicEventDTO(
@@ -546,13 +543,12 @@ class GetPublicEventHandlerTest extends TestCase
 
         $result = $this->handler->handle($data);
 
-        $bounds = collect($capturedWindowWhere)
-            ->filter(static fn ($condition): bool => is_array($condition)
-                && ($condition[0] ?? null) === EventOccurrenceDomainObjectAbstract::START_DATE)
-            ->values();
-
-        $this->assertSame('2027-03-01 00:00:00', $bounds[0][2]);
-        $this->assertSame('2027-03-31 23:59:59', $bounds[1][2]);
+        // No month-window restriction: the fetch is not scoped to one month.
+        $monthBounds = collect($capturedWindowWhere)->filter(
+            static fn ($condition): bool => is_array($condition)
+                && ($condition[0] ?? null) === EventOccurrenceDomainObjectAbstract::START_DATE
+        );
+        $this->assertSame(0, $monthBounds->count());
         $this->assertSame('2027-03', $result->getOccurrencesMonth());
         $this->assertSame('2026-08-02 10:00:00', $result->getNextOccurrenceStartDate());
         $this->assertTrue($result->getEventOccurrences()->contains(
