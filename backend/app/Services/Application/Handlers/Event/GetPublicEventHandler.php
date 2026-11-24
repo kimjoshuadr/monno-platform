@@ -141,13 +141,11 @@ class GetPublicEventHandler
             ->setTimezone($timezone)
             ->startOfMonth();
 
-        $monthWhere = [
-            ...$occurrenceWhere,
-            [EventOccurrenceDomainObjectAbstract::START_DATE, '>=', $anchorMonthStart->copy()->utc()->toDateTimeString()],
-            [EventOccurrenceDomainObjectAbstract::START_DATE, '<=', $anchorMonthStart->copy()->endOfMonth()->utc()->toDateTimeString()],
-        ];
-
-        $result = $this->fetchOccurrences($monthWhere, $verifiedOccurrence);
+        // Embed every upcoming occurrence so clients (e.g. the monno site's
+        // date picker) can render the full date list in one payload. The
+        // fetch is bounded by MAX_PUBLIC_OCCURRENCES; occurrences_month keeps
+        // pointing at the anchor month the platform widget pre-selects.
+        $result = $this->fetchOccurrences($occurrenceWhere, $verifiedOccurrence);
 
         $event->setEventOccurrences($result->occurrences);
         $event->setOccurrencesMonth($result->truncated ? null : $anchorMonthStart->format('Y-m'));
